@@ -1,2 +1,5 @@
-name: helm_lib
-version: 0.1.0
+apiVersion: v2
+type: library
+name: lib_helm
+version: 0.0.1
+description: "Helm utils template definitions for Deckhouse modules."
