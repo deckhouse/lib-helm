@@ -1,4 +1,4 @@
-name: Validate docs
+name: Check documentation was committed
 on: [push]
 
 jobs:
