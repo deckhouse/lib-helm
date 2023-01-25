@@ -18,6 +18,8 @@ package main
 
 import (
 	"bytes"
+	"flag"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -138,8 +140,8 @@ func parseFile(filename string) string {
 	return strings.Join(all, "\n")
 }
 
-func main() {
-	paths, err := filepath.Glob("charts/helm_lib/templates//*.tpl")
+func generateDocs(dirPattern string) string {
+	paths, err := filepath.Glob(dirPattern)
 	if err != nil {
 		panic(err)
 	}
@@ -160,8 +162,43 @@ func main() {
 		all = append(all, "# "+base, res)
 	}
 
-	a := strings.Join(all, "\n")
-	err = os.WriteFile("charts/helm_lib/README.md", []byte(a), 0o644)
+	return strings.Join(all, "\n")
+}
+
+func equalsDocs(newContent string, curFilePath string) bool {
+	var curContent string
+	curContentBytes, err := os.ReadFile(curFilePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error while read file %s: %s", curFilePath, err.Error())
+	} else {
+		curContent = string(curContentBytes)
+	}
+
+	return newContent == curContent
+}
+
+const outputFile = "charts/helm_lib/README.md"
+
+func main() {
+	var onlyDiff bool
+	flag.BoolVar(&onlyDiff, "diff", false, "Returns non-zero code if current readme file not equal with generated")
+	flag.Parse()
+
+	docString := generateDocs("charts/helm_lib/templates/*.tpl")
+
+	if onlyDiff {
+		exitCode := 0
+
+		if !equalsDocs(docString, outputFile) {
+			exitCode = 1
+			fmt.Fprintf(os.Stderr, "You have uncommited changes\n")
+		}
+
+		os.Exit(exitCode)
+		return
+	}
+
+	err := os.WriteFile(outputFile, []byte(docString), 0o644)
 	if err != nil {
 		panic(err)
 	}
