@@ -147,7 +147,7 @@ func generateDocs(dirPattern string) string {
 	}
 
 	all := make([]string, 0)
-	all = append(all, "Helm utils template definitions for Deckhouse modules.", "\n")
+	all = append(all, "Helm utils template definitions for Deckhouse modules", "\n")
 	for _, p := range paths {
 		res := parseFile(p)
 		if res == "" {
