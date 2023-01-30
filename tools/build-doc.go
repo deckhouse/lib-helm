@@ -157,7 +157,6 @@ func generateDocs(dirPattern string) string {
 	all := make([]string, 0)
 
 	allDefinitions := make([]map[string]interface{}, 0)
-	all = append(all, "Helm utils template definitions for Deckhouse modules", "\n")
 	for _, p := range paths {
 		res, definitions := parseFile(p)
 		if res == "" {
@@ -178,7 +177,8 @@ func generateDocs(dirPattern string) string {
 	}
 
 	definitionTemplate := `
-# Content
+| Table of contents |
+|---|
 {{- range $i, $d := .descriptions }}
 | **{{ $d.title }}** |
 {{- range $j, $n := $d.definitions }}
@@ -200,7 +200,14 @@ func generateDocs(dirPattern string) string {
 		panic(err)
 	}
 
-	return tpl.String() + "\n\n" + strings.Join(all, "\n")
+	contents := []string{
+		"Helm utils template definitions for Deckhouse modules\n",
+		tpl.String(),
+		"\n",
+		strings.Join(all, "\n"),
+	}
+
+	return strings.Join(contents, "\n")
 }
 
 func equalsDocs(newContent string, curFilePath string) bool {

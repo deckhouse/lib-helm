@@ -1,5 +1,6 @@
 
-# Content
+| Table of contents |
+|---|
 | **Envs For Proxy** |
 | [helm_lib_envs_for_proxy](#helm_lib_envs_for_proxy) |
 | **High Availability** |
