@@ -1,3 +1,5 @@
+Helm utils template definitions for Deckhouse modules
+
 
 | Table of contents |
 |---|
@@ -74,8 +76,6 @@
 | [helm_lib_deployment_on_master_strategy_and_replicas_for_ha](#helm_lib_deployment_on_master_strategy_and_replicas_for_ha) |
 | [helm_lib_deployment_strategy_and_replicas_for_ha](#helm_lib_deployment_strategy_and_replicas_for_ha) |
 
-
-Helm utils template definitions for Deckhouse modules
 
 
 # Envs For Proxy
