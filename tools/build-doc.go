@@ -42,7 +42,7 @@ var (
 	rUsage   = regexp.MustCompile(`Usage: (.+)`)
 )
 
-func parseFile(filename string) string {
+func parseFile(filename string) (string, []string) {
 	c, _ := os.ReadFile(filename)
 
 	strs := rNewLine.Split(string(c), -1)
@@ -74,6 +74,8 @@ func parseFile(filename string) string {
 	}
 
 	all := make([]string, 0)
+
+	definitions := make([]string, 0)
 
 	for indx, str := range strs {
 		defineNameMatch := rDefine.FindStringSubmatch(str)
@@ -134,10 +136,16 @@ func parseFile(filename string) string {
 			}
 
 			all = append(all, tpl.String())
+			definitions = append(definitions, name)
 		}
 	}
 
-	return strings.Join(all, "\n")
+	return strings.Join(all, "\n"), definitions
+}
+
+type Definitions struct {
+	Title       string
+	Definitions []string
 }
 
 func generateDocs(dirPattern string) string {
@@ -147,9 +155,11 @@ func generateDocs(dirPattern string) string {
 	}
 
 	all := make([]string, 0)
+
+	allDefinitions := make([]map[string]interface{}, 0)
 	all = append(all, "Helm utils template definitions for Deckhouse modules", "\n")
 	for _, p := range paths {
-		res := parseFile(p)
+		res, definitions := parseFile(p)
 		if res == "" {
 			continue
 		}
@@ -159,10 +169,38 @@ func generateDocs(dirPattern string) string {
 		base = strings.TrimSpace(base)
 		base = strings.Split(base, ".")[0]
 		base = strings.Title(base)
+
 		all = append(all, "# "+base, res)
+		allDefinitions = append(allDefinitions, map[string]interface{}{
+			"title":       base,
+			"definitions": definitions,
+		})
 	}
 
-	return strings.Join(all, "\n")
+	definitionTemplate := `
+# Content
+{{- range $i, $d := .descriptions }}
+|**{{ $d.title }}**|
+{{- range $j, $n := $d.definitions }}
+|[{{ $n }}](#{{$n}})|
+{{- end }}
+{{- end }}
+`
+	defTmp := template.New("definition")
+	defTmp, err = defTmp.Parse(definitionTemplate)
+	if err != nil {
+		panic(err)
+	}
+
+	var tpl bytes.Buffer
+	err = defTmp.Execute(&tpl, map[string]interface{}{
+		"descriptions": allDefinitions,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return tpl.String() + strings.Join(all, "\n")
 }
 
 func equalsDocs(newContent string, curFilePath string) bool {
