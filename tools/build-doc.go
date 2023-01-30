@@ -180,9 +180,9 @@ func generateDocs(dirPattern string) string {
 	definitionTemplate := `
 # Content
 {{- range $i, $d := .descriptions }}
-|**{{ $d.title }}**|
+| **{{ $d.title }}** |
 {{- range $j, $n := $d.definitions }}
-|[{{ $n }}](#{{$n}})|
+| [{{ $n }}](#{{$n}}) |
 {{- end }}
 {{- end }}
 `
@@ -200,7 +200,7 @@ func generateDocs(dirPattern string) string {
 		panic(err)
 	}
 
-	return tpl.String() + strings.Join(all, "\n")
+	return tpl.String() + "\n\n" + strings.Join(all, "\n")
 }
 
 func equalsDocs(newContent string, curFilePath string) bool {
