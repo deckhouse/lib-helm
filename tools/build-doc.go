@@ -48,22 +48,24 @@ func parseFile(filename string) (string, []string) {
 	strs := rNewLine.Split(string(c), -1)
 
 	definitionTemplate := `
-## {{ .name }}
-{{- range $i, $d := .description }}
+### {{ .name }}
+{{ range $i, $d := .description }}
 {{ $d }}
 {{- end }}
+{{ if .usage }}
+#### Usage
 
-### Usage
 ` + "`" + "{{ .usage }}" + "`" + `
+{{ end -}}
 
-{{- if .args }}
-### Arguments
-{{- if .argsDesc }}
+{{ if .args }}
+#### Arguments
+{{ if .argsDesc }}
 {{ .argsDesc }}
-{{- end }}
-{{- range $i, $a := .args }}
+{{- end -}}
+{{ range $i, $a := .args }}
 - {{ $a }}
-{{- end }}
+{{- end -}}
 {{- end }}
 `
 
@@ -143,11 +145,6 @@ func parseFile(filename string) (string, []string) {
 	return strings.Join(all, "\n"), definitions
 }
 
-type Definitions struct {
-	Title       string
-	Definitions []string
-}
-
 func generateDocs(dirPattern string) string {
 	paths, err := filepath.Glob(dirPattern)
 	if err != nil {
@@ -169,7 +166,7 @@ func generateDocs(dirPattern string) string {
 		base = strings.Split(base, ".")[0]
 		base = strings.Title(base)
 
-		all = append(all, "# "+base, res)
+		all = append(all, "## "+base, res)
 		allDefinitions = append(allDefinitions, map[string]interface{}{
 			"title":       base,
 			"definitions": definitions,
@@ -177,6 +174,8 @@ func generateDocs(dirPattern string) string {
 	}
 
 	definitionTemplate := `
+## Table of contents
+
 | Table of contents |
 |---|
 {{- range $i, $d := .descriptions }}
@@ -192,8 +191,8 @@ func generateDocs(dirPattern string) string {
 		panic(err)
 	}
 
-	var tpl bytes.Buffer
-	err = defTmp.Execute(&tpl, map[string]interface{}{
+	var tableBuff bytes.Buffer
+	err = defTmp.Execute(&tableBuff, map[string]interface{}{
 		"descriptions": allDefinitions,
 	})
 	if err != nil {
@@ -201,9 +200,8 @@ func generateDocs(dirPattern string) string {
 	}
 
 	contents := []string{
-		"Helm utils template definitions for Deckhouse modules\n",
-		tpl.String(),
-		"\n",
+		"# Helm utils template definitions for Deckhouse modules",
+		tableBuff.String(),
 		strings.Join(all, "\n"),
 	}
 
