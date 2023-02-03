@@ -3,7 +3,7 @@ name: Release Charts
 on:
   push:
     branches:
-      - migrate-from-deckhouse'
+      - migrate-from-deckhouse
     paths:
       - 'charts/**'
 
