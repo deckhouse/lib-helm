@@ -1,4 +1,4 @@
-# Helm utils template definitions for Deckhouse modules
+# Helm library for Deckhouse modules
 
 ## Table of contents
 
