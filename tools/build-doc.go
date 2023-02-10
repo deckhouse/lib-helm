@@ -200,7 +200,7 @@ func generateDocs(dirPattern string) string {
 	}
 
 	contents := []string{
-		"# Helm utils template definitions for Deckhouse modules",
+		"# Helm library for Deckhouse modules",
 		tableBuff.String(),
 		strings.Join(all, "\n"),
 	}
