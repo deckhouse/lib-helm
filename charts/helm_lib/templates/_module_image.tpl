@@ -13,7 +13,7 @@
   {{- if index $context.Values $moduleName }}
     {{- if index $context.Values $moduleName "registry" }}
       {{- if index $context.Values $moduleName "registry" "base" }}
-        {{- $registryBase := index $context.Values $moduleName "registry" "base" }}
+        {{- $registryBase = index $context.Values $moduleName "registry" "base" }}
       {{- end }}
     {{- end }}
   {{- end }}
@@ -32,7 +32,7 @@
     {{- if index $context.Values $moduleName }}
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
-          {{- $registryBase := index $context.Values $moduleName "registry" "base" }}
+          {{- $registryBase = index $context.Values $moduleName "registry" "base" }}
         {{- end }}
       {{- end }}
     {{- end }}
