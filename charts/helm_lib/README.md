@@ -63,6 +63,7 @@
 | [helm_lib_node_selector](#helm_lib_node_selector) |
 | [helm_lib_tolerations](#helm_lib_tolerations) |
 | [_helm_lib_cloud_or_hybrid_cluster](#_helm_lib_cloud_or_hybrid_cluster) |
+| [helm_lib_internal_check_tolerations_strategy](#helm_lib_internal_check_tolerations_strategy) |
 | [_helm_lib_any_node_tolerations](#_helm_lib_any_node_tolerations) |
 | [_helm_lib_wildcard_tolerations](#_helm_lib_wildcard_tolerations) |
 | [_helm_lib_monitoring_tolerations](#_helm_lib_monitoring_tolerations) |
@@ -713,6 +714,13 @@ list:
 
  Check cluster type. 
  Returns not empty string if this is cloud or hybrid cluster 
+
+
+
+### helm_lib_internal_check_tolerations_strategy
+
+ Verify base strategy. 
+ Fails if strategy not in allowed list 
 
 
 
