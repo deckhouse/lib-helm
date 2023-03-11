@@ -23,6 +23,27 @@ dependencies:
 
 ## Working with repo
 
+### Add documentation for helm define
+
+`lib-helm` try to collect documentation for every define and put documentation to chart [README file](charts/helm_lib/README.md).
+Define documentation consists of next section:
+- Define name.
+- Define description.
+- Define usage example.
+- Define arguments description.
+
+#### Algorithm
+We use a naive [algorithm](tools/build-doc.go) to extract documentation.
+We split `tpl` file by line. Each line test on define definition by regexp.
+If define is found, we look for all consecutive comments above define.
+Found comments become `Define description` expect of comment start with `Usage: ` string.
+Comment starts with `Usage:` become `Define usage`.
+After it, we look for all consecutive comments beyond define.
+Every found comment become `Define arguments description`.
+See [`helm_lib_pod_anti_affinity_for_ha`](charts/helm_lib/templates/_spec_for_high_availability.tpl) for [example](charts/helm_lib/README.md#helmlibpodantiaffinityforha).
+`tpl` file name replace `_` on space symbol each word will be titled.
+The resulting string use as category for definitions.
+
 ### Add feature
 - Create new branch from `main` branch.
 - Modify [templates](charts/helm_lib/templates).
