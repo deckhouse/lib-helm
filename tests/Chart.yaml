@@ -1,0 +1,5 @@
+apiVersion: v2
+name: test-module
+version: 0.0.1
+description: "Chart for unit testing lib-helm"
+
