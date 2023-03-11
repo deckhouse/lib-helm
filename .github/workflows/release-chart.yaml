@@ -1,14 +1,13 @@
-name: Release Charts
+name: Release helm chart
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'charts/**'
+  workflow_call: {}
 
 jobs:
   chart-release:
+    permissions:
+      contents: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
