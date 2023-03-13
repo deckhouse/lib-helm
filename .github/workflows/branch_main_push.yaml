@@ -1,0 +1,48 @@
+name: Create release branch and release minor version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+
+jobs:
+  create-release-branch:
+    name: Create release branch
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get chart versions
+        id: get_version
+        run: |
+          version="$(grep 'version:' "$(pwd)/charts/helm_lib/Chart.yaml" | awk -F ': ' '{print $2}')"
+          minor_version="$(echo "$version" | awk -F '.' '{printf "%s.%s", $1, $2}')"
+          echo "minor=$minor_version" >> $GITHUB_OUTPUT
+
+      - name: Create branch
+        id: create_branch
+        uses: peterjgrainger/action-create-branch@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: release-${{ steps.get_version.outputs.minor }}
+
+      - name: Print result from
+        run: |
+          echo "Branch was created: ${{ steps.create_branch.outputs.created }}"
+
+  release-chart:
+    permissions:
+      contents: write
+      packages: write
+    needs: create-release-branch
+    if: ${{ success() }}
+    name: "Release chart for minor version"
+    uses: ./.github/workflows/release-chart.yaml
