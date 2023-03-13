@@ -37,7 +37,7 @@ We use a naive [algorithm](tools/build-doc.go) to extract documentation.
 We split `tpl` file by line. Each line is checked for a define definition using a regular expression.
 
 If define is found, we look for all consecutive comments above define.
-All the comments found except those that start with the 'Usage:' become `Define description`.
+All the comments found except those that start with the `Usage:` become `Define description`.
 Comments starting with `Usage:` become `Define usage`.
 After it, we look for all consecutive comments beyond the define.
 Every found comment becomes `Define arguments description`.
