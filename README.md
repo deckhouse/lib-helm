@@ -8,7 +8,7 @@ See list of definitions [here](charts/helm_lib/README.md)
 
 ### Deckhouse
 
-For updating `lib-helm` in the Deckhouse repo use [next](https://github.com/deckhouse/deckhouse/blob/main/helm_lib/README.md) instruction.
+Use the following [instruction](https://github.com/deckhouse/deckhouse/blob/main/helm_lib/README.md) to update `lib-helm` in the Deckhouse repo.
 
 ### Third-party repositories
 
@@ -25,36 +25,37 @@ dependencies:
 
 ### Add documentation for helm define
 
-`lib-helm` try to collect documentation for every define and put documentation to chart [README file](charts/helm_lib/README.md).
-Define documentation consists of next section:
-- Define name.
-- Define description.
-- Define usage example.
-- Define arguments description.
+`lib-helm` tries to collect documentation for the every _define_ and put documentation into the [README file](charts/helm_lib/README.md) of a chart.
+Documentation of the define consists of the following sections:
+- The name of the define.
+- The description of the define.
+- Usage example of the define.
+- Arguments description of the define.
 
 #### Algorithm
 We use a naive [algorithm](tools/build-doc.go) to extract documentation.
-We split `tpl` file by line. Each line test on define definition by regexp.
+We split `tpl` file by line. Each line is checked for a define definition using a regular expression.
+
 If define is found, we look for all consecutive comments above define.
-Found comments become `Define description` expect of comment start with `Usage: ` string.
-Comment starts with `Usage:` become `Define usage`.
-After it, we look for all consecutive comments beyond define.
-Every found comment become `Define arguments description`.
+All the comments found except those that start with the 'Usage:' become `Define description`.
+Comments starting with `Usage:` become `Define usage`.
+After it, we look for all consecutive comments beyond the define.
+Every found comment becomes `Define arguments description`.
 See [`helm_lib_pod_anti_affinity_for_ha`](charts/helm_lib/templates/_spec_for_high_availability.tpl) for [example](charts/helm_lib/README.md#helmlibpodantiaffinityforha).
-`tpl` file name replace `_` on space symbol each word will be titled.
-The resulting string use as category for definitions.
+
+We use the name of the `tpl` file with the following transformation for the category of definitions: the '_' symbol is replaced by the space symbol, the first letter of each word is capitalized, and spaces from either side of a result are ignored. E.g., `_foo_bar.tpl` converts to `Foo Bar`.
 
 ### Add feature
-- Create new branch from `main` branch.
+- Create a new branch from the `main` branch.
 - Modify [templates](charts/helm_lib/templates).
-- Increase minor version (0.X.0, for example set 0.2.0) or major version if changes contains breaking changes in [Charts.yaml](charts/helm_lib/Chart.yaml).
-- Create PR to `main` branch and merge PR. Merging to `main` branch creates new chart release.
+- In [Charts.yaml](charts/helm_lib/Chart.yaml) increase the minor version (maj.**min**.patch) in case of non-significant changes or the major version otherwise.
+- Create and merge PR to the `main` branch. The new chart release will be created after merging the PR.
 
 ### Fix bug in minor release X.X
-- Create new branch from release branch (`release-X.X`).
+- Create a new branch from the release branch (`release-X.X`).
 - Fix bug in [templates](charts/helm_lib/templates).
-- Increase patch version (X.X.Y) in [Charts.yaml](charts/helm_lib/Chart.yaml)
-- Create PR to release branch (`release-X.X`) and merge PR. Merging to release branch creates new chart release.
+- Increase a patch version (maj.min.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
+- Create and merge PR to the release branch (`release-X.X`). The new chart release will be created after merging the PR.
 
 ### Rebuild documentation
 
