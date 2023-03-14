@@ -53,7 +53,7 @@ E.g., `_foo_bar.tpl` converts to `Foo Bar`.
 
 If you change or add definition documentation comment, you should rebuild [README.md](charts/helm_lib/README.md) with documentation.
 
-Use command (golang should be installed in the local system):
+Use the following command (Go should be installed):
 
 `make doc/build`
 
