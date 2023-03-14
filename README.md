@@ -71,12 +71,12 @@ Use command (golang should be installed in the local system):
 - Increase a patch version (maj.min.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
 - Create and merge PR to the `main` branch. The new chart release will be created after merging the PR.
 - Create a new branch from the release branch (`release-maj.min`).
-- Cherry pick commit with fix from `main` to new branch.
+- Cherry pick commit with the fix from the `main` to the new branch.
 - Create and merge PR to the release branch (`release-maj.min`).
 
 #### Backport fix in previous minor release X.X
 
 - Create a new branch from the release branch (`release-X.X`).
-- Cherry pick commit from `main`.
+- Cherry pick commit from the `main` branch.
 - Increase a patch version for X.X release (X.X.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
 - Create and merge PR to the release branch (`release-X.X`). The new chart release will be created after merging the PR.
