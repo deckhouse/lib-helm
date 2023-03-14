@@ -33,32 +33,53 @@ Documentation of the define consists of the following sections:
 - Arguments description of the define.
 
 #### Algorithm
+
 We use a naive [algorithm](tools/build-doc.go) to extract documentation.
 We split `tpl` file by line. Each line is checked for a define definition using a regular expression.
 
 If define is found, we look for all consecutive comments above define.
-All the comments found except those that start with the `Usage:` become `Define description`.
-Comments starting with `Usage:` become `Define usage`.
+All the comments found except those that start with the `Usage:` become `The description of the define`.
+Comments starting with `Usage:` become `Usage example of the define`.
 After it, we look for all consecutive comments beyond the define.
-Every found comment becomes `Define arguments description`.
+Every found comment becomes `Arguments description of the define`.
 See [`helm_lib_pod_anti_affinity_for_ha`](charts/helm_lib/templates/_spec_for_high_availability.tpl) for [example](charts/helm_lib/README.md#helmlibpodantiaffinityforha).
 
-We use the name of the `tpl` file with the following transformation for the category of definitions: the '_' symbol is replaced by the space symbol, the first letter of each word is capitalized, and spaces from either side of a result are ignored. E.g., `_foo_bar.tpl` converts to `Foo Bar`.
+We use the name of the `tpl` file with the following transformation for the category of definitions: 
+the '_' symbol is replaced by the space symbol, 
+the first letter of each word is capitalized, and spaces from either side of a result are ignored. 
+E.g., `_foo_bar.tpl` converts to `Foo Bar`.
+
+#### Rebuild documentation
+
+If you change or add definition documentation comment, you should rebuild [README.md](charts/helm_lib/README.md) with documentation.
+
+Use command (golang should be installed in the local system):
+
+`make doc/build`
 
 ### Add feature
+
 - Create a new branch from the `main` branch.
 - Modify [templates](charts/helm_lib/templates).
 - In [Charts.yaml](charts/helm_lib/Chart.yaml) increase the minor version (maj.**min**.patch) in case of non-significant changes or the major version otherwise.
 - Create and merge PR to the `main` branch. The new chart release will be created after merging the PR.
 
-### Fix bug in minor release X.X
-- Create a new branch from the release branch (`release-X.X`).
+### Fix bug
+
+- Create branch from the `main` branch.
 - Fix bug in [templates](charts/helm_lib/templates).
 - Increase a patch version (maj.min.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
+- Create and merge PR to the `main` branch. The new chart release will be created after merging the PR.
+- Create a new branch from the release branch (`release-maj.min`).
+- Cherry pick commit with fix from `main` to new branch.
+- Create and merge PR to the release branch (`release-maj.min`).
+
+#### Backport fix in previous minor release X.X
+
+If you need to backport fix, for example: Deckhouse was release on one of stability channel (Alpha, Beta, etc...) 
+but new minor release was rele
+
+- Create a new branch from the release branch (`release-X.X`).
+- Cherry pick commit from `main`.
+- Increase a patch version for X.X release (X.X.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
 - Create and merge PR to the release branch (`release-X.X`). The new chart release will be created after merging the PR.
-
-### Rebuild documentation
-
-Use command (golang should be installed in system):
-
-`make doc/build`
