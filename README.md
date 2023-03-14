@@ -76,9 +76,6 @@ Use command (golang should be installed in the local system):
 
 #### Backport fix in previous minor release X.X
 
-If you need to backport fix, for example: Deckhouse was release on one of stability channel (Alpha, Beta, etc...) 
-but new minor release was rele
-
 - Create a new branch from the release branch (`release-X.X`).
 - Cherry pick commit from `main`.
 - Increase a patch version for X.X release (X.X.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
