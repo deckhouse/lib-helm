@@ -31,7 +31,7 @@ jobs:
 
   check_unit_tests_snapshots:
     needs: [run_tests]
-    name: "Check unit tests snapshots was committed"
+    name: "Check unit tests snapshots were committed"
     runs-on: ubuntu-latest
 
     steps:
