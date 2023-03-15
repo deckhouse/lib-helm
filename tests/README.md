@@ -17,7 +17,7 @@ For definition (for example `helm_lib_is_ha_to_value`) you need to create two fi
 Create first file in [templates](templates) directory with name **define_name**.yaml (for example, `helm_lib_is_ha_to_value.yaml`). 
 This file should contain include definition (see [this example](templates/helm_lib_is_ha_to_value.yaml)).
 
-Second file (with test suite) should create in [tests](tests) directory with name **define_name**_test.yaml (for example `helm_lib_is_ha_to_value_test.yaml`).
+Second file (with test suite) you should create in [tests](tests) directory with name **define_name**_test.yaml (for example `helm_lib_is_ha_to_value_test.yaml`).
 For write test see [official documentation](https://github.com/helm-unittest/helm-unittest/blob/main/DOCUMENT.md) and see
 examples for [helm_lib_is_ha_to_value](tests/helm_lib_is_ha_to_value_test.yaml)
 and for [helm_lib_kube_rbac_proxy_ca_certificate](tests/helm_lib_kube_rbac_proxy_ca_certificate_test.yaml) definitions.
