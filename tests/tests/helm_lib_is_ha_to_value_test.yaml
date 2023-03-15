@@ -1,0 +1,115 @@
+suite: helm_lib_is_ha_to_value definition
+templates:
+  - helm_lib_is_ha_to_value.yaml
+tests:
+  - it: renders 'yes' value when HA is enabled globally by config
+
+    set:
+      global:
+        highAvailability: true
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: renders 'no' value when HA is disabled globally by config
+
+    set:
+      global:
+        highAvailability: false
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "no"
+
+  - it: renders 'yes' value when control-plane discovered as HA
+
+    set:
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: renders 'no' value when control-plane discovered as not HA
+
+    set:
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: false
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "no"
+
+  - it: renders 'yes' value when HA enabled by module
+
+    set:
+      testModule:
+        highAvailability: true
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: renders 'no' value when HA disabled by module
+
+    set:
+      testModule:
+        highAvailability: true
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: gets HA mode from module highAvailability value firstly
+
+    set:
+      testModule:
+        highAvailability: true
+      global:
+        highAvailability: false
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: false
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: gets HA mode from global configuration secondly
+
+    set:
+      testModule:
+        blah: value
+      global:
+        highAvailability: true
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: false
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"
+
+  - it: gets HA mode from global configuration thirdly
+
+    set:
+      testModule:
+        blah: value
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "yes"

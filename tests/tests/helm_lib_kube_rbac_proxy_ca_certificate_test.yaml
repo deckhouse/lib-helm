@@ -1,0 +1,52 @@
+suite: helm_lib_kube_rbac_proxy_ca_certificate definition
+templates:
+  - helm_lib_kube_rbac_proxy_ca_certificate.yaml
+tests:
+  - it: renders configmap 'kube-rbac-proxy-ca.crt' in passed namespace
+
+    set:
+      global:
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - containsDocument:
+          kind: ConfigMap
+          apiVersion: v1
+          name: kube-rbac-proxy-ca.crt
+          namespace: d8-ns
+
+  - it: contains certificate in 'ca.crt' data key
+
+    set:
+      global:
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: |
+                -----BEGIN CERTIFICATE-----
+                Cert
+                -----END CERTIFICATE-----
+
+    asserts:
+      - equal:
+          path: 'data["ca.crt"]'
+          value: |
+            -----BEGIN CERTIFICATE-----
+            Cert
+            -----END CERTIFICATE-----
+
+  # this assertion is example for match all document
+  - it: does not change document between test runs
+
+    set:
+      global:
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - matchSnapshot: {}

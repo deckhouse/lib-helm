@@ -19,7 +19,6 @@ jobs:
         run: |
           version="$(grep 'version:' "$(pwd)/charts/helm_lib/Chart.yaml" | awk -F ': ' '{print $2}')"
           echo "version=$version" >> $GITHUB_OUTPUT
-
       - name: Check release exists
         id: check
         uses: mukunku/tag-exists-action@v1.2.0
@@ -43,7 +42,6 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:

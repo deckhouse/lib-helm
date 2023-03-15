@@ -1,0 +1,76 @@
+name: Check pull request
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  run_tests:
+    name: "Run helm unit tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.11.1
+
+      - name: Run unit tests
+        run: make ci/tests/unit/run
+
+  check_unit_tests_snapshots:
+    needs: [run_test]
+    name: "Check unit tests snapshots was committed"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.11.1
+
+      - name: Run snapshot update
+        run: make ci/tests/unit/update-snapshot/run
+
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.1
+
+      - name: Validate changes
+        env:
+          HAS_CHANGES: ${{ steps.changes.outputs.changed }}
+        run: |
+          echo "Has changes is $HAS_CHANGES"
+          if [[ $HAS_CHANGES == "0" ]] ; then
+            exit 0
+          fi
+          
+          exit 1
+
+  check_documentation:
+    name: "Check documentation was rebuilt and committed"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.19.x'
+      - name: Check documentation changes
+        run: make doc/diff
