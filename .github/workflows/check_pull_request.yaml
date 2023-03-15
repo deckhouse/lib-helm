@@ -22,8 +22,11 @@ jobs:
         with:
           version: v3.11.1
 
+      - name: Install plugin
+        run: make ci/tests/unit/install-plugin
+
       - name: Run unit tests
-        run: make ci/tests/unit/run
+        run: make ci/tests/unit
 
   check_unit_tests_snapshots:
     needs: [run_tests]
@@ -44,20 +47,17 @@ jobs:
       - name: Run snapshot update
         run: make ci/tests/unit/update-snapshot/run
 
-      - name: Check if there are changes
-        id: changes
-        uses: UnicornGlobal/has-changes-action@v1.0.1
-
-      - name: Validate changes
-        env:
-          HAS_CHANGES: ${{ steps.changes.outputs.changed }}
+      - name: Process changes
         run: |
-          echo "Has changes is $HAS_CHANGES"
-          if [[ $HAS_CHANGES == "0" ]] ; then
+          if [[ -z "$(git status --porcelain)" ]];
+          then
             exit 0
+          else
+            echo "You have uncommitted unit test snapshots:"
+            echo "Run 'make tests/unit/update-snapshot'"
+            echo "Commit changes and push"
+            exit 1
           fi
-          
-          exit 1
 
   check_documentation:
     name: "Check documentation was rebuilt and committed"
