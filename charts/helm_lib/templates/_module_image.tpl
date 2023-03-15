@@ -1,5 +1,5 @@
 {{- /* Usage: {{ include "helm_lib_module_image" (list . "<container-name>") }} */ -}}
-{{- /* returns image name */ -}}
+{{- /* Returns image name */ -}}
 {{- define "helm_lib_module_image" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
