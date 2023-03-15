@@ -35,7 +35,7 @@ tests:
           path: 'data["ca.crt"]'
           value: |
             -----BEGIN CERTIFICATE-----
-            Cert
+            Cert!
             -----END CERTIFICATE-----
 
   # this assertion is example for match all document
