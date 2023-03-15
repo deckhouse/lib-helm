@@ -61,6 +61,7 @@ Use the following command (Go should be installed):
 ### Add feature
 
 - Create a new branch from the `main` branch.
+
 - Modify [templates](charts/helm_lib/templates).
 - In [Charts.yaml](charts/helm_lib/Chart.yaml) increase the minor version (maj.**min**.patch) in case of non-significant changes or the major version otherwise.
 - Create and merge PR to the `main` branch. The new chart release will be created after merging the PR.
