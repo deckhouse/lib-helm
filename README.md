@@ -17,7 +17,7 @@ You can install library as helm dependency:
 ```yaml
 dependencies:
   - name: deckhouse_lib_helm
-    version: 0.0.7
+    version: 1.0.1
     repository: https://deckhouse.github.io/lib-helm
 ```
 
@@ -79,3 +79,7 @@ Use the following command (Go should be installed):
 - Cherry pick commit from the `main` branch.
 - Increase a patch version for X.X release (X.X.**patch**) in [Charts.yaml](charts/helm_lib/Chart.yaml).
 - Create and merge PR to the release branch (`release-X.X`). The new chart release will be created after merging the PR.
+
+### Testing
+
+See [this](tests/README.md) document.

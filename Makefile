@@ -53,4 +53,4 @@ tests/unit: ## Run unit tests for lib-helm
 
 .PHONY: tests/unit/update-snapshot
 tests/unit/update-snapshot: ## Update tests snapshot https://github.com/helm-unittest/helm-unittest/blob/main/README.md#snapshot-testing
-	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.11.1-$(UNITTEST_VERSION)
+	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.11.1-$(UNITTEST_VERSION) -u ./tests
