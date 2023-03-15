@@ -36,6 +36,7 @@ Documentation of the define consists of the following sections:
 
 We use a naive [algorithm](tools/build-doc.go) to extract documentation.
 
+
 We split `tpl` file by line. Each line is checked for a define definition using a regular expression.
 
 If define is found, we look for all consecutive comments above define.
