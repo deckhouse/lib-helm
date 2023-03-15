@@ -52,7 +52,6 @@ E.g., `_foo_bar.tpl` converts to `Foo Bar`.
 #### Rebuild documentation
 
 If you change or add definition documentation comment, you should rebuild [README.md](charts/helm_lib/README.md) with documentation.
-
 Use the following command (Go should be installed):
 
 `make doc/build`
