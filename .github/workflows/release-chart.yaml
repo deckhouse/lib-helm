@@ -1,0 +1,58 @@
+name: Release helm chart
+
+on:
+  workflow_call: {}
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get chart versions
+        id: get_version
+        run: |
+          version="$(grep 'version:' "$(pwd)/charts/helm_lib/Chart.yaml" | awk -F ': ' '{print $2}')"
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Check release exists
+        id: check
+        uses: mukunku/tag-exists-action@v1.2.0
+        with:
+          tag: deckhouse_lib_helm-${{ steps.get_version.outputs.version }}
+
+  chart-release:
+    needs: [check_release]
+    if: ${{ needs.check_release.outputs.exists == 'false' }}
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.7.1
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.3.0
+        with:
+          charts_dir: charts
+          config: charts/cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
