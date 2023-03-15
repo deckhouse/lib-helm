@@ -26,7 +26,7 @@ jobs:
         run: make ci/tests/unit/run
 
   check_unit_tests_snapshots:
-    needs: [run_test]
+    needs: [run_tests]
     name: "Check unit tests snapshots was committed"
     runs-on: ubuntu-latest
 
