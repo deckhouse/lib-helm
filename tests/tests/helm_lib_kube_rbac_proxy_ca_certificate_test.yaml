@@ -38,7 +38,6 @@ tests:
             Cert
             -----END CERTIFICATE-----
 
-  # this assertion is example for match all document
   - it: does not change document between test runs
 
     set:
