@@ -16,7 +16,7 @@ tests:
     asserts:
       - equal:
           path: "withContext"
-          value: "deckhouse.io/deckhouse/ce:sha123"
+          value: "deckhouse.io/deckhouse/ce@sha123"
       - equal:
           path: "optionalModuleName"
-          value: "deckhouse.io/deckhouse/ce:sha345"
+          value: "deckhouse.io/deckhouse/ce@sha345"
