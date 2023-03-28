@@ -1,0 +1,22 @@
+suite: helm_lib_module_image definition
+templates:
+  - helm_lib_module_image.yaml
+tests:
+  - it: should renders module image
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          tags:
+            testModule:
+              testContainer: "sha123"
+            fooBar:
+              testContainer: "sha345"
+    asserts:
+      - equal:
+          path: "withContext"
+          value: "deckhouse.io/deckhouse/ce:sha123"
+      - equal:
+          path: "optionalModuleName"
+          value: "deckhouse.io/deckhouse/ce:sha345"
