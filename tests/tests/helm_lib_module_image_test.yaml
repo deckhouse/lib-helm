@@ -8,7 +8,7 @@ tests:
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
-          tags:
+          digests:
             testModule:
               testContainer: "sha123"
             fooBar:
