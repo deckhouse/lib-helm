@@ -3,7 +3,10 @@
 {{- define "helm_lib_module_image" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $moduleName := $context.Chart.Name | replace "-" "_" | camelcase | untitle }}
+  {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- if ge (len .) 3 }}
+  {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- end }}
   {{- $imageHash := index $context.Values.global.modulesImages.tags $moduleName $containerName }}
   {{- if not $imageHash }}
   {{- $error := (printf "Image %s.%s has no tag" $moduleName $containerName ) }}
@@ -25,7 +28,10 @@
 {{- define "helm_lib_module_image_no_fail" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $moduleName := $context.Chart.Name | replace "-" "_" | camelcase | untitle }}
+  {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- if ge (len .) 3 }}
+  {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- end }}
   {{- $imageHash := index $context.Values.global.modulesImages.tags $moduleName $containerName }}
   {{- if $imageHash }}
     {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
