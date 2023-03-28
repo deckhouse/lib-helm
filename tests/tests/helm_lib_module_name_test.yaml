@@ -1,0 +1,21 @@
+suite: helm_lib_module_name definition
+templates:
+  - helm_lib_module_name.yaml
+tests:
+  - it: should renders module name from .Chart.Name and from direct string
+    asserts:
+      - equal:
+          path: "fromContext"
+          value: "testModule"
+      - equal:
+          path: "fromString"
+          value: "foobar"
+      - equal:
+          path: "fromQuotedString"
+          value: "barbaz"
+      - equal:
+          path: "fromSnakeCase"
+          value: "fooBar"
+      - equal:
+          path: "fromKebabCase"
+          value: "fooBar"
