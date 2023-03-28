@@ -1,0 +1,2 @@
+withContext: {{ include "helm_lib_module_image" (list . "testContainer") }}
+optionalModuleName: {{ include "helm_lib_module_image" (list . "testContainer" "fooBar") }}
