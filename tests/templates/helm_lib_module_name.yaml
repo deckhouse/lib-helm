@@ -1,0 +1,5 @@
+fromContext: {{ include "helm_lib_module_camelcase_name" . }}
+fromString: {{ include "helm_lib_module_camelcase_name" "foobar" }}
+fromQuotedString: {{ include "helm_lib_module_camelcase_name" "\"barbaz\"" }}
+fromSnakeCase: {{ include "helm_lib_module_camelcase_name" "foo_bar" }}
+fromKebabCase: {{ include "helm_lib_module_camelcase_name" "foo-bar" }}
