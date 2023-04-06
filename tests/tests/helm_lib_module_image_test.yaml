@@ -20,3 +20,22 @@ tests:
       - equal:
           path: "optionalModuleName"
           value: "deckhouse.io/deckhouse/ce@sha345"
+
+  - it: should render external module image
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: "sha678"
+            fooBar:
+              testContainer: "sha345"
+      testModule:
+        registry:
+          base: "deckhouse.io/external-modules"
+    asserts:
+      - equal:
+          path: "externalModuleImage"
+          value: "deckhouse.io/external-modules/test-module@sha678"
