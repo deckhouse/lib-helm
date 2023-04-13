@@ -13,7 +13,7 @@
   {{- fail $error }}
   {{- end }}
   {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
-  {{/*  handle external modules registry*/}}
+  {{- /*  handle external modules registry */}}
   {{- if index $context.Values $moduleName }}
     {{- if index $context.Values $moduleName "registry" }}
       {{- if index $context.Values $moduleName "registry" "base" }}
