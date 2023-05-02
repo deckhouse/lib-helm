@@ -1,0 +1,6 @@
+tolerationsWithCustomStrategy:
+  {{- if .Values.additionalStrategies}}
+    {{ include "helm_lib_tolerations" (concat (list . "custom") .Values.additionalStrategies) }}
+  {{- else }}
+    {{ include "helm_lib_tolerations" (list . "custom") }}
+  {{- end }}
