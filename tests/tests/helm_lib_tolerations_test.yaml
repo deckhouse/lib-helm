@@ -1,0 +1,62 @@
+suite: helm_lib_tolerations definition
+templates:
+  - helm_lib_tolerations.yaml
+tests:
+  - it: should failed to render custom strategy tolerations without additional strategies
+
+    set:
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: sha256
+            fooBar:
+              testContainer: sha256
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - failedTemplate:
+          errorMessage: "additional strategies is required"
+
+  - it: should renders custom strategy tolerations with uninitialized additional strategy
+
+    set:
+      additionalStrategies:
+        - "with-uninitialized"
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: sha256
+            fooBar:
+              testContainer: sha256
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - equal:
+          path: "tolerations"
+          value:
+            - effect: NoSchedule
+              key: node.deckhouse.io/uninitialized
+              operator: Exists
+            - key: node.kubernetes.io/not-ready
+            - key: node.kubernetes.io/out-of-disk
+            - key: node.kubernetes.io/memory-pressure
+            - key: node.kubernetes.io/disk-pressure
+            - key: node.kubernetes.io/pid-pressure
+            - key: node.kubernetes.io/unreachable
+            - key: node.kubernetes.io/network-unavailable
