@@ -1,0 +1,1 @@
+mode: {{ include "helm_lib_module_uri_scheme" . }}
