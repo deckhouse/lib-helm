@@ -1,0 +1,137 @@
+suite: helm_lib_module_uri_scheme_test definition
+templates:
+  - helm_lib_module_uri_scheme.yaml
+tests:
+  - it: returns 'http' when https is disabled globally
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "http"
+
+  - it: returns 'https' when https is set to CertManager
+
+    set:
+      global:
+        modules:
+          https:
+            mode: CertManager
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
+
+  - it: returns 'https' when https is set to CustomCertificate
+
+    set:
+      global:
+        modules:
+          https:
+            mode: CustomCertificate
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
+
+  - it: returns 'https' when https is set to OnlyInURI
+
+    set:
+      global:
+        modules:
+          https:
+            mode: OnlyInURI
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
+
+  - it: returns 'http' when https is disabled globally and module doesn't have .https.mode
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+      testModule:
+        https:
+          certManager: letsencrypt
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "http"
+
+  - it: returns 'http' when https is disabled globally and module https mode is Disabled
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+      testModule:
+        https:
+          mode: Disabled
+          certManager: letsencrypt
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "http"
+
+  - it: returns 'https' when https is disabled globally and module https mode is CertManager
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+      testModule:
+        https:
+          mode: CertManager
+          certManager: letsencrypt
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
+
+  - it: returns 'https' when https is disabled globally and module https mode is CustomCertificate
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+      testModule:
+        https:
+          mode: CustomCertificate
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
+
+  - it: returns 'https' when https is disabled globally and module https mode is OnlyInURI
+
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+      testModule:
+        https:
+          mode: OnlyInURI
+
+    asserts:
+      - equal:
+          path: "mode"
+          value: "https"
