@@ -5,8 +5,9 @@ tests:
   - it: renders security context with SELinux options
 
     asserts:
-      - equal:
-        securityContext:
+      - contains:
+        path: securityContext
+        content:
           allowPrivilegeEscalation: false
           seLinuxOptions:
             level: 's0'
