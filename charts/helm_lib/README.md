@@ -476,6 +476,9 @@ list:
 
 `{{ include "helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux" . }} `
 
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
 
 
 ### helm_lib_module_container_security_context_read_only_root_filesystem
