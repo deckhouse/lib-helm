@@ -51,6 +51,7 @@ securityContext:
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux" . }} */ -}}
 {{- /* returns SecurityContext parameters for Container with allowPrivilegeEscalation false and options for SELinux compatibility*/ -}}
 {{- define "helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux" -}}
+{{- /* Template context with .Values, .Chart, etc */ -}}
 securityContext:
   allowPrivilegeEscalation: false
   seLinuxOptions:
