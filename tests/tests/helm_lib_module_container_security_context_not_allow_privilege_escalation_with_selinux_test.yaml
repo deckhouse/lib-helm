@@ -1,0 +1,13 @@
+suite: helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux definition
+templates:
+  - helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux.yaml
+tests:
+  - it: renders security context with SELinux options
+
+    asserts:
+      - equal:
+        securityContext:
+          allowPrivilegeEscalation: false
+          seLinuxOptions:
+            level: 's0'
+            type: 'spc_t'
