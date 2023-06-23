@@ -6,9 +6,9 @@ tests:
 
     asserts:
       - equal:
-        path: securityContext
-        value: |
-          allowPrivilegeEscalation: false
-          seLinuxOptions:
-            level: 's0'
-            type: 'spc_t'
+          path: securityContext
+          value:
+            allowPrivilegeEscalation: false
+            seLinuxOptions:
+              level: 's0'
+              type: 'spc_t'
