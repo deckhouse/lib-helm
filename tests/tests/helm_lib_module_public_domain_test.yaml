@@ -1,0 +1,40 @@
+suite: helm_lib_module_public_domain_test definition
+templates:
+  - helm_lib_module_public_domain.yaml
+tests:
+  - it: returns test.com
+
+    set:
+      prefix: test
+      global:
+        modules:
+          publicDomainTemplate: "%s.com"
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "test.com"
+
+  - it: should failed to render without "%s" pattern
+
+    set:
+      prefix: test
+      global:
+        modules:
+          publicDomainTemplate: .com
+
+    asserts:
+      - failedTemplate:
+          errorMessage: 'Error!!! global.modules.publicDomainTemplate must contain "%s" pattern to render service fqdn!'
+
+  - it: should failed to render with too long domain name
+
+    set:
+      prefix: test.test.test.test.test.test.test.test.test.test.test.test.test.test
+      global:
+        modules:
+          publicDomainTemplate: "%s.com"
+
+    asserts:
+      - failedTemplate:
+          errorMessage: "domain name must be not longer than 64 characters"
