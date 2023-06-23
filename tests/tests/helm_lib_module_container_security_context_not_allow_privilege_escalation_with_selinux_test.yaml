@@ -7,7 +7,7 @@ tests:
     asserts:
       - equal:
         path: securityContext
-        value:
+        value: |
           allowPrivilegeEscalation: false
           seLinuxOptions:
             level: 's0'
