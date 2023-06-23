@@ -8,12 +8,12 @@
     {{ fail "Error!!! global.modules.publicDomainTemplate must contain \"%s\" pattern to render service fqdn!" }}
   {{- end }}
 
-  {{ $domain := printf $context.Values.global.modules.publicDomainTemplate $name_portion }}
+  {{- $domain := printf $context.Values.global.modules.publicDomainTemplate $name_portion -}}
 
-  {{ $domain_length := len $domain }}
+  {{- $domain_length := len $domain -}}
   {{- if gt $domain_length 64 -}}
     {{ fail "domain name must be not longer than 64 characters" }}
   {{- end -}}
 
-  {{- print $domain }}
+  {{ $domain }}
 {{- end }}
