@@ -1,0 +1,77 @@
+suite: helm_lib_module_documentation_uri_test definition
+templates:
+  - helm_lib_module_documentation_uri.yaml
+tests:
+  - it: returns an http url to custom documentation domain
+
+    set:
+      prefix: test
+      global:
+        modules:
+          https:
+            mode: Disabled
+          publicDomainTemplate: "%s.test.com"
+
+    asserts:
+      - equal:
+          path: "uri"
+          value: "http://documentation.test.com/modules/123-my-module/faq.html#how-to-module"
+
+  - it: returns an https url to custom documentation domain
+
+    set:
+      prefix: test
+      global:
+        modules:
+          https:
+            mode: CertManager
+          publicDomainTemplate: "%s.test.com"
+
+    asserts:
+      - equal:
+          path: "uri"
+          value: "https://documentation.test.com/modules/123-my-module/faq.html#how-to-module"
+
+  - it: returns an https url to custom documentation domain
+
+    set:
+      prefix: test
+      global:
+        modules:
+          https:
+            mode: CustomCertificate
+          publicDomainTemplate: "%s.test.com"
+
+    asserts:
+      - equal:
+          path: "uri"
+          value: "https://documentation.test.com/modules/123-my-module/faq.html#how-to-module"
+
+  - it: returns an https url to custom documentation domain
+
+    set:
+      prefix: test
+      global:
+        modules:
+          https:
+            mode: OnlyInUri
+          publicDomainTemplate: "%s.test.com"
+
+    asserts:
+      - equal:
+          path: "uri"
+          value: "https://documentation.test.com/modules/123-my-module/faq.html#how-to-module"
+
+  - it: returns an https url to public documentation domain
+
+    set:
+      prefix: test
+      global:
+        modules:
+          https:
+            mode: OnlyInUri
+
+    asserts:
+      - equal:
+          path: "uri"
+          value: "https://deckhouse.io/documentation/v1/modules/123-my-module/faq.html#how-to-module"
