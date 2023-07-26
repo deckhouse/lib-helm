@@ -1,8 +1,8 @@
-suite: helm_lib_module_public_domain_test definition
+suite: helm_lib_module_generate_common_name_test definition
 templates:
-  - helm_lib_module_public_domain.yaml
+  - helm_lib_module_generate_common_name.yaml
 tests:
-  - it: returns test.com
+  - it: "returns 'commonName: test.com'"
 
     set:
       prefix: test
@@ -13,7 +13,20 @@ tests:
     asserts:
       - equal:
           path: "test"
-          value: "test.com"
+          value: 'commonName: test.com'
+
+  - it: returns empty value
+
+    set:
+      prefix: test.test.test.test.test.test.test.test.test.test.test.test.test.test
+      global:
+        modules:
+          publicDomainTemplate: "%s.com"
+
+    asserts:
+      - equal:
+          path: "test"
+          value: ''
 
   - it: should failed to render without "%s" pattern
 
