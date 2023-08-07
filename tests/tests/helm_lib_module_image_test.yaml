@@ -39,3 +39,22 @@ tests:
       - equal:
           path: "externalModuleImage"
           value: "deckhouse.io/external-modules/test-module@sha678"
+  
+  - it: should render external module image with trail slash
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: "sha678"
+            fooBar:
+              testContainer: "sha345"
+      testModule:
+        registry:
+          base: "deckhouse.io/external-modules/"
+    asserts:
+      - equal:
+          path: "externalModuleImage"
+          value: "deckhouse.io/external-modules/test-module@sha678"
