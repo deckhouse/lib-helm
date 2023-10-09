@@ -1,0 +1,1 @@
+test: {{ include "_helm_lib_cloud_or_hybrid_cluster" . }}

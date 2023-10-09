@@ -1,0 +1,27 @@
+suite: helm_lib_node_affinity definition
+templates:
+  - helm_lib_node_affinity.yaml
+tests:
+  - it: should return not empty string in case of Cloud cluster
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Cloud"
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "not empty string"
+
+  - it: should return not empty string in case of Static cluster with one of cloud-provider enabled
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Static"
+        enabledModules:
+        - cloud-provider-aws
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "not empty string"
