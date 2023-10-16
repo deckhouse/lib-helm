@@ -1,6 +1,6 @@
-suite: helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux definition
+suite: helm_lib_module_container_security_context_read_only_root_filesystem_with_selinux definition
 templates:
-  - helm_lib_module_container_security_context_not_allow_privilege_escalation_with_selinux.yaml
+  - helm_lib_module_container_security_context_read_only_root_filesystem_with_selinux.yaml
 tests:
   - it: renders security context with SELinux options
 
@@ -8,6 +8,7 @@ tests:
       - equal:
           path: securityContext
           value:
+            readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
             seLinuxOptions:
               level: 's0'
