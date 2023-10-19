@@ -1,0 +1,35 @@
+suite: helm_lib_module_init_container definition
+templates:
+  - helm_lib_module_init_container.yaml
+tests:
+  - it: should renders the initialization container for the deckhouse user
+
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              alpine: sha256
+
+    asserts:
+      - equal:
+          path: "chownDeckhouseVolume"
+          value:
+            - command:
+                - sh
+                - -c
+                - chown -R 64535:64535 /tmp/data
+              image: deckhouse.io/deckhouse/ce@sha256
+              name: chown-volume-data
+              resources:
+                requests:
+                  ephemeral-storage: 50Mi
+              securityContext:
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+              volumeMounts:
+                - mountPath: /tmp/data
+                  name: data
