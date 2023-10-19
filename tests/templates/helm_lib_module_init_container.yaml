@@ -1,0 +1,2 @@
+chownDeckhouseVolume:
+{{ include "helm_lib_module_init_container_chown_deckhouse_volume" (list . "data") }}
