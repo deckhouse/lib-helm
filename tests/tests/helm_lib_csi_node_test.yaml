@@ -45,7 +45,7 @@ tests:
           name: csi-node
           namespace: d8-test-module
 
-  - it: contains certificate in 'ca.crt' data key
+  - it: contains params according values
 
     set:
       global:
