@@ -1,0 +1,102 @@
+suite: helm_lib_csi_node_value definition
+templates:
+  - helm_lib_csi_node_value.yaml
+tests:
+  - it: renders initContainer when data provided
+
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - ceph-csi
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        additionalNodeEnvs:
+          - name: testEnv
+            value: testValue
+        additionalNodeArgs:
+          - --start
+        additionalNodeVolumes: {}
+        additionalNodeVolumeMounts: {}
+        initContainerCommand: |
+          - initContainerCommand
+        initContainerImage: initContainerImage
+        additionalInitContainerEnvs:
+          - name: testEnv
+            value: testValue
+        additionalInitContainerParts:
+          additionalPart0: additionalPart0
+          additionalPart1: additionalPart1
+
+    asserts:
+      - containsDocument:
+          kind: DaemonSet
+          apiVersion: apps/v1
+          name: csi-node
+          namespace: d8-test-module
+
+  - it: contains params according values
+
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - ceph-csi
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        additionalNodeEnvs:
+          - name: testEnv
+            value: testValue
+        additionalNodeArgs:
+          - --start
+        additionalNodeVolumes: {}
+        additionalNodeVolumeMounts: {}
+        initContainerCommand: |
+          - initContainerCommand
+        initContainerImage: initContainerImage
+        additionalInitContainerEnvs:
+          - name: testEnv
+            value: testValue
+        additionalInitContainerParts:
+          additionalPart0: additionalPart0
+          additionalPart1: additionalPart1
+
+    asserts:
+      - equal:
+          path: "spec.template.spec.initContainers[0].image"
+          value: initContainerImage
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].command"
+          value: |
+            - initContainerCommand
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].additionalPart0"
+          value: additionalPart0
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].env[0]"
+          value:
+            name: testEnv
+            value: testValue
