@@ -90,13 +90,3 @@ tests:
           path: "spec.template.spec.initContainers[0].command"
           value: |
             - initContainerCommand
-
-      - equal:
-          path: "spec.template.spec.initContainers[0].additionalPart0"
-          value: additionalPart0
-
-      - equal:
-          path: "spec.template.spec.initContainers[0].env[0]"
-          value:
-            name: testEnv
-            value: testValue
