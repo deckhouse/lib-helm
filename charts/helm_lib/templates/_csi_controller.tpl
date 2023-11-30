@@ -308,6 +308,7 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
+        - "--health-port={{ $livenessProbePort }}"
         env:
         - name: ADDRESS
           value: /csi/csi.sock
