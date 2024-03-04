@@ -1063,7 +1063,7 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha" (list . (dict "strategy" "strategy_type")) }} `
+`{{ include "helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha" (list . (dict "strategy" "$strategy_type")) }} `
 
 
 
