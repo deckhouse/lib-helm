@@ -172,7 +172,11 @@ spec:
       {{- include "helm_lib_priority_class" (tuple $context "system-cluster-critical") | nindent 6 }}
       {{- include "helm_lib_node_selector" (tuple $context "master") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-uninitialized") | nindent 6 }}
+{{- if $context.Values.global.enabledModules | has "csi-nfs" }}
+      {{- include "helm_lib_module_pod_security_context_runtime_default" . | nindent 6 }}
+{{- else }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
+{{- end }}
       serviceAccountName: csi
       containers:
       - name: provisioner
@@ -324,7 +328,11 @@ spec:
             {{- include "livenessprobe_resources" $context | nindent 12 }}
   {{- end }}
       - name: controller
+{{- if $context.Values.global.enabledModules | has "csi-nfs" }}
+        {{- include "helm_lib_module_container_security_context_escalated_sys_admin_privileged" . | nindent 8 }}
+{{- else }}
         {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" . | nindent 8 }}
+{{- end }}
         image: {{ $controllerImage | quote }}
         args:
     {{- if $additionalControllerArgs }}
