@@ -37,6 +37,7 @@ memory: 50Mi
   {{- $snapshotterEnabled := dig "snapshotterEnabled" true $config }}
   {{- $resizerEnabled := dig "resizerEnabled" true $config }}
   {{- $topologyEnabled := dig "topologyEnabled" true $config }}
+  {{- $extraCreateMetadataEnabled := dig "extraCreateMetadataEnabled" false $config }}
   {{- $controllerImage := $config.controllerImage | required "$config.controllerImage is required" }}
   {{- $provisionerTimeout := $config.provisionerTimeout | default "600s" }}
   {{- $attacherTimeout := $config.attacherTimeout | default "600s" }}
@@ -197,6 +198,9 @@ spec:
         - "--leader-election-namespace=$(NAMESPACE)"
         - "--enable-capacity"
         - "--capacity-ownerref-level=2"
+  {{- if $extraCreateMetadataEnabled }}
+        - "--extra-create-metadata=true"
+  {{- end }}
         - "--worker-threads={{ $provisionerWorkers }}"
         env:
         - name: ADDRESS
