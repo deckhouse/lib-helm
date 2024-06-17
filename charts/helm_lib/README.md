@@ -4,6 +4,8 @@
 
 | Table of contents |
 |---|
+| **Enable Ds Eviction** |
+| [helm_lib_ds_eviction_annotation](#helm_lib_ds_eviction_annotation) |
 | **Envs For Proxy** |
 | [helm_lib_envs_for_proxy](#helm_lib_envs_for_proxy) |
 | **High Availability** |
@@ -101,6 +103,18 @@
 | [helm_lib_deployment_on_master_strategy_and_replicas_for_ha](#helm_lib_deployment_on_master_strategy_and_replicas_for_ha) |
 | [helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha](#helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha) |
 | [helm_lib_deployment_strategy_and_replicas_for_ha](#helm_lib_deployment_strategy_and_replicas_for_ha) |
+
+## Enable Ds Eviction
+
+### helm_lib_ds_eviction_annotation
+
+ Adds `cluster-autoscaler.kubernetes.io/enable-ds-eviction` annotation to manage DaemonSet eviction by the Cluster Autoscaler. 
+ This is important to prevent the eviction of DaemonSet pods during cluster scaling.  
+
+#### Usage
+
+`{{ include "helm_lib_ds_eviction_annotation" . }} `
+
 
 ## Envs For Proxy
 
