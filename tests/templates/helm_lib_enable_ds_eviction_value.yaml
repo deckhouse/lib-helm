@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: simple-bridge
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: simple-bridge
+  template:
+    metadata:
+      annotation:
+        {{ include "helm_lib_ds_eviction_annotation" (list . "false" ) | nindent 8 }}

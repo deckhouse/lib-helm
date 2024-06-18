@@ -1,0 +1,9 @@
+suite: helm_lib_ds_eviction_annotation tests
+templates:
+  - helm_lib_enable_ds_eviction_value.yaml
+tests:
+  - it: should include the correct annotation for DaemonSet eviction
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotation["cluster-autoscaler.kubernetes.io/enable-ds-eviction"]
+          value: "false"
