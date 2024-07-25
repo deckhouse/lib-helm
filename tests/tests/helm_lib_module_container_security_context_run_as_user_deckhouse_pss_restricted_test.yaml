@@ -1,0 +1,19 @@
+suite: helm_lib_module_container_security_context_run_as_user_deckhouse_pss_restricted
+templates:
+  - helm_lib_module_container_security_context_run_as_user_deckhouse_pss_restricted.yaml
+tests:
+  - it: renders security context 
+
+    asserts:
+      - equal:
+          path: securityContext
+          value:
+            allowPrivilegeEscalation: false
+            capabilities:
+            drop:
+            - all
+            runAsGroup: 64535
+            runAsNonRoot: true
+            runAsUser: 64535
+            seccompProfile:
+              type: RuntimeDefault
