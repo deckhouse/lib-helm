@@ -1,0 +1,37 @@
+suite: helm_lib_kind_exists
+templates:
+  - helm_lib_kind_exists.yaml
+tests:
+  - it: returns found for the `ValidatingAdmissionPolicy` kind
+    capabilities:
+      apiVersions:
+        - apps/v1/ValidatingAdmissionPolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: "found"
+
+  - it: returns found for the `ValidatingAdmissionPolicy` kind
+    capabilities:
+      apiVersions:
+        - apps/v1/validatingadmissionpolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: "found"
+
+  - it: returns "" for the `ValidatingAdmissionPolicy` kind
+    capabilities:
+      apiVersions:
+        - apps/v1/SomeOtherPolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: null
+
+  - it: returns errors for empt apiVersions
+    capabilities:
+      apiVersions:
+    asserts:
+      - failedTemplate:
+          errorMessage: "Helm reports no capabilities"
