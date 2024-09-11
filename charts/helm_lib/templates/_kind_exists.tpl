@@ -5,7 +5,7 @@
   {{- $kind_name := index . 1 -}} {{- /* Kind name portion */ -}}
   {{- if eq (len $context.Capabilities.APIVersions) 0 }}
     {{- fail "Helm reports no capabilities" }}
-  {{- end }}
+  {{- end -}}
   {{ range $cap := $context.Capabilities.APIVersions }}
     {{- if hasSuffix (lower (printf "/%s" $kind_name)) (lower $cap) }}
       found

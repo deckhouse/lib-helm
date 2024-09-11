@@ -29,7 +29,7 @@ tests:
           path: "result"
           value: null
 
-  - it: returns errors for empt apiVersions
+  - it: returns error for empty apiVersions
     capabilities:
       apiVersions:
     asserts:
