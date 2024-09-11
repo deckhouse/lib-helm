@@ -1,0 +1,1 @@
+result: {{ include "helm_lib_kind_exists" (list . "validatingadmissionpolicy") }}
