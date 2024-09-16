@@ -1,0 +1,38 @@
+suite: helm_lib_get_api_version_by_kind
+templates:
+  - helm_lib_get_api_version_by_kind.yaml
+tests:
+  - it: returns correct apiVersion string
+    capabilities:
+      apiVersions:
+        - admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: "admissionregistration.k8s.io/v1"
+
+  - it: returns correct apiVersion string
+    capabilities:
+      apiVersions:
+        - admissionregistration.k8s.io/v1alpha/validatingadmissionpolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: "admissionregistration.k8s.io/v1alpha1"
+
+  - it: returns correct apiVersion string
+    capabilities:
+      apiVersions:
+        - admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy
+        - admissionregistration.k8s.io/v1beta1/ValidatingAdmissionPolicy
+    asserts:
+      - equal:
+          path: "result"
+          value: "admissionregistration.k8s.io/v1"
+
+  - it: returns error for empty apiVersions
+    capabilities:
+      apiVersions:
+    asserts:
+      - failedTemplate:
+          errorMessage: "Helm reports no capabilities"
