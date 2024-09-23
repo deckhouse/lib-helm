@@ -1,0 +1,1 @@
+{{ include "helm_lib_module_storage_class_annotations" (list $ "0" "cloud-provider-storageclass") }}
