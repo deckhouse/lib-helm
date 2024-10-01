@@ -2,10 +2,51 @@ suite: helm_lib_module_storage_class_test definition
 templates:
   - helm_lib_module_storage_class.yaml
 tests:
-  - it: should not contain default storage class annotation if no discovery.defaultStorageClass is set
-
+  - it: only first-storageclass should set as default if no discovery.defaultStorageClass and no global.defaultClusterStorageClass is set
     set:
       global:
+        defaultClusterStorageClass: ""
+        discovery:
+          defaultStorageClass: ""
+
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: annotations["storageclass.kubernetes.io/is-default-class"]
+          value: "true"
+
+      - documentIndex: 1
+        equal:
+          path: annotations
+          value: {}
+
+      - documentIndex: 2
+        equal:
+          path: annotations
+          value: {}
+
+  - it: should contains default storage class annotation for second-storageclass set in discovery.defaultStorageClass
+    set:
+      global:
+        discovery:
+          # set as in tests/templates/helm_lib_module_storage_class.yaml
+          defaultStorageClass: "second-storageclass"
+
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: annotations
+          value: {}
+
+      - documentIndex: 1
+        equal:
+          path: annotations["storageclass.kubernetes.io/is-default-class"]
+          value: "true"
+
+  - it: should not contains default storage class annotations if global.defaultClusterStorageClass is set
+    set:
+      global:
+        defaultClusterStorageClass: "second-storageclass"
         discovery:
           defaultStorageClass: ""
 
@@ -14,27 +55,14 @@ tests:
           path: annotations
           value: {}
 
-  - it: should contain default storage class annotation
 
+  - it: should not contains default storage class annotation if there is wrong value in discovery.defaultStorageClass
     set:
       global:
         discovery:
-          # set as in tests/templates/helm_lib_module_storage_class.yaml
-          defaultStorageClass: "cloud-provider-storageclass"
+          defaultStorageClass: "other-storageclass"
 
     asserts:
       - equal:
-          path: annotations["storageclass.kubernetes.io/is-default-class"]
-          value: "true"
-
-  # - it: should failed to render without "%s" pattern
-
-  #   set:
-  #     prefix: test
-  #     global:
-  #       modules:
-  #         publicDomainTemplate: .com
-
-  #   asserts:
-  #     - failedTemplate:
-  #         errorMessage: 'Error!!! global.modules.publicDomainTemplate must contain "%s" pattern to render service fqdn!'
+          path: annotations
+          value: {}
