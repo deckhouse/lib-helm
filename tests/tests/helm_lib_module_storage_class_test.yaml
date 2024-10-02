@@ -66,3 +66,25 @@ tests:
       - equal:
           path: annotations
           value: {}
+
+  - it: only first-storageclass should set as default if discovery.defaultStorageClass is empty and global.defaultClusterStorageClass NOT DEFINED
+    set:
+      global:
+        discovery:
+          defaultStorageClass: ""
+
+    asserts:
+      - documentIndex: 0
+        equal:
+          path: annotations["storageclass.kubernetes.io/is-default-class"]
+          value: "true"
+
+      - documentIndex: 1
+        equal:
+          path: annotations
+          value: {}
+
+      - documentIndex: 2
+        equal:
+          path: annotations
+          value: {}
