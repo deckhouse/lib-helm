@@ -1,0 +1,4 @@
+{{- range $index, $storageClass := (list "first-storageclass" "second-storageclass" "third-storageclass") }}
+---
+{{ include "helm_lib_module_storage_class_annotations" (list $ $index $storageClass) }}
+{{- end }}
