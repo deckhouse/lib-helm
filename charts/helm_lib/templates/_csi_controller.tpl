@@ -51,6 +51,7 @@ memory: 50Mi
   {{- $snapshotterTimeout := $config.snapshotterTimeout | default "600s" }}
   {{- $provisionerWorkers := $config.provisionerWorkers | default "10" }}
   {{- $volumeNamePrefix := $config.volumeNamePrefix }}
+  {{- $volumeNameUUIDLength := $config.volumeNameUUIDLength }}
   {{- $attacherWorkers := $config.attacherWorkers | default "10" }}
   {{- $resizerWorkers := $config.resizerWorkers | default "10" }}
   {{- $snapshotterWorkers := $config.snapshotterWorkers | default "10" }}
@@ -211,6 +212,9 @@ spec:
         - "--csi-address=$(ADDRESS)"
   {{- if $volumeNamePrefix }}
         - "--volume-name-prefix={{ $volumeNamePrefix }}"
+  {{- end }}
+  {{- if $volumeNameUUIDLength }}
+        - "--volume-name-uuid-length={{ $volumeNameUUIDLength }}"
   {{- end }}
   {{- if $topologyEnabled }}
         - "--feature-gates=Topology=true"
