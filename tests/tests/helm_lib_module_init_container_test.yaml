@@ -11,7 +11,7 @@ tests:
             base: "deckhouse.io/deckhouse/ce"
           digests:
             common:
-              alpine: sha256
+              init: sha256
 
     asserts:
       - equal:
