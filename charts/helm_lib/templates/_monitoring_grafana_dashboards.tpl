@@ -38,7 +38,7 @@
 
   {{- range $path, $_ := $context.Files.Glob (print $currentDir "/*.tpl") }}
     {{- $fileName := ($path | splitList "/" | last ) }}
-    {{- $definition := tpl ($context.Files.Get $path) }}
+    {{- $definition := tpl ($context.Files.Get $path) $context }}
 
     {{- $folder := (index ($currentDir | splitList "/") $folderNamesIndex | replace "-" " " | title) }}
     {{- $resourceName := (regexReplaceAllLiteral "\\.tpl$" $path "") }}
