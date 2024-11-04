@@ -26,16 +26,6 @@
 {{ include "helm_lib_single_dashboard" (list $context $resourceName $folder $definition) }}
   {{- end }}
 
-  {{- $subDirs := list }}
-  {{- range $path, $_ := ($context.Files.Glob (print $currentDir "/**.json")) }}
-    {{- $pathSlice := ($path | splitList "/") }}
-    {{- $subDirs = append $subDirs (slice $pathSlice 0 (add $currentDirIndex 2) | join "/") }}
-  {{- end }}
-
-  {{- range $subDir := ($subDirs | uniq) }}
-{{ include "helm_lib_grafana_dashboard_definitions_recursion" (list $context $rootDir $subDir) }}
-  {{- end }}
-
   {{- range $path, $_ := $context.Files.Glob (print $currentDir "/*.tpl") }}
     {{- $fileName := ($path | splitList "/" | last ) }}
     {{- $definition := tpl ($context.Files.Get $path) $context }}
@@ -50,6 +40,10 @@
   {{- end }}
 
   {{- $subDirs := list }}
+  {{- range $path, $_ := ($context.Files.Glob (print $currentDir "/**.json")) }}
+    {{- $pathSlice := ($path | splitList "/") }}
+    {{- $subDirs = append $subDirs (slice $pathSlice 0 (add $currentDirIndex 2) | join "/") }}
+  {{- end }}
   {{- range $path, $_ := ($context.Files.Glob (print $currentDir "/**.tpl")) }}
     {{- $pathSlice := ($path | splitList "/") }}
     {{- $subDirs = append $subDirs (slice $pathSlice 0 (add $currentDirIndex 2) | join "/") }}
