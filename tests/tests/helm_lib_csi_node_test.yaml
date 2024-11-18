@@ -28,15 +28,12 @@ tests:
           - --start
         additionalNodeVolumes: {}
         additionalNodeVolumeMounts: {}
-        initContainerCommand: |
-          - initContainerCommand
-        initContainerImage: initContainerImage
-        additionalInitContainerEnvs:
-          - name: testEnv
-            value: testValue
-        additionalInitContainerParts:
-          additionalPart0: additionalPart0
-          additionalPart1: additionalPart1
+        initContainers:
+          - name: init-container-name
+            command:
+              - command
+            imagePullPolicy: IfNotPresent
+            image: initContainerImage
 
     asserts:
       - containsDocument:
@@ -44,6 +41,19 @@ tests:
           apiVersion: apps/v1
           name: csi-node
           namespace: d8-test-module
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].image"
+          value: initContainerImage
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].command"
+          value:
+            - command
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].name"
+          value: init-container-name
 
   - it: contains params according values
 
@@ -71,15 +81,12 @@ tests:
           - --start
         additionalNodeVolumes: {}
         additionalNodeVolumeMounts: {}
-        initContainerCommand: |
-          - initContainerCommand
-        initContainerImage: initContainerImage
-        additionalInitContainerEnvs:
-          - name: testEnv
-            value: testValue
-        additionalInitContainerParts:
-          additionalPart0: additionalPart0
-          additionalPart1: additionalPart1
+        initContainers:
+          - name: init-container-name
+            command:
+              - command
+            imagePullPolicy: IfNotPresent
+            image: initContainerImage
 
     asserts:
       - equal:
@@ -88,5 +95,9 @@ tests:
 
       - equal:
           path: "spec.template.spec.initContainers[0].command"
-          value: |
-            - initContainerCommand
+          value:
+            - command
+
+      - equal:
+          path: "spec.template.spec.initContainers[0].name"
+          value: init-container-name
