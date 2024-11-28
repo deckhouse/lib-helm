@@ -62,6 +62,9 @@ memory: 50Mi
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
 
+  {{- $nfsv3Containers      := $config.nfsv3Containers }}
+  {{- $nfsv3ContainerVolume := $config.nfsv3ContainerVolume }}
+
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
   {{- $provisionerImageName := join "" (list "csiExternalProvisioner" $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
@@ -425,6 +428,10 @@ spec:
       {{- $additionalContainers | toYaml | nindent 6 }}
     {{- end }}
 
+  {{- if $nfsv3Containers }}
+    {{- $nfsv3Containers | toYaml | nindent 6 }}
+  {{- end }}
+
   {{- if $initContainers }}
       initContainers:
     {{- range $initContainer := $initContainers }}
@@ -443,9 +450,15 @@ spec:
       - name: tmp
         emptyDir: {}
       {{- end }}
-    {{- if $additionalControllerVolumes }}
-      {{- $additionalControllerVolumes | toYaml | nindent 6 }}
-    {{- end }}
+
+      {{- if $additionalControllerVolumes }}
+        {{- $additionalControllerVolumes | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $nfsv3ContainerVolume }}
+        {{- $nfsv3ContainerVolume | toYaml | nindent 6 }}
+      {{- end }}
+
   {{- end }}
 {{- end }}
 
