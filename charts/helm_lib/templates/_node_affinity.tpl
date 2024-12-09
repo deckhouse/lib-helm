@@ -243,7 +243,6 @@ tolerations:
 {{- define "_helm_lib_additional_tolerations_no_csi" }}
 - key: ToBeDeletedTaint
   operator: "Exists"
-  effect: "NoSchedule"
 - key: node.deckhouse.io/csi-not-bootstrapped
   operator: "Exists"
   effect: "NoSchedule"
