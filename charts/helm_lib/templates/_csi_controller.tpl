@@ -60,7 +60,15 @@ memory: 50Mi
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
-  {{- $initContainers := $config.initContainers }}
+
+  {{- $initContainers       := $config.initContainers }}
+  {{- $initContainersVolume := $config.initContainersVolume }}
+
+  {{- $nfsv3Containers      := $config.nfsv3Containers }}
+  {{- $nfsv3ContainerVolume := $config.nfsv3ContainerVolume }}
+
+  {{- $tlshdContainer       := $config.tlshdContainer }}
+  {{- $tlshdContainerVolume := $config.tlshdContainerVolume }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
@@ -168,6 +176,11 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
+
+  {{- if and (eq $context.Chart.Name "csi-nfs") $tlshdContainerVolume }}
+  annotations:
+    pod-reloader.deckhouse.io/auto: "true"
+  {{- end }}
 spec:
   replicas: 1
   revisionHistoryLimit: 2
@@ -185,7 +198,9 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-      hostNetwork: true
+    {{- if ne $context.Chart.Name "csi-nfs" }}
+      {{- print "hostNetwork: true" | nindent 6 }}
+    {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
@@ -360,14 +375,20 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
-        - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
+        {{- if eq $context.Chart.Name "csi-nfs" }}
+                {{- printf "- \"--http-endpoint=:%d\"" $livenessProbePort | nindent 8 }}
+        {{- else }}
+                {{- printf "- \"--http-endpoint=%s:%d\"" "$(HOST_IP)" $livenessProbePort | nindent 8 }}
+        {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
+        {{- if ne $context.Chart.Name "csi-nfs" }}
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -417,6 +438,14 @@ spec:
       {{- $additionalContainers | toYaml | nindent 6 }}
     {{- end }}
 
+    {{- if $nfsv3Containers }}
+      {{- $nfsv3Containers | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if $tlshdContainer }}
+      {{- $tlshdContainer | toYaml | nindent 6 }}
+    {{- end }}
+
   {{- if $initContainers }}
       initContainers:
     {{- range $initContainer := $initContainers }}
@@ -435,9 +464,23 @@ spec:
       - name: tmp
         emptyDir: {}
       {{- end }}
-    {{- if $additionalControllerVolumes }}
-      {{- $additionalControllerVolumes | toYaml | nindent 6 }}
-    {{- end }}
+
+      {{- if $additionalControllerVolumes }}
+        {{- $additionalControllerVolumes | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $nfsv3ContainerVolume }}
+        {{- $nfsv3ContainerVolume | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $initContainersVolume }}
+        {{- $initContainersVolume | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $tlshdContainerVolume }}
+        {{- $tlshdContainerVolume | toYaml | nindent 6 }}
+      {{- end }}
+
   {{- end }}
 {{- end }}
 
