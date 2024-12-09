@@ -21,10 +21,15 @@ memory: 25Mi
   {{- $additionalNodeArgs := $config.additionalNodeArgs }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
-  {{- $initContainers := $config.initContainers }}
+
+  {{- $initContainers       := $config.initContainers }}
+  {{- $initContainersVolume := $config.initContainersVolume }}
 
   {{- $nfsv3Containers      := $config.nfsv3Containers }}
   {{- $nfsv3ContainerVolume := $config.nfsv3ContainerVolume }}
+
+  {{- $tlshdContainer       := $config.tlshdContainer }}
+  {{- $tlshdContainerVolume := $config.tlshdContainerVolume }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
   {{- $driverRegistrarImageName := join "" (list "csiNodeDriverRegistrar" $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
@@ -68,6 +73,11 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
+
+  {{- if and (eq $context.Chart.Name "csi-nfs") $tlshdContainerVolume }}
+  annotations:
+    pod-reloader.deckhouse.io/auto: "true"
+  {{- end }}
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -167,9 +177,13 @@ spec:
             {{- include "node_resources" $context | nindent 12 }}
   {{- end }}
 
-  {{- if $nfsv3Containers }}
-    {{- $nfsv3Containers | toYaml | nindent 6 }}
-  {{- end }}
+      {{- if $nfsv3Containers }}
+        {{- $nfsv3Containers | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $tlshdContainer }}
+        {{- $tlshdContainer | toYaml | nindent 6 }}
+      {{- end }}
 
   {{- if $initContainers }}
       initContainers:
@@ -203,6 +217,14 @@ spec:
 
       {{- if $nfsv3ContainerVolume }}
         {{- $nfsv3ContainerVolume | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $initContainersVolume }}
+        {{- $initContainersVolume | toYaml | nindent 6 }}
+      {{- end }}
+
+      {{- if $tlshdContainerVolume }}
+        {{- $tlshdContainerVolume | toYaml | nindent 6 }}
       {{- end }}
 
     {{- end }}
