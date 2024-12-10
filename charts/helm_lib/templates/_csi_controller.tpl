@@ -60,15 +60,7 @@ memory: 50Mi
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
-
-  {{- $initContainers       := $config.initContainers }}
-  {{- $initContainersVolume := $config.initContainersVolume }}
-
-  {{- $nfsv3Containers      := $config.nfsv3Containers }}
-  {{- $nfsv3ContainerVolume := $config.nfsv3ContainerVolume }}
-
-  {{- $tlshdContainer       := $config.tlshdContainer }}
-  {{- $tlshdContainerVolume := $config.tlshdContainerVolume }}
+  {{- $initContainers := $config.initContainers }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
@@ -177,7 +169,7 @@ metadata:
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
 
-  {{- if and (eq $context.Chart.Name "csi-nfs") $tlshdContainerVolume }}
+  {{- if eq $context.Chart.Name "csi-nfs" }}
   annotations:
     pod-reloader.deckhouse.io/auto: "true"
   {{- end }}
@@ -198,9 +190,11 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-    {{- if ne $context.Chart.Name "csi-nfs" }}
-      {{- print "hostNetwork: true" | nindent 6 }}
-    {{- end }}
+      {{- if eq $context.Chart.Name "csi-nfs" }}
+        {{- print "hostNetwork: false" | nindent 6 }}
+      {{- else }}
+        {{- print "hostNetwork: true" | nindent 6 }}
+      {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
@@ -438,14 +432,6 @@ spec:
       {{- $additionalContainers | toYaml | nindent 6 }}
     {{- end }}
 
-    {{- if $nfsv3Containers }}
-      {{- $nfsv3Containers | toYaml | nindent 6 }}
-    {{- end }}
-
-    {{- if $tlshdContainer }}
-      {{- $tlshdContainer | toYaml | nindent 6 }}
-    {{- end }}
-
   {{- if $initContainers }}
       initContainers:
     {{- range $initContainer := $initContainers }}
@@ -467,18 +453,6 @@ spec:
 
       {{- if $additionalControllerVolumes }}
         {{- $additionalControllerVolumes | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $nfsv3ContainerVolume }}
-        {{- $nfsv3ContainerVolume | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $initContainersVolume }}
-        {{- $initContainersVolume | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $tlshdContainerVolume }}
-        {{- $tlshdContainerVolume | toYaml | nindent 6 }}
       {{- end }}
 
   {{- end }}

@@ -1,4 +1,4 @@
-helm_lib_csi_node_manifests{{- define "node_driver_registrar_resources" }}
+{{- define "node_driver_registrar_resources" }}
 cpu: 12m
 memory: 25Mi
 {{- end }}
@@ -19,17 +19,12 @@ memory: 25Mi
   {{- $serviceAccount := $config.serviceAccount | default "" }}
   {{- $additionalNodeEnvs := $config.additionalNodeEnvs }}
   {{- $additionalNodeArgs := $config.additionalNodeArgs }}
+  {{- $additionalNodeVolumes := $config.additionalNodeVolumes }}
+  {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
-
-  {{- $initContainers       := $config.initContainers }}
-  {{- $initContainersVolume := $config.initContainersVolume }}
-
-  {{- $nfsv3Containers      := $config.nfsv3Containers }}
-  {{- $nfsv3ContainerVolume := $config.nfsv3ContainerVolume }}
-
-  {{- $tlshdContainer       := $config.tlshdContainer }}
-  {{- $tlshdContainerVolume := $config.tlshdContainerVolume }}
+  {{- $additionalContainers := $config.additionalContainers }}
+  {{- $initContainers := $config.initContainers }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
   {{- $driverRegistrarImageName := join "" (list "csiNodeDriverRegistrar" $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
@@ -74,7 +69,7 @@ metadata:
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
 
-  {{- if and (eq $context.Chart.Name "csi-nfs") $tlshdContainerVolume }}
+  {{- if eq $context.Chart.Name "csi-nfs" }}
   annotations:
     pod-reloader.deckhouse.io/auto: "true"
   {{- end }}
@@ -111,7 +106,9 @@ spec:
       {{- include "helm_lib_priority_class" (tuple $context "system-node-critical") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-no-csi") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
-      {{- if ne $context.Chart.Name "csi-nfs" }}
+      {{- if eq $context.Chart.Name "csi-nfs" }}
+        {{- print "hostNetwork: false" | nindent 6 }}
+      {{- else }}
         {{- print "hostNetwork: true" | nindent 6 }}
       {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
@@ -170,6 +167,9 @@ spec:
           mountPath: /csi
         - name: device-dir
           mountPath: /dev
+        {{- if $additionalNodeVolumeMounts }}
+          {{- $additionalNodeVolumeMounts | toYaml | nindent 8 }}
+        {{- end }}
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
@@ -177,12 +177,8 @@ spec:
             {{- include "node_resources" $context | nindent 12 }}
   {{- end }}
 
-      {{- if $nfsv3Containers }}
-        {{- $nfsv3Containers | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $tlshdContainer }}
-        {{- $tlshdContainer | toYaml | nindent 6 }}
+      {{- if $additionalContainers }}
+        {{- $additionalContainers | toYaml | nindent 6 }}
       {{- end }}
 
   {{- if $initContainers }}
@@ -215,16 +211,8 @@ spec:
           path: /dev
           type: Directory
 
-      {{- if $nfsv3ContainerVolume }}
-        {{- $nfsv3ContainerVolume | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $initContainersVolume }}
-        {{- $initContainersVolume | toYaml | nindent 6 }}
-      {{- end }}
-
-      {{- if $tlshdContainerVolume }}
-        {{- $tlshdContainerVolume | toYaml | nindent 6 }}
+      {{- if $additionalNodeVolumes }}
+        {{- $additionalNodeVolumes | toYaml | nindent 6 }}
       {{- end }}
 
     {{- end }}
