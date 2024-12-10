@@ -168,6 +168,11 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
+
+  {{- if eq $context.Chart.Name "csi-nfs" }}
+  annotations:
+    pod-reloader.deckhouse.io/auto: "true"
+  {{- end }}
 spec:
   replicas: 1
   revisionHistoryLimit: 2
@@ -185,7 +190,11 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-      hostNetwork: true
+      {{- if eq $context.Chart.Name "csi-nfs" }}
+        {{- print "hostNetwork: false" | nindent 6 }}
+      {{- else }}
+        {{- print "hostNetwork: true" | nindent 6 }}
+      {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
@@ -360,14 +369,20 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
-        - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
+        {{- if eq $context.Chart.Name "csi-nfs" }}
+                {{- printf "- \"--http-endpoint=:%d\"" $livenessProbePort | nindent 8 }}
+        {{- else }}
+                {{- printf "- \"--http-endpoint=%s:%d\"" "$(HOST_IP)" $livenessProbePort | nindent 8 }}
+        {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
+        {{- if ne $context.Chart.Name "csi-nfs" }}
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
@@ -435,9 +450,11 @@ spec:
       - name: tmp
         emptyDir: {}
       {{- end }}
-    {{- if $additionalControllerVolumes }}
-      {{- $additionalControllerVolumes | toYaml | nindent 6 }}
-    {{- end }}
+
+      {{- if $additionalControllerVolumes }}
+        {{- $additionalControllerVolumes | toYaml | nindent 6 }}
+      {{- end }}
+
   {{- end }}
 {{- end }}
 

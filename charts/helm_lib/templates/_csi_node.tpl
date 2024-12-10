@@ -23,6 +23,7 @@ memory: 25Mi
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
+  {{- $additionalContainers := $config.additionalContainers }}
   {{- $initContainers := $config.initContainers }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
@@ -67,6 +68,11 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
+
+  {{- if eq $context.Chart.Name "csi-nfs" }}
+  annotations:
+    pod-reloader.deckhouse.io/auto: "true"
+  {{- end }}
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -100,7 +106,11 @@ spec:
       {{- include "helm_lib_priority_class" (tuple $context "system-node-critical") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-no-csi") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
-      hostNetwork: true
+      {{- if eq $context.Chart.Name "csi-nfs" }}
+        {{- print "hostNetwork: false" | nindent 6 }}
+      {{- else }}
+        {{- print "hostNetwork: true" | nindent 6 }}
+      {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: node-driver-registrar
@@ -157,15 +167,19 @@ spec:
           mountPath: /csi
         - name: device-dir
           mountPath: /dev
-    {{- if $additionalNodeVolumeMounts }}
-        {{- $additionalNodeVolumeMounts | toYaml | nindent 8 }}
-      {{- end }}
+        {{- if $additionalNodeVolumeMounts }}
+          {{- $additionalNodeVolumeMounts | toYaml | nindent 8 }}
+        {{- end }}
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
   {{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "node_resources" $context | nindent 12 }}
   {{- end }}
+
+      {{- if $additionalContainers }}
+        {{- $additionalContainers | toYaml | nindent 6 }}
+      {{- end }}
 
   {{- if $initContainers }}
       initContainers:
@@ -196,9 +210,11 @@ spec:
         hostPath:
           path: /dev
           type: Directory
-    {{- if $additionalNodeVolumes }}
-      {{- $additionalNodeVolumes | toYaml | nindent 6 }}
+
+      {{- if $additionalNodeVolumes }}
+        {{- $additionalNodeVolumes | toYaml | nindent 6 }}
       {{- end }}
+
     {{- end }}
   {{- end }}
 {{- end }}
