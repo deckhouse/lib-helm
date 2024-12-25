@@ -190,7 +190,11 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-      hostNetwork: true
+      {{- if eq $context.Chart.Name "csi-nfs" }}
+        {{- print "hostNetwork: false" | nindent 6 }}
+      {{- else }}
+        {{- print "hostNetwork: true" | nindent 6 }}
+      {{- end }}
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
