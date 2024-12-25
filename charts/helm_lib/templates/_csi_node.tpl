@@ -23,6 +23,7 @@ memory: 25Mi
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
+  {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $initContainers := $config.initContainers }}
 
@@ -84,6 +85,10 @@ spec:
       labels:
         app: {{ $fullname }}
     spec:
+      {{- if $customNodeSelector }}
+      nodeSelector:
+        {{- $customNodeSelector | toYaml | nindent 8 }}
+      {{- else }}
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -101,16 +106,13 @@ spec:
               {{- if $additionalNodeSelectorTerms }}
               {{- $additionalNodeSelectorTerms | toYaml | nindent 14 }}
               {{- end }}
+      {{- end }}
       imagePullSecrets:
       - name: deckhouse-registry
       {{- include "helm_lib_priority_class" (tuple $context "system-node-critical") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-no-csi") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
-      {{- if eq $context.Chart.Name "csi-nfs" }}
-        {{- print "hostNetwork: false" | nindent 6 }}
-      {{- else }}
-        {{- print "hostNetwork: true" | nindent 6 }}
-      {{- end }}
+      hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: node-driver-registrar
