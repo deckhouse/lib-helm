@@ -190,11 +190,7 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-      {{- if eq $context.Chart.Name "csi-nfs" }}
-        {{- print "hostNetwork: false" | nindent 6 }}
-      {{- else }}
-        {{- print "hostNetwork: true" | nindent 6 }}
-      {{- end }}
+      hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
@@ -369,20 +365,14 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
-        {{- if eq $context.Chart.Name "csi-nfs" }}
-                {{- printf "- \"--http-endpoint=:%d\"" $livenessProbePort | nindent 8 }}
-        {{- else }}
-                {{- printf "- \"--http-endpoint=%s:%d\"" "$(HOST_IP)" $livenessProbePort | nindent 8 }}
-        {{- end }}
+        - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
         env:
         - name: ADDRESS
           value: /csi/csi.sock
-        {{- if ne $context.Chart.Name "csi-nfs" }}
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
