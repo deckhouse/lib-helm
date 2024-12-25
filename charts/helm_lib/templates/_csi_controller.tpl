@@ -61,6 +61,7 @@ memory: 50Mi
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
+  {{- $customNodeSelector := $config.customNodeSelector }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
@@ -190,16 +191,17 @@ spec:
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
     {{- end }}
     spec:
-      {{- if eq $context.Chart.Name "csi-nfs" }}
-        {{- print "hostNetwork: false" | nindent 6 }}
-      {{- else }}
-        {{- print "hostNetwork: true" | nindent 6 }}
-      {{- end }}
+      hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: deckhouse-registry
       {{- include "helm_lib_priority_class" (tuple $context "system-cluster-critical") | nindent 6 }}
+      {{- if $customNodeSelector }}
+      nodeSelector:
+        {{- $customNodeSelector | toYaml | nindent 8 }}
+      {{- else }}
       {{- include "helm_lib_node_selector" (tuple $context "master") | nindent 6 }}
+      {{- end }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-uninitialized") | nindent 6 }}
 {{- if $context.Values.global.enabledModules | has "csi-nfs" }}
       {{- include "helm_lib_module_pod_security_context_runtime_default" . | nindent 6 }}

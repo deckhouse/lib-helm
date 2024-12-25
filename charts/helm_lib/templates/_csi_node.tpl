@@ -23,6 +23,7 @@ memory: 25Mi
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
+  {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $initContainers := $config.initContainers }}
 
@@ -84,6 +85,10 @@ spec:
       labels:
         app: {{ $fullname }}
     spec:
+      {{- if $customNodeSelector }}
+      nodeSelector:
+        {{- $customNodeSelector | toYaml | nindent 8 }}
+      {{- else }}
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -101,6 +106,7 @@ spec:
               {{- if $additionalNodeSelectorTerms }}
               {{- $additionalNodeSelectorTerms | toYaml | nindent 14 }}
               {{- end }}
+      {{- end }}
       imagePullSecrets:
       - name: deckhouse-registry
       {{- include "helm_lib_priority_class" (tuple $context "system-node-critical") | nindent 6 }}
