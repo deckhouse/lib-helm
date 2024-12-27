@@ -43,6 +43,7 @@ memory: 50Mi
   {{- $resizerEnabled := dig "resizerEnabled" true $config }}
   {{- $syncerEnabled := dig "syncerEnabled" false $config }}
   {{- $topologyEnabled := dig "topologyEnabled" true $config }}
+  {{- $runAsRootUser := dig "runAsRootUser" false $config }}
   {{- $extraCreateMetadataEnabled := dig "extraCreateMetadataEnabled" false $config }}
   {{- $controllerImage := $config.controllerImage | required "$config.controllerImage is required" }}
   {{- $provisionerTimeout := $config.provisionerTimeout | default "600s" }}
@@ -203,7 +204,11 @@ spec:
       {{- include "helm_lib_node_selector" (tuple $context "master") | nindent 6 }}
       {{- end }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-uninitialized") | nindent 6 }}
+      {{- if $runAsRootUser }}
+      {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
+      {{- else }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
+      {{- end }}
       serviceAccountName: csi
       containers:
       - name: provisioner
