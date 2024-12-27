@@ -203,11 +203,7 @@ spec:
       {{- include "helm_lib_node_selector" (tuple $context "master") | nindent 6 }}
       {{- end }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-uninitialized") | nindent 6 }}
-{{- if $context.Values.global.enabledModules | has "csi-nfs" }}
-      {{- include "helm_lib_module_pod_security_context_runtime_default" . | nindent 6 }}
-{{- else }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
-{{- end }}
       serviceAccountName: csi
       containers:
       - name: provisioner
