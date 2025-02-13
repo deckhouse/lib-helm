@@ -39,7 +39,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
-  {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node" "workload-resource-policy.deckhouse.io" "every-node")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
