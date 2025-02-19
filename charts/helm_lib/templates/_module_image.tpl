@@ -4,8 +4,10 @@
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
   {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- $modulePath := $context.Chart.Name }}
   {{- if ge (len .) 3 }}
   {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- $modulePath = index . 2 }} {{- /* Optional module name */ -}}
   {{- end }}
   {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
   {{- if not $imageDigest }}
@@ -18,7 +20,7 @@
     {{- if index $context.Values $moduleName "registry" }}
       {{- if index $context.Values $moduleName "registry" "base" }}
         {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-        {{- $path := trimAll "/" $context.Chart.Name }}
+        {{- $path := trimAll "/" $modulePath }}
         {{- $registryBase = join "/" (list $host $path) }}
       {{- end }}
     {{- end }}
@@ -32,8 +34,10 @@
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
   {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- $modulePath := $context.Chart.Name }}
   {{- if ge (len .) 3 }}
   {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- $modulePath = index . 2 }} {{- /* Optional module name */ -}}
   {{- end }}
   {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
   {{- if $imageDigest }}
@@ -42,7 +46,7 @@
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
           {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-          {{- $path := trimAll "/" $context.Chart.Name }}
+          {{- $path := trimAll "/" $modulePath }}
           {{- $registryBase = join "/" (list $host $path) }}
         {{- end }}
       {{- end }}
