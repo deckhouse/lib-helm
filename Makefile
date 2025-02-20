@@ -1,7 +1,7 @@
 FORMATTING_BEGIN_YELLOW = \033[0;33m
 FORMATTING_BEGIN_BLUE = \033[36m
 FORMATTING_END = \033[0m
-UNITTEST_VERSION = 0.3.0
+UNITTEST_VERSION = 0.7.2
 
 help:
 	@printf -- "${FORMATTING_BEGIN_BLUE}%s${FORMATTING_END}\n" \
@@ -49,8 +49,8 @@ ci/tests/unit/update-snapshot/run: ci/tests/unit/install-plugin ci/tests/unit/up
 
 .PHONY: tests/unit
 tests/unit: ## Run unit tests for lib-helm
-	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.11.1-$(UNITTEST_VERSION) ./tests
+	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.17.0-$(UNITTEST_VERSION) ./tests
 
 .PHONY: tests/unit/update-snapshot
 tests/unit/update-snapshot: ## Update tests snapshot https://github.com/helm-unittest/helm-unittest/blob/main/README.md#snapshot-testing
-	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.11.1-$(UNITTEST_VERSION) -u ./tests
+	docker run -ti --rm -v $(CURDIR):/apps helmunittest/helm-unittest:3.17.0-$(UNITTEST_VERSION) -u ./tests

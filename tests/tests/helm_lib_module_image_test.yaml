@@ -1,60 +1,60 @@
 suite: helm_lib_module_image definition
 templates:
   - helm_lib_module_image.yaml
+set:
+  global:
+    modulesImages:
+      registry:
+        base: "registry.deckhouse.io/deckhouse/ce"
+      digests:
+        testModule:
+          testContainer: "sha123"
+          externalContainer: "sha321"
+        fooBar:
+          testContainer: "sha345"
+        someModule:
+          externalContainer: "sha543"
 tests:
-  - it: should renders module image
-    set:
-      global:
-        modulesImages:
-          registry:
-            base: "deckhouse.io/deckhouse/ce"
-          digests:
-            testModule:
-              testContainer: "sha123"
-            fooBar:
-              testContainer: "sha345"
+  - it: should render embedded module image
+    documentIndex: 0
     asserts:
       - equal:
-          path: "withContext"
-          value: "deckhouse.io/deckhouse/ce@sha123"
+          path: "embeddedModule"
+          value: "registry.deckhouse.io/deckhouse/ce@sha123"
       - equal:
-          path: "optionalModuleName"
-          value: "deckhouse.io/deckhouse/ce@sha345"
+          path: "embeddedModuleWithOptionalName"
+          value: "registry.deckhouse.io/deckhouse/ce@sha345"
 
   - it: should render external module image
+    documentIndex: 1
     set:
-      global:
-        modulesImages:
-          registry:
-            base: "deckhouse.io/deckhouse/ce"
-          digests:
-            testModule:
-              testContainer: "sha678"
-            fooBar:
-              testContainer: "sha345"
       testModule:
         registry:
-          base: "deckhouse.io/external-modules"
+          base: "registry.deckhouse.io/modules/"
+      someModule:
+        registry:
+          base: "registry.flant.com/modules/"
     asserts:
       - equal:
           path: "externalModuleImage"
-          value: "deckhouse.io/external-modules/test-module@sha678"
-  
+          value: "registry.deckhouse.io/modules/test-module@sha321"
+      - equal:
+          path: "externalModuleImageWithOptionalName"
+          value: "registry.flant.com/modules/some-module@sha543"
+      - equal:
+          path: "externalModuleKebabImageWithOptionalName"
+          value: "registry.flant.com/modules/some-module@sha543"
+
   - it: should render external module image with trail slash
+    documentIndex: 1
     set:
-      global:
-        modulesImages:
-          registry:
-            base: "deckhouse.io/deckhouse/ce"
-          digests:
-            testModule:
-              testContainer: "sha678"
-            fooBar:
-              testContainer: "sha345"
       testModule:
         registry:
-          base: "deckhouse.io/external-modules/"
+          base: "registry.deckhouse.io/modules/"
+      someModule:
+        registry:
+          base: "registry.flant.com/modules/"
     asserts:
       - equal:
           path: "externalModuleImage"
-          value: "deckhouse.io/external-modules/test-module@sha678"
+          value: "registry.deckhouse.io/modules/test-module@sha321"
