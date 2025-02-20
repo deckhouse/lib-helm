@@ -361,7 +361,7 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_module_image" (list . "<container-name>") }} `
+`{{ include "helm_lib_module_image" (list . "<container-name>" "<module-name>(optional)") }} `
 
 #### Arguments
 

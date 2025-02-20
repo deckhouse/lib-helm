@@ -1,3 +1,6 @@
-withContext: {{ include "helm_lib_module_image" (list . "testContainer") }}
-optionalModuleName: {{ include "helm_lib_module_image" (list . "testContainer" "fooBar") }}
-externalModuleImage: {{ include "helm_lib_module_image" (list . "testContainer") }}
+embeddedModule: {{ include "helm_lib_module_image" (list . "testContainer") }}
+embeddedModuleWithOptionalName: {{ include "helm_lib_module_image" (list . "testContainer" "fooBar") }}
+---
+externalModuleImage: {{ include "helm_lib_module_image" (list . "externalContainer") }}
+externalModuleImageWithOptionalName: {{ include "helm_lib_module_image" (list . "externalContainer" "someModule") }}
+externalModuleKebabImageWithOptionalName: {{ include "helm_lib_module_image" (list . "externalContainer" "some-module") }}
