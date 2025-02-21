@@ -24,7 +24,7 @@
       {{- end }}
     {{- end }}
   {{- end }}
-  {{/* end of external module handling block */}}
+  {{- /* end of external module handling block */}}
   {{- printf "%s@%s" $registryBase $imageDigest }}
 {{- end }}
 
