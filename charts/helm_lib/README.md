@@ -723,10 +723,6 @@ list:
 
  returns SecurityContext parameters for Container with read only root filesystem, all dropped, and custom user ID 
 
-### helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted
-
- returns SecurityContext parameters for Container with seccompProfile and read only root filesystem, all dropped
-
 #### Usage
 
 `{{ include "helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom" (list . 1000 1000) }} `
@@ -737,6 +733,19 @@ list:
 -  Template context with .Values, .Chart, etc 
 -  User id 
 -  Group id 
+
+
+### helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted
+
+ returns SecurityContext parameters for Container with minimal required settings to comply with the Restricted mode of the Pod Security Standards 
+
+#### Usage
+
+`{{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted" . }} `
+
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
 
 ## Module Storage Class
 
