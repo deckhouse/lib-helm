@@ -64,6 +64,7 @@
 | [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add) |
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_add](#helm_lib_module_container_security_context_capabilities_drop_all_and_add) |
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom](#helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom) |
+| [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted) |
 | **Module Storage Class** |
 | [helm_lib_module_storage_class_annotations](#helm_lib_module_storage_class_annotations) |
 | **Monitoring Grafana Dashboards** |
@@ -721,6 +722,10 @@ list:
 ### helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom
 
  returns SecurityContext parameters for Container with read only root filesystem, all dropped, and custom user ID 
+
+### helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted
+
+ returns SecurityContext parameters for Container with seccompProfile and read only root filesystem, all dropped
 
 #### Usage
 
