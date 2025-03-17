@@ -71,3 +71,16 @@ tests:
       - equal:
           path: "externalModuleImageDigestWithOptionalNameTestModule"
           value: "sha321"
+
+  - it: should render external module image digest no fail
+    documentIndex: 3
+    asserts:
+      - equal:
+          path: "externalModuleImageDigestNoFail"
+          value: "sha321"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameNoFail"
+          value: "sha543"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameTestModuleNoFail"
+          value: "sha321"

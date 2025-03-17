@@ -8,3 +8,7 @@ externalModuleKebabImageWithOptionalName: {{ include "helm_lib_module_image" (li
 externalModuleImageDigest: {{ include "helm_lib_module_image_digest" (list . "externalContainer") }}
 externalModuleImageDigestWithOptionalName: {{ include "helm_lib_module_image_digest" (list . "externalContainer" "someModule") }}
 externalModuleImageDigestWithOptionalNameTestModule: {{ include "helm_lib_module_image_digest" (list . "externalContainer" "testModule") }}
+---
+externalModuleImageDigestNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list . "externalContainer") }}
+externalModuleImageDigestWithOptionalNameNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list . "externalContainer" "someModule") }}
+externalModuleImageDigestWithOptionalNameTestModuleNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list . "externalContainer" "testModule") }}
