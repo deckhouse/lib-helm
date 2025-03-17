@@ -87,7 +87,8 @@
   {{- $rawModuleName = (index . 2) }} {{- /* Optional module name */ -}}
   {{- end }}
   {{- $moduleName := (include "helm_lib_module_camelcase_name" $rawModuleName) }}
-  {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
+  {{- $moduleMap := index $context.Values.global.modulesImages.digests $moduleName | default dict }}
+  {{- $imageDigest := index $moduleMap $containerName | default "" }}
   {{- if not $imageDigest }}
   {{- $error := (printf "Image %s.%s has no digest" $moduleName $containerName ) }}
   {{- fail $error }}
@@ -104,8 +105,7 @@
   {{- if ge (len .) 3 }}
   {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
   {{- end }}
-  {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
-  {{- if $imageDigest }}
-    {{- printf "%s" $imageDigest }}
-  {{- end }}
+  {{- $moduleMap := index $context.Values.global.modulesImages.digests $moduleName | default dict }}
+  {{- $imageDigest := index $moduleMap $containerName | default "" }}
+  {{- printf "%s" $imageDigest }}
 {{- end }}
