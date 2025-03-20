@@ -58,3 +58,38 @@ tests:
       - equal:
           path: "externalModuleImage"
           value: "registry.deckhouse.io/modules/test-module@sha321"
+
+  - it: should render external module image digest
+    documentIndex: 2
+    asserts:
+      - equal:
+          path: "externalModuleImageDigest"
+          value: "sha321"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalName"
+          value: "sha543"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameTestModule"
+          value: "sha321"
+
+  - it: should render external module image digest no fail
+    documentIndex: 3
+    asserts:
+      - equal:
+          path: "externalModuleImageDigestNoFail"
+          value: "sha321"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameNoFail"
+          value: "sha543"
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameTestModuleNoFail"
+          value: "sha321"
+  - it: should render external module image digest no fail with null
+    documentIndex: 4
+    asserts:
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameModuleNotExistNoFail"
+          value: null
+      - equal:
+          path: "externalModuleImageDigestWithOptionalNameContainerNotExistNoFail"
+          value: null
