@@ -1,0 +1,1 @@
+snippet: {{ include "helm_lib_module_ingress_configuration_snippet" . | quote }}
