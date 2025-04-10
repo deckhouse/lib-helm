@@ -1,0 +1,52 @@
+suite: helm_lib_module_ingress_configuration_snippet tests
+templates:
+  - helm_lib_module_module_ingress_snippets_check.yaml
+
+tests:
+  - it: should not render HSTS header when https mode is Disabled
+    set:
+      global:
+        modules:
+          https:
+            mode: Disabled
+    asserts:
+      - equal:
+          path: snippet
+          value: ""
+
+  - it: should render HSTS header when https mode is CertManager
+    set:
+      global:
+        enabledModules:
+          - cert-manager
+        modules:
+          https:
+            mode: CertManager
+            certManager:
+              clusterIssuerName: letsencrypt
+    asserts:
+      - matchRegex:
+          path: snippet
+          pattern: "Strict-Transport-Security"
+
+  - it: should render HSTS header when https mode is CustomCertificate
+    set:
+      global:
+        modules:
+          https:
+            mode: CustomCertificate
+    asserts:
+      - matchRegex:
+          path: snippet
+          pattern: "Strict-Transport-Security"
+
+  - it: should not render HSTS header when https mode is OnlyInURI
+    set:
+      global:
+        modules:
+          https:
+            mode: OnlyInURI
+    asserts:
+      - equal:
+          path: snippet
+          value: ""
