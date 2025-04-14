@@ -22,6 +22,7 @@ memory: 25Mi
   {{- $additionalNodeVolumes := $config.additionalNodeVolumes }}
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
+  {{- $livenessProbePort := $config.livenessProbePort }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $forceCsiNodeAndStaticNodesDepoloy := $config.forceCsiNodeAndStaticNodesDepoloy | default false }}
@@ -125,12 +126,15 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: node-driver-registrar
-        {{- include "helm_lib_module_container_security_context_not_allow_privilege_escalation" $context | nindent 8 }}
+        {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" $context | nindent 8 }}
         image: {{ $driverRegistrarImage | quote }}
         args:
         - "--v=5"
         - "--csi-address=$(CSI_ENDPOINT)"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+        {{- if $livenessProbePort }}
+        - "--http-endpoint=:{{ $livenessProbePort }}"
+        {{- end }}
         env:
         - name: CSI_ENDPOINT
           value: "/csi/csi.sock"
@@ -161,6 +165,7 @@ spec:
       - name: node
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
         image: {{ $nodeImage }}
         args:
       {{- if $additionalNodeArgs }}
@@ -170,6 +175,14 @@ spec:
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
       {{- end }}
+        {{- if $livenessProbePort }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ $livenessProbePort }}
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+        {{- end }}      
         volumeMounts:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet
