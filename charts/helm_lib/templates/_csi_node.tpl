@@ -175,14 +175,14 @@ spec:
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
       {{- end }}
-        {{- if $livenessProbePort }}
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: {{ $livenessProbePort }}
-            initialDelaySeconds: 5
-            timeoutSeconds: 5
-        {{- end }}      
+      {{- if $livenessProbePort }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ $livenessProbePort }}
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+      {{- end }}      
         volumeMounts:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet
