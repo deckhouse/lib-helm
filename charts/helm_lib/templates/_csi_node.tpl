@@ -151,8 +151,6 @@ spec:
             command:
         {{- $additionalNodeLivenessProbesCmd | toYaml | nindent 12 }}
       {{- end }}
-        securityContext:
-          readOnlyRootFilesystem: true
         volumeMounts:
         - name: plugin-dir
           mountPath: /csi
