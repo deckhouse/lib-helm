@@ -126,7 +126,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: node-driver-registrar
-        {{- include "helm_lib_module_container_security_context_not_allow_privilege_escalation" $context | nindent 8 }}
+        {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" $context | nindent 8 }}
         image: {{ $driverRegistrarImage | quote }}
         args:
         - "--v=5"
