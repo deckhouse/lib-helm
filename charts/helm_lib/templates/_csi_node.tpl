@@ -22,6 +22,7 @@ memory: 25Mi
   {{- $additionalNodeVolumes := $config.additionalNodeVolumes }}
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
+  {{- $livenessProbePort := $config.livenessProbePort }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $forceCsiNodeAndStaticNodesDepoloy := $config.forceCsiNodeAndStaticNodesDepoloy | default false }}
@@ -131,6 +132,9 @@ spec:
         - "--v=5"
         - "--csi-address=$(CSI_ENDPOINT)"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+        {{- if $livenessProbePort }}
+        - "--http-endpoint=:{{ $livenessProbePort }}"
+        {{- end }}
         env:
         - name: CSI_ENDPOINT
           value: "/csi/csi.sock"
@@ -147,6 +151,8 @@ spec:
             command:
         {{- $additionalNodeLivenessProbesCmd | toYaml | nindent 12 }}
       {{- end }}
+        securityContext:
+          readOnlyRootFilesystem: true
         volumeMounts:
         - name: plugin-dir
           mountPath: /csi
@@ -161,6 +167,7 @@ spec:
       - name: node
         securityContext:
           privileged: true
+          readOnlyRootFilesystem: true
         image: {{ $nodeImage }}
         args:
       {{- if $additionalNodeArgs }}
@@ -170,6 +177,14 @@ spec:
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
       {{- end }}
+        {{- if $livenessProbePort }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ $livenessProbePort }}
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+        {{- end }}      
         volumeMounts:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet
