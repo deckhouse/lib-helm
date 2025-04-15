@@ -17,6 +17,7 @@ memory: 25Mi
   {{- $nodeImage := $config.nodeImage | required "$config.nodeImage is required" }}
   {{- $driverFQDN := $config.driverFQDN | required "$config.driverFQDN is required" }}
   {{- $serviceAccount := $config.serviceAccount | default "" }}
+  {{- $additionalNodeVPA := $config.additionalNodeVPA }}
   {{- $additionalNodeEnvs := $config.additionalNodeEnvs }}
   {{- $additionalNodeArgs := $config.additionalNodeArgs }}
   {{- $additionalNodeVolumes := $config.additionalNodeVolumes }}
@@ -52,6 +53,9 @@ spec:
     updateMode: "Auto"
   resourcePolicy:
     containerPolicies:
+    {{- if $additionalNodeVPA }}
+    {{- $additionalNodeVPA | toYaml | nindent 4 }}
+    {{- end }}
     - containerName: "node-driver-registrar"
       minAllowed:
         {{- include "node_driver_registrar_resources" $context | nindent 8 }}
