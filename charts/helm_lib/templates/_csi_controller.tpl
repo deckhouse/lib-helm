@@ -56,6 +56,7 @@ memory: 50Mi
   {{- $attacherWorkers := $config.attacherWorkers | default "10" }}
   {{- $resizerWorkers := $config.resizerWorkers | default "10" }}
   {{- $snapshotterWorkers := $config.snapshotterWorkers | default "10" }}
+  {{- $additionalControllerAnnotations := $config.additionalControllerAnnotations }}
   {{- $additionalControllerEnvs := $config.additionalControllerEnvs }}
   {{- $additionalSyncerEnvs := $config.additionalSyncerEnvs }}
   {{- $additionalControllerArgs := $config.additionalControllerArgs }}
@@ -173,11 +174,11 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
-
-  {{- if eq $context.Chart.Name "csi-nfs" }}
-  annotations:
-    pod-reloader.deckhouse.io/auto: "true"
+  
+  {{- if $additionalControllerAnnotations }}
+  {{- $additionalControllerAnnotations | toYaml | nindent 2 }}
   {{- end }}
+  
 spec:
   replicas: 1
   revisionHistoryLimit: 2
