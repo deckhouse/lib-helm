@@ -176,7 +176,8 @@ metadata:
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
   
   {{- if $additionalControllerAnnotations }}
-  {{- $additionalControllerAnnotations | toYaml | nindent 2 }}
+  annotations:
+    {{- $additionalControllerAnnotations | toYaml | nindent 4 }}
   {{- end }}
   
 spec:

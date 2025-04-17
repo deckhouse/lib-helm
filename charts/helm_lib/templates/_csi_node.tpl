@@ -78,7 +78,8 @@ metadata:
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
 
   {{- if $additionalNodeAnnotations }}
-  {{- $additionalNodeAnnotations | toYaml | nindent 2 }}
+  annotations: 
+    {{- $additionalNodeAnnotations | toYaml | nindent 4 }}
   {{- end }}
 
   {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
