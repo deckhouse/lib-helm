@@ -222,6 +222,7 @@ spec:
 
       serviceAccount: {{ $serviceAccount | quote }}
       serviceAccountName: {{ $serviceAccount | quote }}
+      automountServiceAccountToken: true
       volumes:
       - name: registration-dir
         hostPath:
