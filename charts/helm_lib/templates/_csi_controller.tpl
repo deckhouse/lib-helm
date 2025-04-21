@@ -63,7 +63,7 @@ memory: 50Mi
   {{- $additionalControllerVolumes := $config.additionalControllerVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
-  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default true }}  
+  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}  
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
@@ -198,10 +198,8 @@ spec:
       {{- end }}
       {{- end }}
     spec:
-      {{- if $csiControllerHostNetwork }}
-      hostNetwork: true
+      hostNetwork: {{ $csiControllerHostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}      
       imagePullSecrets:
       - name: deckhouse-registry
       {{- if $additionalPullSecrets }}
