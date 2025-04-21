@@ -63,6 +63,7 @@ memory: 50Mi
   {{- $additionalControllerVolumes := $config.additionalControllerVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
+  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default true }}  
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
@@ -192,13 +193,15 @@ spec:
       {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
       {{- end }}
-      {{- if  }}
+      {{- if $additionalCsiControllerPodAnnotations }}
         {{- $additionalCsiControllerPodAnnotations | toYaml | nindent 8 }}
       {{- end }}
       {{- end }}
     spec:
+      {{- if $csiControllerHostNetwork }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}      
       imagePullSecrets:
       - name: deckhouse-registry
       {{- if $additionalPullSecrets }}

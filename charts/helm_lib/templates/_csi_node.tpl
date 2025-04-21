@@ -31,6 +31,7 @@ memory: 25Mi
   {{- $initContainers := $config.initContainers }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
   {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
+  {{- $csiNodeHostNetwork := $config.csiNodeHostNetwork | default true }}
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
   {{- $driverRegistrarImageName := join "" (list "csiNodeDriverRegistrar" $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
   {{- $driverRegistrarImage := include "helm_lib_module_common_image_no_fail" (list $context $driverRegistrarImageName) }}
@@ -91,7 +92,7 @@ spec:
       {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
       {{- end }}
-      {{- if  }}
+      {{- if $additionalCsiNodePodAnnotations }}
         {{- $additionalCsiNodePodAnnotations | toYaml | nindent 8 }}
       {{- end }}
       {{- end }}
@@ -126,8 +127,10 @@ spec:
       {{- include "helm_lib_priority_class" (tuple $context "system-node-critical") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple $context "any-node" "with-no-csi") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
+      {{- if $csiNodeHostNetwork }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       containers:
       - name: node-driver-registrar
         {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" $context | nindent 8 }}
