@@ -199,7 +199,9 @@ spec:
       {{- end }}
     spec:
       hostNetwork: {{ $csiControllerHostNetwork }}
+      {{- if eq $csiControllerHostNetwork "true" }}
       dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       imagePullSecrets:
       - name: deckhouse-registry
       {{- if $additionalPullSecrets }}
@@ -388,14 +390,25 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
+  {{- if eq $csiControllerHostNetwork "true" }}
         - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
+  {{- else }}
+        - "--http-endpoint=$(POD_IP):{{ $livenessProbePort }}"
+  {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
+  {{- if eq $csiControllerHostNetwork "true" }}          
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+  {{- else }}              
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP  
+  {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
