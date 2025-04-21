@@ -56,7 +56,7 @@ memory: 50Mi
   {{- $attacherWorkers := $config.attacherWorkers | default "10" }}
   {{- $resizerWorkers := $config.resizerWorkers | default "10" }}
   {{- $snapshotterWorkers := $config.snapshotterWorkers | default "10" }}
-  {{- $additionalControllerAnnotations := $config.additionalControllerAnnotations }}
+  {{- $additionalCsiControllerPodAnnotations := $config.additionalCsiControllerPodAnnotations | default false }}
   {{- $additionalControllerEnvs := $config.additionalControllerEnvs }}
   {{- $additionalSyncerEnvs := $config.additionalSyncerEnvs }}
   {{- $additionalControllerArgs := $config.additionalControllerArgs }}
@@ -174,12 +174,7 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
-  
-  {{- if $additionalControllerAnnotations }}
-  annotations:
-    {{- $additionalControllerAnnotations | toYaml | nindent 4 }}
-  {{- end }}
-  
+ 
 spec:
   replicas: 1
   revisionHistoryLimit: 2
@@ -192,10 +187,15 @@ spec:
     metadata:
       labels:
         app: {{ $fullname }}
-    {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
+      {{- if or (hasPrefix "cloud-provider-" $context.Chart.Name) ($additionalCsiControllerPodAnnotations) }}
       annotations:
+      {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
-    {{- end }}
+      {{- end }}
+      {{- if  }}
+        {{- $additionalCsiControllerPodAnnotations | toYaml | nindent 8 }}
+      {{- end }}
+      {{- end }}
     spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet

@@ -30,7 +30,7 @@ memory: 25Mi
   {{- $additionalContainers := $config.additionalContainers }} 
   {{- $initContainers := $config.initContainers }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
-  {{- $additionalNodeAnnotations := $config.additionalNodeAnnotations }}
+  {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
   {{- $driverRegistrarImageName := join "" (list "csiNodeDriverRegistrar" $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
   {{- $driverRegistrarImage := include "helm_lib_module_common_image_no_fail" (list $context $driverRegistrarImageName) }}
@@ -76,16 +76,6 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
-
-  {{- if $additionalNodeAnnotations }}
-  annotations: 
-    {{- $additionalNodeAnnotations | toYaml | nindent 4 }}
-  {{- end }}
-
-  {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
-  annotations:
-    cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
-  {{- end }}
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -96,6 +86,15 @@ spec:
     metadata:
       labels:
         app: {{ $fullname }}
+      {{- if or (hasPrefix "cloud-provider-" $context.Chart.Name) ($additionalCsiNodePodAnnotations) }}
+      annotations:
+      {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
+        cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
+      {{- end }}
+      {{- if  }}
+        {{- $additionalCsiNodePodAnnotations | toYaml | nindent 8 }}
+      {{- end }}
+      {{- end }}
     spec:
       {{- if $customNodeSelector }}
       nodeSelector:
