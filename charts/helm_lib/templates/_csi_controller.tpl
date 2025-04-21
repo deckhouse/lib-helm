@@ -201,7 +201,8 @@ spec:
       {{- if $csiControllerHostNetwork }}
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}      imagePullSecrets:
+      {{- end }}      
+      imagePullSecrets:
       - name: deckhouse-registry
       {{- if $additionalPullSecrets }}
       {{- $additionalPullSecrets | toYaml | nindent 6 }}
