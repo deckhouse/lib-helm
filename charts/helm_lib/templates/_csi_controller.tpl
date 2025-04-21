@@ -63,7 +63,7 @@ memory: 50Mi
   {{- $additionalControllerVolumes := $config.additionalControllerVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
-  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default true }}  
+  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}  
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
@@ -198,10 +198,10 @@ spec:
       {{- end }}
       {{- end }}
     spec:
-      {{- if $csiControllerHostNetwork }}
-      hostNetwork: true
+      hostNetwork: {{ $csiControllerHostNetwork }}
+      {{- if eq $csiControllerHostNetwork "true" }}
       dnsPolicy: ClusterFirstWithHostNet
-      {{- end }}      
+      {{- end }}
       imagePullSecrets:
       - name: deckhouse-registry
       {{- if $additionalPullSecrets }}
@@ -390,14 +390,25 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
+  {{- if eq $csiControllerHostNetwork "true" }}
         - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
+  {{- else }}
+        - "--http-endpoint=$(POD_IP):{{ $livenessProbePort }}"
+  {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
+  {{- if eq $csiControllerHostNetwork "true" }}          
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+  {{- else }}              
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP  
+  {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
