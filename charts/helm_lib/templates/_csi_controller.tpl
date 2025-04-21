@@ -193,7 +193,7 @@ spec:
       {{- if hasPrefix "cloud-provider-" $context.Chart.Name }}
         cloud-config-checksum: {{ include (print $context.Template.BasePath "/cloud-controller-manager/secret.yaml") $context | sha256sum }}
       {{- end }}
-      {{- if  }}
+      {{- if $additionalCsiControllerPodAnnotations }}
         {{- $additionalCsiControllerPodAnnotations | toYaml | nindent 8 }}
       {{- end }}
       {{- end }}
