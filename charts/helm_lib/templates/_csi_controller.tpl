@@ -63,7 +63,7 @@ memory: 50Mi
   {{- $additionalControllerVolumes := $config.additionalControllerVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalContainers := $config.additionalContainers }}
-  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}  
+  {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
@@ -175,7 +175,7 @@ metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
- 
+
 spec:
   replicas: 1
   revisionHistoryLimit: 2
@@ -245,6 +245,9 @@ spec:
         - "--default-fstype=ext4"
         - "--leader-election=true"
         - "--leader-election-namespace=$(NAMESPACE)"
+        - "--leader-election-lease-duration=30s"
+        - "--leader-election-renew-deadline=20s"
+        - "--leader-election-retry-period=5s"
         - "--enable-capacity"
         - "--capacity-ownerref-level=2"
   {{- if $extraCreateMetadataEnabled }}
@@ -282,6 +285,9 @@ spec:
         - "--csi-address=$(ADDRESS)"
         - "--leader-election=true"
         - "--leader-election-namespace=$(NAMESPACE)"
+        - "--leader-election-lease-duration=30s"
+        - "--leader-election-renew-deadline=20s"
+        - "--leader-election-retry-period=5s"
         - "--worker-threads={{ $attacherWorkers }}"
         env:
         - name: ADDRESS
@@ -310,6 +316,9 @@ spec:
         - "--csi-address=$(ADDRESS)"
         - "--leader-election=true"
         - "--leader-election-namespace=$(NAMESPACE)"
+        - "--leader-election-lease-duration=30s"
+        - "--leader-election-renew-deadline=20s"
+        - "--leader-election-retry-period=5s"
         - "--workers={{ $resizerWorkers }}"
         env:
         - name: ADDRESS
@@ -366,6 +375,9 @@ spec:
         - "--csi-address=$(ADDRESS)"
         - "--leader-election=true"
         - "--leader-election-namespace=$(NAMESPACE)"
+        - "--leader-election-lease-duration=30s"
+        - "--leader-election-renew-deadline=20s"
+        - "--leader-election-retry-period=5s"
         - "--worker-threads={{ $snapshotterWorkers }}"
         env:
         - name: ADDRESS
@@ -398,16 +410,16 @@ spec:
         env:
         - name: ADDRESS
           value: /csi/csi.sock
-  {{- if eq $csiControllerHostNetwork "true" }}          
+  {{- if eq $csiControllerHostNetwork "true" }}
         - name: HOST_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-  {{- else }}              
+  {{- else }}
         - name: POD_IP
           valueFrom:
             fieldRef:
-              fieldPath: status.podIP  
+              fieldPath: status.podIP
   {{- end }}
         volumeMounts:
         - name: socket-dir
