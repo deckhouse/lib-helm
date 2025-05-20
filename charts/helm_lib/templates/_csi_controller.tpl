@@ -63,6 +63,7 @@ memory: 50Mi
   {{- $additionalControllerVolumes := $config.additionalControllerVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalControllerVPA := $config.additionalControllerVPA }}
+  {{- $additionalControllerPorts := $config.additionalControllerPorts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
@@ -453,6 +454,10 @@ spec:
           httpGet:
             path: /healthz
             port: {{ $livenessProbePort }}
+    {{- if $additionalControllerPorts }}
+        ports:
+        {{- $additionalControllerPorts | toYaml | nindent 8 }}
+    {{- end }}
         volumeMounts:
         - name: socket-dir
           mountPath: /csi
