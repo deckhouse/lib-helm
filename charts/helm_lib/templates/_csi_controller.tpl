@@ -66,6 +66,7 @@ memory: 50Mi
   {{- $additionalControllerPorts := $config.additionalControllerPorts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
+  {{- $csiControllerHostPID := $config.csiControllerHostPID | default "false" }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
@@ -204,6 +205,7 @@ spec:
       {{- end }}
     spec:
       hostNetwork: {{ $csiControllerHostNetwork }}
+      hostPID: {{ $csiControllerHostPID }}
       {{- if eq $csiControllerHostNetwork "true" }}
       dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
