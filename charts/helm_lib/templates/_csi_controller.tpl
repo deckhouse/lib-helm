@@ -71,6 +71,7 @@ memory: 50Mi
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
+  {{- $forceCsiControllerPrivilegedContainer := $config.forceCsiControllerPrivilegedContainer | default false }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
@@ -438,7 +439,7 @@ spec:
             {{- include "livenessprobe_resources" $context | nindent 12 }}
   {{- end }}
       - name: controller
-{{- if $context.Values.global.enabledModules | has "csi-nfs" }}
+{{- if $forceCsiControllerPrivilegedContainer }}
         {{- include "helm_lib_module_container_security_context_escalated_sys_admin_privileged" . | nindent 8 }}
 {{- else }}
         {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" . | nindent 8 }}
