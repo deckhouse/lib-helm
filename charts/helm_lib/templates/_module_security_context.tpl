@@ -131,6 +131,7 @@ securityContext:
     add:
     - SYS_ADMIN
   privileged: true
+  readOnlyRootFilesystem: true
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_privileged_read_only_root_filesystem" . }} */ -}}
