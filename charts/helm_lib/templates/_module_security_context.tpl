@@ -83,10 +83,12 @@ securityContext:
 {{- /* Optional keys: */ -}}
 {{- /* .ro   – bool, read-only root FS (default true) */ -}}
 {{- /* .caps – []string, capabilities.add (default empty) */ -}}
-{{- /* Usage: include "helm_lib_module_container_security_context_deckhouse_pss_restricted_flexible" dict */ -}}
-{{- define "helm_lib_module_container_security_context_deckhouse_pss_restricted_flexible" -}}
+{{- /* .uid  – int, runAsUser/runAsGroup (default 64535) */ -}}
+{{- /* Usage: include "helm_lib_module_container_security_context_pss_restricted_flexible" dict */ -}}
+{{- define "helm_lib_module_container_security_context_pss_restricted_flexible" -}}
 {{- $ro   := default true  .ro   -}}
 {{- $caps := default (list) .caps -}}
+{{- $uid  := default 64535 .uid  -}}
 
 securityContext:
   readOnlyRootFilesystem: {{ $ro }}
@@ -97,13 +99,12 @@ securityContext:
 {{- if $caps }}
     add: {{ $caps | toJson }}
 {{- end }}
-  runAsUser:   64535
-  runAsGroup:  64535
+  runAsUser:   {{ $uid }}
+  runAsGroup:  {{ $uid }}
   runAsNonRoot: true
   seccompProfile:
     type: RuntimeDefault
 {{- end }}
-
 
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_run_as_user_root" . }} */ -}}
