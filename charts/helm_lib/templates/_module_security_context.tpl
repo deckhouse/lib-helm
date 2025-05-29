@@ -173,6 +173,7 @@ securityContext:
 {{- define "helm_lib_module_container_security_context_escalated_sys_admin_privileged" -}}
 securityContext:
   allowPrivilegeEscalation: true
+  readOnlyRootFilesystem: true
   capabilities:
     add:
     - SYS_ADMIN
