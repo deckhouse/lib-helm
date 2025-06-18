@@ -156,7 +156,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-      {{- if csiNodeDriverRegistrarLifecycle }}
+      {{- if $csiNodeDriverRegistrarLifecycle }}
         lifecycle:
           {{- $csiNodeDriverRegistrarLifecycle | toYaml | nindent 10 }}
       {{- end }}
@@ -196,7 +196,7 @@ spec:
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
       {{- end }}
-      {{- if csiNodeLifecycle }}
+      {{- if $csiNodeLifecycle }}
         lifecycle:
           {{- $csiNodeLifecycle | toYaml | nindent 10 }}
       {{- end }}
