@@ -186,7 +186,7 @@ metadata:
 
 spec:
   {{- if $csiControllerHaMode }}
-  {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" . | nindent 2 }}
+  {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   replicas: 1
   {{- end }}
@@ -210,6 +210,9 @@ spec:
       {{- end }}
       {{- end }}
     spec:
+      {{- if $csiControllerHaMode }}
+      {{- include "helm_lib_pod_anti_affinity_for_ha" (list $context (dict "app" $fullname)) | nindent 6 }}
+      {{- end }}
       hostNetwork: {{ $csiControllerHostNetwork }}
       hostPID: {{ $csiControllerHostPID }}
       {{- if eq $csiControllerHostNetwork "true" }}
