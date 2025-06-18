@@ -8,7 +8,6 @@ tests:
       global:
         modules:
           placement: {}
-        forceCsiNodeAndStaticNodesDepoloy: true
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -18,6 +17,7 @@ tests:
         discovery:
           kubernetesVersion: "1.25"
       _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
         nodeImage: nodeImage
         driverFQDN: driverFQDN
         additionalNodeEnvs:
@@ -60,7 +60,6 @@ tests:
       global:
         modules:
           placement: {}
-        forceCsiNodeAndStaticNodesDepoloy: true
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -70,6 +69,7 @@ tests:
         discovery:
           kubernetesVersion: "1.25"
       _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
         nodeImage: nodeImage
         driverFQDN: driverFQDN
         additionalNodeEnvs:
