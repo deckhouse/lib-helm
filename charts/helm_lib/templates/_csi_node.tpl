@@ -31,8 +31,8 @@ memory: 25Mi
   {{- $additionalContainers := $config.additionalContainers }} 
   {{- $initContainers := $config.initContainers }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
-  {{- $csiNodeLifecycle := $config.csiNodeLifecycle }}
-  {{- $csiNodeDriverRegistrarLifecycle := $config.csiNodeDriverRegistrarLifecycle }}
+  {{- $csiNodeLifecycle := $config.csiNodeLifecycle | default false }}
+  {{- $csiNodeDriverRegistrarLifecycle := $config.csiNodeDriverRegistrarLifecycle | default false }}
   {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
   {{- $csiNodeHostNetwork := $config.csiNodeHostNetwork | default "true" }}
   {{- $csiNodeHostPID := $config.csiNodeHostPID | default "false" }}
