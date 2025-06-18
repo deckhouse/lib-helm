@@ -31,6 +31,7 @@ memory: 25Mi
   {{- $additionalContainers := $config.additionalContainers }} 
   {{- $initContainers := $config.initContainers }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
+  {{- $csiNodeLifecycle := $config.csiNodeLifecycle }}
   {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
   {{- $csiNodeHostNetwork := $config.csiNodeHostNetwork | default "true" }}
   {{- $csiNodeHostPID := $config.csiNodeHostPID | default "false" }}
@@ -154,6 +155,9 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
+      {{- if csiNodeLifecycle }}
+        {{- $csiNodeLifecycle | toYaml | nindent 8 }}
+      {{- end }}
       {{- if $additionalNodeLivenessProbesCmd }}
         livenessProbe:
           initialDelaySeconds: 3
