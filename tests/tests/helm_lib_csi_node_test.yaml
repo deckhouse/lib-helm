@@ -8,8 +8,7 @@ tests:
       global:
         modules:
           placement: {}
-        enabledModules:
-          - ceph-csi
+        forceCsiNodeAndStaticNodesDepoloy: true
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -61,8 +60,7 @@ tests:
       global:
         modules:
           placement: {}
-        enabledModules:
-          - ceph-csi
+        forceCsiNodeAndStaticNodesDepoloy: true
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
