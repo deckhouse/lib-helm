@@ -189,13 +189,13 @@ spec:
   {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   replicas: 1
+  strategy:
+    type: Recreate
   {{- end }}
   revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: {{ $fullname }}
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
