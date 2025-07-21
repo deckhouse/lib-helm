@@ -40,6 +40,7 @@ memory: 50Mi
   {{- $config := index . 1 }}
   {{- $fullname := $config.fullname | default "csi-controller" }}
   {{- $snapshotterEnabled := dig "snapshotterEnabled" true $config }}
+  {{- $snapshotterSnapshotNamePrefix := dig "snapshotterSnapshotNamePrefix" false $config }}
   {{- $resizerEnabled := dig "resizerEnabled" true $config }}
   {{- $syncerEnabled := dig "syncerEnabled" false $config }}
   {{- $topologyEnabled := dig "topologyEnabled" true $config }}
@@ -381,7 +382,7 @@ spec:
             {{- include "syncer_resources" $context | nindent 12 }}
   {{- end }}
             {{- end }}
-            {{- if $snapshotterEnabled }}
+    {{- if $snapshotterEnabled }}
       - name: snapshotter
         {{- include "helm_lib_module_container_security_context_read_only_root_filesystem" . | nindent 8 }}
         image: {{ $snapshotterImage | quote }}
@@ -395,6 +396,9 @@ spec:
         - "--leader-election-renew-deadline=20s"
         - "--leader-election-retry-period=5s"
         - "--worker-threads={{ $snapshotterWorkers }}"
+        {{- if $snapshotterSnapshotNamePrefix }}
+        - "--snapshot-name-prefix={{ $snapshotterSnapshotNamePrefix }}"
+        {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
