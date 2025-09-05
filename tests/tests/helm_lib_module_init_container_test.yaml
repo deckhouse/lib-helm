@@ -28,6 +28,7 @@ tests:
                 requests:
                   ephemeral-storage: 50Mi
               securityContext:
+                readOnlyRootFilesystem: true
                 runAsGroup: 0
                 runAsNonRoot: false
                 runAsUser: 0
@@ -58,6 +59,7 @@ tests:
                 requests:
                   ephemeral-storage: 50Mi
               securityContext:
+                readOnlyRootFilesystem: true
                 runAsGroup: 0
                 runAsNonRoot: false
                 runAsUser: 0
