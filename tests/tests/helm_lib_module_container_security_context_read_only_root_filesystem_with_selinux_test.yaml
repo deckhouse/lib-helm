@@ -13,5 +13,3 @@ tests:
             seLinuxOptions:
               level: 's0'
               type: 'spc_t'
-            seccompProfile:
-              type: RuntimeDefault
