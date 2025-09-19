@@ -1,0 +1,17 @@
+suite: helm_lib_module_container_security_context_pss_restricted_flexible
+templates:
+  - helm_lib_module_container_security_context_pss_restricted_flexible_seccomp_disabled.yaml
+tests:
+  - it: seccompProfile disabled
+    asserts:
+      - equal:
+          path: securityContext
+          value:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsUser: 64535
+            runAsGroup: 64535
+            runAsNonRoot: true
