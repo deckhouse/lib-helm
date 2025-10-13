@@ -74,4 +74,4 @@ tests:
     asserts:
       - equal:
           path: "uri"
-          value: "https://deckhouse.io/products/kubernetes-platform/documentation/v1/modules/123-my-module/faq.html#how-to-module"
+          value: "https://deckhouse.io/modules/123-my-module/faq.html#how-to-module"
