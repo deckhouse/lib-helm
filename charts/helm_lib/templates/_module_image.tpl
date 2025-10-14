@@ -13,14 +13,14 @@
   {{- $error := (printf "Image %s.%s has no digest" $moduleName $containerName ) }}
   {{- fail $error }}
   {{- end }}
-  {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
+  {{- $modulePath := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
+  {{- $registryBase := join "/" (list $context.Values.global.modulesImages.registry.base $modulePath) }}
   {{- /*  handle external modules registry */}}
   {{- if index $context.Values $moduleName }}
     {{- if index $context.Values $moduleName "registry" }}
       {{- if index $context.Values $moduleName "registry" "base" }}
         {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-        {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
-        {{- $registryBase = join "/" (list $host $path) }}
+        {{- $registryBase = join "/" (list $host $modulePath) }}
       {{- end }}
     {{- end }}
   {{- end }}
@@ -40,13 +40,13 @@
   {{- $moduleName := (include "helm_lib_module_camelcase_name" $rawModuleName) }}
   {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
   {{- if $imageDigest }}
-    {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
+    {{- $modulePath := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
+    {{- $registryBase := join "/" (list $context.Values.global.modulesImages.registry.base $modulePath) }}
     {{- if index $context.Values $moduleName }}
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
           {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-          {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
-          {{- $registryBase = join "/" (list $host $path) }}
+          {{- $registryBase = join "/" (list $host $modulePath) }}
         {{- end }}
       {{- end }}
     {{- end }}
@@ -119,21 +119,21 @@
   {{- if kindIs "map" $input -}}
     {{- $input = $input.Chart.Name -}}
   {{- end -}}
-  {{- if not $input -}}
+  {{- $input = $input | lower -}}
+  {{- if eq $input "" -}}
     {{- "module" -}}  {{/* Fallback if empty */}}
-  {{- else if contains "-" $input -}}
-    {{- $lowered := $input | lower -}}
-    {{- $spaced := replace $lowered "-" " " -}}
+  {{- else if not (contains "-" $input) -}}
+    {{- $input -}}
+  {{- else -}}
+    {{- $spaced := replace $input "-" " " -}}
     {{- $titled := title $spaced -}}
     {{- $joined := replace $titled " " "" -}}
     {{- if le (len $joined) 1 -}}
       {{- lower $joined -}}
     {{- else -}}
-      {{- $first := lower (substr 0 1 $joined) -}}
-      {{- $rest := substr 1 (sub (len $joined) 1) $joined -}}
+      {{- $first := lower (substr (int 0) (int 1) $joined) -}}
+      {{- $rest := substr (int 1) (int (sub (len $joined) (int 1))) $joined -}}
       {{- printf "%s%s" $first $rest -}}
     {{- end -}}
-  {{- else -}}
-    {{- $input -}}
   {{- end -}}
 {{- end -}}
