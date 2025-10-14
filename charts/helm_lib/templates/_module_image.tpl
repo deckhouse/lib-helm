@@ -19,7 +19,7 @@
     {{- if index $context.Values $moduleName "registry" }}
       {{- if index $context.Values $moduleName "registry" "base" }}
         {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-        {{- $path := trimAll "/" (include "helm_lib_module_kebabcase_name" $rawModuleName) }}
+        {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
         {{- $registryBase = join "/" (list $host $path) }}
       {{- end }}
     {{- end }}
@@ -44,7 +44,7 @@
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
           {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-          {{- $path := trimAll "/" $context.Chart.Name }}
+          {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $context.Chart.Name) }}
           {{- $registryBase = join "/" (list $host $path) }}
         {{- end }}
       {{- end }}
@@ -109,3 +109,25 @@
   {{- $imageDigest := index $moduleMap $containerName | default "" }}
   {{- printf "%s" $imageDigest }}
 {{- end }}
+
+{{- /* Usage: {{ include "helm_lib_module_lowercamelcase_name" "<module-name>" }} */ -}}
+{{- /* returns lowerCamelCase name from kebab-case or other */ -}}
+{{- define "helm_lib_module_lowercamelcase_name" -}}
+  {{- $chartName := . | required "Chart.Name is required" | lower -}}
+  {{- if eq $chartName "" -}}
+    {{- "module" -}}  {{/* Fallback if empty */}}
+  {{- else if not (contains "-" $chartName) -}}
+    {{- $chartName -}}
+  {{- else -}}
+    {{- $spaced := replace $chartName "-" " " -}}
+    {{- $titled := title $spaced -}}
+    {{- $joined := replace $titled " " "" -}}
+    {{- if le (len $joined) 1 -}}
+      {{- lower $joined -}}
+    {{- else -}}
+      {{- $first := lower (substr (int 0) (int 1) $joined) -}}
+      {{- $rest := substr (int 1) (int (sub (len $joined) 1)) $joined -}}
+      {{- printf "%s%s" $first $rest -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
