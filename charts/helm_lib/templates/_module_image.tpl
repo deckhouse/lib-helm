@@ -116,25 +116,24 @@
 {{- /* returns lowerCamelCase name from kebab-case or other */ -}}
 {{- define "helm_lib_module_lowercamelcase_name" -}}
   {{- $input := . -}}
+  {{- if kindIs "map" $input -}}
+    {{- $input = $input.Chart.Name -}}
+  {{- end -}}
   {{- if not $input -}}
     {{- "module" -}}  {{/* Fallback if empty */}}
-  {{- else -}}
-    {{- $chartName := $input | lower -}}
-    {{- if eq $chartName "" -}}
-      {{- "module" -}}  {{/* Fallback if empty after lower */}}
-    {{- else if not (contains "-" $chartName) -}}
-      {{- $chartName -}}
+  {{- else if contains "-" $input -}}
+    {{- $lowered := $input | lower -}}
+    {{- $spaced := replace $lowered "-" " " -}}
+    {{- $titled := title $spaced -}}
+    {{- $joined := replace $titled " " "" -}}
+    {{- if le (len $joined) 1 -}}
+      {{- lower $joined -}}
     {{- else -}}
-      {{- $spaced := replace $chartName "-" " " -}}
-      {{- $titled := title $spaced -}}
-      {{- $joined := replace $titled " " "" -}}
-      {{- if le (len $joined) 1 -}}
-        {{- lower $joined -}}
-      {{- else -}}
-        {{- $first := lower (substr (int 0) (int 1) $joined) -}}
-        {{- $rest := substr (int 1) (int (sub (len $joined) 1)) $joined -}}
-        {{- printf "%s%s" $first $rest -}}
-      {{- end -}}
+      {{- $first := lower (substr 0 1 $joined) -}}
+      {{- $rest := substr 1 (sub (len $joined) 1) $joined -}}
+      {{- printf "%s%s" $first $rest -}}
     {{- end -}}
+  {{- else -}}
+    {{- $input -}}
   {{- end -}}
 {{- end -}}
