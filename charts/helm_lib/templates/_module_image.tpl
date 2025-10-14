@@ -33,10 +33,11 @@
 {{- define "helm_lib_module_image_no_fail" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- $rawModuleName := $context.Chart.Name }}
   {{- if ge (len .) 3 }}
-  {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- $rawModuleName = (index . 2) }} {{- /* Optional module name */ -}}
   {{- end }}
+  {{- $moduleName := (include "helm_lib_module_camelcase_name" $rawModuleName) }}
   {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
   {{- if $imageDigest }}
     {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
@@ -44,7 +45,7 @@
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
           {{- $host := trimAll "/" (index $context.Values $moduleName "registry" "base") }}
-          {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $context.Chart.Name) }}
+          {{- $path := trimAll "/" (include "helm_lib_module_lowercamelcase_name" $rawModuleName) }}
           {{- $registryBase = join "/" (list $host $path) }}
         {{- end }}
       {{- end }}
@@ -101,10 +102,11 @@
 {{- define "helm_lib_module_image_digest_no_fail" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $moduleName := (include "helm_lib_module_camelcase_name" $context) }}
+  {{- $rawModuleName := $context.Chart.Name }}
   {{- if ge (len .) 3 }}
-  {{- $moduleName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional module name */ -}}
+  {{- $rawModuleName = (index . 2) }} {{- /* Optional module name */ -}}
   {{- end }}
+  {{- $moduleName := (include "helm_lib_module_camelcase_name" $rawModuleName) }}
   {{- $moduleMap := index $context.Values.global.modulesImages.digests $moduleName | default dict }}
   {{- $imageDigest := index $moduleMap $containerName | default "" }}
   {{- printf "%s" $imageDigest }}
@@ -113,21 +115,26 @@
 {{- /* Usage: {{ include "helm_lib_module_lowercamelcase_name" "<module-name>" }} */ -}}
 {{- /* returns lowerCamelCase name from kebab-case or other */ -}}
 {{- define "helm_lib_module_lowercamelcase_name" -}}
-  {{- $chartName := . | required "Chart.Name is required" | lower -}}
-  {{- if eq $chartName "" -}}
+  {{- $input := . -}}
+  {{- if not $input -}}
     {{- "module" -}}  {{/* Fallback if empty */}}
-  {{- else if not (contains "-" $chartName) -}}
-    {{- $chartName -}}
   {{- else -}}
-    {{- $spaced := replace $chartName "-" " " -}}
-    {{- $titled := title $spaced -}}
-    {{- $joined := replace $titled " " "" -}}
-    {{- if le (len $joined) 1 -}}
-      {{- lower $joined -}}
+    {{- $chartName := $input | lower -}}
+    {{- if eq $chartName "" -}}
+      {{- "module" -}}  {{/* Fallback if empty after lower */}}
+    {{- else if not (contains "-" $chartName) -}}
+      {{- $chartName -}}
     {{- else -}}
-      {{- $first := lower (substr (int 0) (int 1) $joined) -}}
-      {{- $rest := substr (int 1) (int (sub (len $joined) 1)) $joined -}}
-      {{- printf "%s%s" $first $rest -}}
+      {{- $spaced := replace $chartName "-" " " -}}
+      {{- $titled := title $spaced -}}
+      {{- $joined := replace $titled " " "" -}}
+      {{- if le (len $joined) 1 -}}
+        {{- lower $joined -}}
+      {{- else -}}
+        {{- $first := lower (substr (int 0) (int 1) $joined) -}}
+        {{- $rest := substr (int 1) (int (sub (len $joined) 1)) $joined -}}
+        {{- printf "%s%s" $first $rest -}}
+      {{- end -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
