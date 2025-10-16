@@ -37,13 +37,13 @@ tests:
     asserts:
       - equal:
           path: "externalModuleImage"
-          value: "registry.deckhouse.io/modules/test-module@sha321"
+          value: "registry.deckhouse.io/modules/testModule@sha321"
       - equal:
           path: "externalModuleImageWithOptionalName"
-          value: "registry.flant.com/modules/some-module@sha543"
+          value: "registry.flant.com/modules/someModule@sha543"
       - equal:
           path: "externalModuleKebabImageWithOptionalName"
-          value: "registry.flant.com/modules/some-module@sha543"
+          value: "registry.flant.com/modules/someModule@sha543"
 
   - it: should render external module image with trail slash
     documentIndex: 1
@@ -57,7 +57,7 @@ tests:
     asserts:
       - equal:
           path: "externalModuleImage"
-          value: "registry.deckhouse.io/modules/test-module@sha321"
+          value: "registry.deckhouse.io/modules/testModule@sha321"
 
   - it: should render external module image digest
     documentIndex: 2
