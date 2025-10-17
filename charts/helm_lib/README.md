@@ -72,6 +72,9 @@
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_add](#helm_lib_module_container_security_context_capabilities_drop_all_and_add) |
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom](#helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom) |
 | [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted) |
+| **Module Security Pss Settings** |
+| [helm_lib_module_pss_settings](#helm_lib_module_pss_settings) |
+| [helm_lib_module_pss_annotations](#helm_lib_module_pss_annotations) |
 | **Module Storage Class** |
 | [helm_lib_module_storage_class_annotations](#helm_lib_module_storage_class_annotations) |
 | **Monitoring Grafana Dashboards** |
@@ -828,6 +831,30 @@ list:
 #### Arguments
 
 -  Template context with .Values, .Chart, etc 
+
+## Module Security Pss Settings
+
+### helm_lib_module_pss_settings
+
+ return securityContext 
+
+#### Usage
+
+`{{ include "helm_lib_module_pss_settings" ( dict "securityContext" $settings ) }} `
+
+#### Arguments
+
+-  settings example 
+
+
+### helm_lib_module_pss_annotations
+
+ Returns special annotations that allow skipping PSS checks of the Restricted level. 
+
+#### Usage
+
+`{{- include "helm_lib_module_pss_annotations" ( dict "settings" $settings "annotation_info" $annotation_info ) | nindent 2 }} `
+
 
 ## Module Storage Class
 

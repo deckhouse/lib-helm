@@ -1,6 +1,3 @@
-
-{{- /*  A table showing which `ConstraintTemplate` object is responsible for parameter validation. This is needed to generate the correct annotation.  */ -}}
-{{- /*  Auxiliary internal function */ -}}
 {{- define "helm_lib_module_pss_rules_table" }}
 securityContext:
   readOnlyRootFilesystem: d8readonlyrootfilesystem
@@ -27,6 +24,8 @@ volumes:
 
 
 {{- /* Usage: {{ include "helm_lib_module_pss_settings" ( dict "securityContext" $settings ) }} */ -}}
+{{- /* return securityContext */ -}}
+{{- define "helm_lib_module_pss_settings" }}
 {{- /* settings example */ -}}
 {{- /* 
 settings:
@@ -82,9 +81,6 @@ settings:
               metadata:
                 desc: For parsing logs                         
 */ -}}
-{{- /* return securityContext */ -}}
-
-{{- define "helm_lib_module_pss_settings" }}
 {{- with .securityContext }}
 securityContext:
   readOnlyRootFilesystem:{{ if hasKey . "readOnlyRootFilesystem" }} {{ .readOnlyRootFilesystem }}{{ else }} true{{ end }}
@@ -135,7 +131,6 @@ securityContext:
 {{- end }}
 
 
-{{- /*  Auxiliary internal function */ -}}
 {{- define "helm_lib_module_pss_generate_annotation" }}
   {{- $type := .type -}}
   {{- $param := .param -}}
@@ -160,7 +155,6 @@ securityContext:
   {{- end }}
 {{- end }}
 
-{{- /*  Auxiliary internal function */ -}}
 {{- define "helm_lib_module_pss_merge_annotations" }}
   {{- $output := dict }}
   {{- $annotation := fromYaml .annotation -}}
@@ -177,6 +171,10 @@ securityContext:
 
 
 {{- /* Usage: {{- include "helm_lib_module_pss_annotations" ( dict "settings" $settings "annotation_info" $annotation_info ) | nindent 2 }} */ -}}
+{{- /* Returns special annotations that allow skipping PSS checks of the Restricted level. */ -}}
+{{- define "helm_lib_module_pss_annotations" }}
+{{- /* settings: special structure with securityContext, network and volumes settings, see code for details -}}
+
 {{- /* settings example */ -}}
 {{- /* 
 settings:
@@ -281,9 +279,6 @@ annotation_info:
             I added this field only for demonstration purposes.
                     
 */ -}}
-{{- /* return annotations */ -}}
-
-{{- define "helm_lib_module_pss_annotations" }}
 {{- $annotation_info := .annotation_info -}}
 {{- $annotations := "" -}}
 {{- with .settings.securityContext }}
