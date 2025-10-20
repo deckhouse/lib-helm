@@ -51,6 +51,9 @@ tests:
           path: "tolerations"
           value:
             - effect: NoSchedule
+              key: node.deckhouse.io/bashible-uninitialized
+              operator: Exists
+            - effect: NoSchedule
               key: node.deckhouse.io/uninitialized
               operator: Exists
             - key: node.kubernetes.io/not-ready
