@@ -11,8 +11,8 @@ tests:
           mode: "CustomCertificate"
         internal:
           customCertificateData:
-            tls.crt: "Y2VydGRhdGE="
-            tls.key: "a2V5ZGF0YQ=="
+            tls.crt: "certdata"
+            tls.key: "keydata"
     asserts:
       - equal:
           path: "apiVersion"
@@ -32,8 +32,8 @@ tests:
       - equal:
           path: "data"
           value:
-            tls.crt: "certdata"
-            tls.key: "keydata"
+            tls.crt: "Y2VydGRhdGE="
+            tls.key: "a2V5ZGF®YQ=="
       - equal:
           path: "metadata.labels"
           value:
