@@ -1,0 +1,47 @@
+suite: helm_lib_module_ingress_class definition
+templates:
+  - helm_lib_module_ingress_class.yaml
+tests:
+  - it: should return global ingress class when no module ingress class
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          ingressClass: "global-nginx"
+    asserts:
+      - equal:
+          path: "result"
+          value: "global-nginx"
+
+  - it: should return module ingress class when defined
+    documentIndex: 0
+    set:
+      testModule:
+        ingressClass: "module-traefik"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module-traefik"
+
+  - it: should prioritize module ingress class over global
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          ingressClass: "global-nginx"
+      testModule:
+        ingressClass: "module-traefik"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module-traefik"
+
+  - it: should return empty when no ingress class defined
+    documentIndex: 0
+    set:
+      global:
+        modules: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: ""

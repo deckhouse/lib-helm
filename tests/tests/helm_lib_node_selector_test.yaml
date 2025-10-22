@@ -1,0 +1,41 @@
+suite: helm_lib_node_selector definition
+templates:
+  - helm_lib_node_selector.yaml
+set:
+  global:
+    discovery:
+      d8SpecificNodeCountByRole:
+        monitoring: 1
+        frontend: 1
+        system: 1
+        master: 1
+      clusterMasterCount: 1
+tests:
+  - it: should render monitoring node selector
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: nodeSelector
+          value:
+            node-role.deckhouse.io/monitoring: ""
+  - it: should render frontend node selector
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: nodeSelector
+          value:
+            node-role.deckhouse.io/frontend: ""
+  - it: should render system node selector
+    documentIndex: 2
+    asserts:
+      - equal:
+          path: nodeSelector
+          value:
+            node-role.deckhouse.io/system: ""
+  - it: should render master node selector
+    documentIndex: 3
+    asserts:
+      - equal:
+          path: nodeSelector
+          value:
+            node-role.kubernetes.io/control-plane: ""

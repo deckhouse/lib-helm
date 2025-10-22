@@ -1,0 +1,27 @@
+suite: helm_lib_module_image_digest_no_fail definition
+templates:
+  - helm_lib_module_image_digest_no_fail.yaml
+tests:
+  - it: should return digest when found
+    set:
+      global:
+        modulesImages:
+          digests:
+            testModule:
+              test-container: "sha256:abcd1234"
+    asserts:
+      - equal:
+          path: "digest"
+          value: "sha256:abcd1234"
+
+  - it: should return null when not found
+    set:
+      global:
+        modulesImages:
+          digests:
+            otherModule:
+              other-container: "sha256:abcd1234"
+    asserts:
+      - equal:
+          path: "digest"
+          value: null

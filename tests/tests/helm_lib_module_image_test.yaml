@@ -14,6 +14,8 @@ set:
           testContainer: "sha345"
         someModule:
           externalContainer: "sha543"
+        common:
+          commonContainer: "sha999"
 tests:
   - it: should render embedded module image
     documentIndex: 0
@@ -92,4 +94,25 @@ tests:
           value: null
       - equal:
           path: "externalModuleImageDigestWithOptionalNameContainerNotExistNoFail"
+          value: null
+  - it: should render module image no fail
+    documentIndex: 5
+    asserts:
+      - equal:
+          path: "moduleImageNoFail"
+          value: "registry.deckhouse.io/deckhouse/ce@sha123"
+      - equal:
+          path: "moduleImageNoFailNotExist"
+          value: null
+  - it: should render common module images
+    documentIndex: 6
+    asserts:
+      - equal:
+          path: "commonImage"
+          value: "registry.deckhouse.io/deckhouse/ce@sha999"
+      - equal:
+          path: "commonImageNoFail"
+          value: "registry.deckhouse.io/deckhouse/ce@sha999"
+      - equal:
+          path: "commonImageNoFailNotExist"
           value: null

@@ -1,0 +1,47 @@
+suite: helm_lib_module_https_mode definition
+templates:
+  - helm_lib_module_https_mode.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "Disabled"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return global https mode when no module https defined
+    asserts:
+      - equal:
+          path: "mode"
+          value: "Disabled"
+
+  - it: should return module https mode when defined
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "letsencrypt"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "CertManager"
+
+  - it: should return CustomCertificate mode
+    set:
+      testModule:
+        https:
+          mode: "CustomCertificate"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "CustomCertificate"
+
+  - it: should return OnlyInURI mode
+    set:
+      testModule:
+        https:
+          mode: "OnlyInURI"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "OnlyInURI"

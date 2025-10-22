@@ -1,0 +1,4 @@
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "100m" }}
+result_100m: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "2" }}
+result_2: {{ $result }}

@@ -1,0 +1,32 @@
+suite: helm_lib_admission_webhook_client_ca_certificate definition
+templates:
+  - helm_lib_admission_webhook_client_ca_certificate.yaml
+tests:
+  - it: should render ConfigMap with admission webhook client CA certificate
+    set:
+      global:
+        internal:
+          modules:
+            admissionWebhookClientCA:
+              cert: "test-ca-cert-data"
+    asserts:
+      - equal:
+          path: "apiVersion"
+          value: "v1"
+      - equal:
+          path: "kind"
+          value: "ConfigMap"
+      - equal:
+          path: "metadata.name"
+          value: "admission-client-ca.crt"
+      - equal:
+          path: "metadata.namespace"
+          value: "test-namespace"
+      - equal:
+          path: "metadata.annotations"
+          value:
+            kubernetes.io/description: |
+              Contains a CA bundle that can be used to verify the admission webhook client.
+      - equal:
+          path: "data[\"ca.crt\"]"
+          value: "test-ca-cert-data"

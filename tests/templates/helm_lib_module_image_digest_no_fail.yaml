@@ -1,0 +1,1 @@
+digest: {{ include "helm_lib_module_image_digest_no_fail" (list . "test-container") }}

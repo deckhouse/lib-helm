@@ -1,0 +1,6 @@
+{{- $https_values := include "helm_lib_https_values" . | fromYaml }}
+mode: {{ $https_values.mode }}
+{{- if $https_values.certManager }}
+certManager:
+  clusterIssuerName: {{ $https_values.certManager.clusterIssuerName }}
+{{- end }}

@@ -1,0 +1,4 @@
+{{- $result := include "helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha" (list .) }}
+result_default: {{ $result | toString | quote }}
+{{- $result := include "helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha" (list . (dict "strategy" "Recreate")) }}
+result_recreate: {{ $result | toString | quote }}

@@ -1,0 +1,9 @@
+suite: helm_lib_priority_class definition
+templates:
+  - helm_lib_priority_class.yaml
+tests:
+  - it: should return priority class name
+    asserts:
+      - equal:
+          path: "priorityClassName"
+          value: "system-cluster-critical"

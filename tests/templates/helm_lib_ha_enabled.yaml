@@ -1,0 +1,1 @@
+haEnabled: {{ include "helm_lib_ha_enabled" . }}

@@ -1,0 +1,14 @@
+suite: test csi controller rbac
+templates:
+  - helm_lib_csi_controller_rbac.yaml
+tests:
+  - it: should generate csi controller rbac
+    set:
+      Chart.Name: test-chart
+    asserts:
+      - matchRegex:
+          path: result_rbac
+          pattern: "kind: ClusterRole"
+      - matchRegex:
+          path: result_rbac
+          pattern: "module: test-chart"

@@ -1,0 +1,1 @@
+{{ include "helm_lib_priority_class" (tuple . "system-cluster-critical") }}

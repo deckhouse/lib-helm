@@ -1,0 +1,5 @@
+{{- $result := include "helm_lib_module_camelcase_name" . }}
+{{- if .Values.testString }}
+  {{- $result = include "helm_lib_module_camelcase_name" .Values.testString }}
+{{- end }}
+result: {{ $result }}

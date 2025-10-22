@@ -1,0 +1,51 @@
+suite: helm_lib_module_https_ingress_tls_enabled definition
+templates:
+  - helm_lib_module_https_ingress_tls_enabled.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "Disabled"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return not empty string for CertManager mode
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "letsencrypt"
+    asserts:
+      - equal:
+          path: "tls_enabled"
+          value: "not empty string"
+
+  - it: should return not empty string for CustomCertificate mode
+    set:
+      testModule:
+        https:
+          mode: "CustomCertificate"
+    asserts:
+      - equal:
+          path: "tls_enabled"
+          value: "not empty string"
+
+  - it: should return null for Disabled mode
+    set:
+      testModule:
+        https:
+          mode: "Disabled"
+    asserts:
+      - equal:
+          path: "tls_enabled"
+          value: null
+
+  - it: should return null for OnlyInURI mode
+    set:
+      testModule:
+        https:
+          mode: "OnlyInURI"
+    asserts:
+      - equal:
+          path: "tls_enabled"
+          value: null

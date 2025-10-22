@@ -1,0 +1,30 @@
+suite: helm_lib_pod_anti_affinity_for_ha definition
+templates:
+  - helm_lib_pod_anti_affinity_for_ha.yaml
+tests:
+  - it: should return pod anti-affinity when HA is enabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "affinity:"
+      - matchRegex:
+          path: result
+          pattern: "app: \"test\""
+  - it: should return empty when HA is disabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - equal:
+          path: result
+          value: ""

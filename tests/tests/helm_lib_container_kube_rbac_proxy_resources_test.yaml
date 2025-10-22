@@ -1,0 +1,12 @@
+suite: helm_lib_container_kube_rbac_proxy_resources definition
+templates:
+  - helm_lib_container_kube_rbac_proxy_resources.yaml
+tests:
+  - it: should return kube-rbac-proxy container resources
+    asserts:
+      - equal:
+          path: "cpu"
+          value: "10m"
+      - equal:
+          path: "memory"
+          value: "25Mi"

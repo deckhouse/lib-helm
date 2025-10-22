@@ -1,0 +1,40 @@
+suite: helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha definition
+templates:
+  - helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha.yaml
+tests:
+  - it: should return deployment spec with RollingUpdate strategy by default
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 3
+    asserts:
+      - notEqual:
+          path: result_default
+          value: ""
+      - matchRegex:
+          path: result_default
+          pattern: "type: RollingUpdate"
+      - matchRegex:
+          path: result_default
+          pattern: "replicas: 3"
+  - it: should return deployment spec with Recreate strategy when specified
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 2
+    asserts:
+      - notEqual:
+          path: result_recreate
+          value: ""
+      - matchRegex:
+          path: result_recreate
+          pattern: "type: Recreate"
+      - matchRegex:
+          path: result_recreate
+          pattern: "replicas: 2"

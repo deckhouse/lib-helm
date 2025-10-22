@@ -1,0 +1,7 @@
+{{ include "helm_lib_node_selector" (list . "monitoring") }}
+---
+{{ include "helm_lib_node_selector" (list . "frontend") }}
+---
+{{ include "helm_lib_node_selector" (list . "system") }}
+---
+{{ include "helm_lib_node_selector" (list . "master") }}

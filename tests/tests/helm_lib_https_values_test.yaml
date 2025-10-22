@@ -1,0 +1,71 @@
+suite: helm_lib_https_values definition
+templates:
+  - helm_lib_https_values.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "Disabled"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return global https mode when no module https defined
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: "mode"
+          value: "Disabled"
+
+  - it: should return module https mode when defined
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "letsencrypt"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "CertManager"
+      - equal:
+          path: "certManager.clusterIssuerName"
+          value: "letsencrypt"
+
+  - it: should return CustomCertificate mode
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CustomCertificate"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "CustomCertificate"
+
+  - it: should return OnlyInURI mode
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "OnlyInURI"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "OnlyInURI"
+
+  - it: should return global CertManager mode with clusterIssuerName
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          https:
+            mode: "CertManager"
+            certManager:
+              clusterIssuerName: "global-issuer"
+    asserts:
+      - equal:
+          path: "mode"
+          value: "CertManager"
+      - equal:
+          path: "certManager.clusterIssuerName"
+          value: "global-issuer"

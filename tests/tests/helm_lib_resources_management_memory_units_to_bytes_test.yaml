@@ -1,0 +1,15 @@
+suite: test helm_lib_resources_management_memory_units_to_bytes
+templates:
+  - helm_lib_resources_management_memory_units_to_bytes.yaml
+tests:
+  - it: should convert memory units to bytes
+    asserts:
+      - equal:
+          path: result_100Mi
+          value: 104857600
+      - equal:
+          path: result_2Gi
+          value: 2147483648
+      - equal:
+          path: result_512
+          value: 512

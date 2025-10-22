@@ -1,0 +1,6 @@
+{{- $config := dict "mode" "Static" "static" (dict "cpu" "100m" "memory" "128Mi") }}
+{{- $result := include "helm_lib_resources_management_original_pod_resources" $config }}
+result_static: {{ $result | toString | quote }}
+{{- $config := dict "mode" "VPA" "vpa" (dict "cpu" (dict "min" "100m" "limitRatio" 2) "memory" (dict "min" "128Mi" "limitRatio" 2)) }}
+{{- $result := include "helm_lib_resources_management_original_pod_resources" $config }}
+result_vpa: {{ $result | toString | quote }}

@@ -1,0 +1,3 @@
+{{- $config := dict "mode" "VPA" "vpa" (dict "mode" "Auto" "cpu" (dict "max" "500m" "min" "100m") "memory" (dict "max" "1Gi" "min" "128Mi")) }}
+{{- $result := include "helm_lib_resources_management_vpa_spec" (list "apps/v1" "Deployment" "test-deployment" "test-container" $config) }}
+result: {{ $result | toString | quote }}
