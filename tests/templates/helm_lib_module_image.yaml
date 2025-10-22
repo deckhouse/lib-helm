@@ -15,3 +15,10 @@ externalModuleImageDigestWithOptionalNameTestModuleNoFail: {{ include "helm_lib_
 ---
 externalModuleImageDigestWithOptionalNameContainerNotExistNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list . "externalContainer2NoFail") }}
 externalModuleImageDigestWithOptionalNameModuleNotExistNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list . "externalContainer" "moduleNotExist") }}
+---
+moduleImageNoFail: {{ include "helm_lib_module_image_no_fail" (list . "testContainer") }}
+moduleImageNoFailNotExist: {{ include "helm_lib_module_image_no_fail" (list . "nonExistentContainer") }}
+---
+commonImage: {{ include "helm_lib_module_common_image" (list . "commonContainer") }}
+commonImageNoFail: {{ include "helm_lib_module_common_image_no_fail" (list . "commonContainer") }}
+commonImageNoFailNotExist: {{ include "helm_lib_module_common_image_no_fail" (list . "nonExistentCommonContainer") }}
