@@ -1,0 +1,2 @@
+proxyEnvs:
+{{ include "helm_lib_envs_for_proxy" . }}

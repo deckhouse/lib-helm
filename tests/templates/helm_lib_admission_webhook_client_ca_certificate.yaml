@@ -1,0 +1,1 @@
+{{- include "helm_lib_admission_webhook_client_ca_certificate" (list . "test-namespace") }}

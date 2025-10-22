@@ -1,0 +1,119 @@
+suite: helm_lib_resources_management_pod_resources definition
+templates:
+  - helm_lib_resources_management_pod_resources.yaml
+tests:
+  - it: should return static resources with ephemeral storage
+    set:
+      testConfig:
+        mode: "Static"
+        static:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+    asserts:
+      - equal:
+          path: "resources.limits.cpu"
+          value: "200m"
+      - equal:
+          path: "resources.limits.memory"
+          value: "256Mi"
+      - equal:
+          path: "resources.requests.cpu"
+          value: "100m"
+      - equal:
+          path: "resources.requests.memory"
+          value: "128Mi"
+      - equal:
+          path: "resources.requests.ephemeral-storage"
+          value: "50Mi"
+
+  - it: should return VPA resources with limits and ephemeral storage
+    set:
+      testConfig:
+        mode: "VPA"
+        vpa:
+          cpu:
+            min: "100m"
+            limitRatio: 2
+          memory:
+            min: "128Mi"
+            limitRatio: 2
+    asserts:
+      - equal:
+          path: "resources.limits.cpu"
+          value: "200m"
+      - equal:
+          path: "resources.limits.memory"
+          value: "268435456"
+      - equal:
+          path: "resources.requests.cpu"
+          value: "100m"
+      - equal:
+          path: "resources.requests.memory"
+          value: "128Mi"
+      - equal:
+          path: "resources.requests.ephemeral-storage"
+          value: "50Mi"
+
+  - it: should return VPA resources without limits and ephemeral storage
+    set:
+      testConfig:
+        mode: "VPA"
+        vpa:
+          cpu:
+            min: "100m"
+          memory:
+            min: "128Mi"
+    asserts:
+      - equal:
+          path: "resources.requests.cpu"
+          value: "100m"
+      - equal:
+          path: "resources.requests.memory"
+          value: "128Mi"
+      - equal:
+          path: "resources.requests.ephemeral-storage"
+          value: "50Mi"
+      - isNull:
+          path: "resources.limits.cpu"
+      - isNull:
+          path: "resources.limits.memory"
+
+  - it: should return only ephemeral storage when no config
+    set:
+      testConfig: null
+    asserts:
+      - equal:
+          path: "resources.requests.ephemeral-storage"
+          value: "50Mi"
+      - isNull:
+          path: "resources.limits.cpu"
+      - isNull:
+          path: "resources.limits.memory"
+      - isNull:
+          path: "resources.requests.cpu"
+      - isNull:
+          path: "resources.requests.memory"
+
+  - it: should return custom ephemeral storage
+    set:
+      testConfig:
+        mode: "Static"
+        static:
+          requests:
+            cpu: "100m"
+      customEphemeral: "100Mi"
+    asserts:
+      - equal:
+          path: "resources.requests.cpu"
+          value: "100m"
+      - equal:
+          path: "resources.requests.ephemeral-storage"
+          value: "100Mi"
+      - isNull:
+          path: "resources.limits.cpu"
+      - isNull:
+          path: "resources.limits.memory"

@@ -1,0 +1,85 @@
+suite: helm_lib_module_https_cert_manager_acme_solver_challenge_settings definition
+templates:
+  - helm_lib_module_https_cert_manager_acme_solver_challenge_settings.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "CertManager"
+        certManager:
+          clusterIssuerName: "letsencrypt"
+      ingressClass: "nginx"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return dns01 solver for route53 issuer
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "route53"
+    asserts:
+      - equal:
+          path: "result[0].dns01.provider"
+          value: "route53"
+
+  - it: should return dns01 solver for cloudflare issuer
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "cloudflare"
+    asserts:
+      - equal:
+          path: "result[0].dns01.provider"
+          value: "cloudflare"
+
+  - it: should return dns01 solver for digitalocean issuer
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "digitalocean"
+    asserts:
+      - equal:
+          path: "result[0].dns01.provider"
+          value: "digitalocean"
+
+  - it: should return dns01 solver for clouddns issuer
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "clouddns"
+    asserts:
+      - equal:
+          path: "result[0].dns01.provider"
+          value: "clouddns"
+
+  - it: should return http01 solver for letsencrypt issuer
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: "result[0].http01.ingressClass"
+          value: "nginx"
+
+  - it: should return http01 solver with module ingress class
+    documentIndex: 0
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "letsencrypt"
+        ingressClass: "traefik"
+    asserts:
+      - equal:
+          path: "result[0].http01.ingressClass"
+          value: "traefik"

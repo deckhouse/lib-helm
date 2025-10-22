@@ -1,0 +1,6 @@
+{{- $ephemeral := "50Mi" }}
+{{- if .Values.customEphemeral }}
+  {{- $ephemeral = .Values.customEphemeral }}
+{{- end }}
+resources:
+{{ include "helm_lib_resources_management_pod_resources" (list .Values.testConfig $ephemeral) | indent 2 }}

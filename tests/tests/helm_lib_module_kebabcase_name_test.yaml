@@ -1,0 +1,37 @@
+suite: helm_lib_module_kebabcase_name definition
+templates:
+  - helm_lib_module_kebabcase_name.yaml
+tests:
+  - it: should return kebab-case name from Chart.Name
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: "result"
+          value: "test-module"
+
+  - it: should convert string with underscores to kebab-case
+    documentIndex: 0
+    set:
+      testString: "my_test_module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "my-test-module"
+
+  - it: should convert camelCase to kebab-case
+    documentIndex: 0
+    set:
+      testString: "myTestModule"
+    asserts:
+      - equal:
+          path: "result"
+          value: "my-test-module"
+
+  - it: should handle single word
+    documentIndex: 0
+    set:
+      testString: "module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module"

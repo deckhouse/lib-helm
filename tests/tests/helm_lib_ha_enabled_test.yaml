@@ -1,0 +1,68 @@
+suite: helm_lib_ha_enabled definition
+templates:
+  - helm_lib_ha_enabled.yaml
+tests:
+  - it: should return not empty string when module highAvailability is true
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        highAvailability: true
+    asserts:
+      - equal:
+          path: "haEnabled"
+          value: "not empty string"
+
+  - it: should return empty when module highAvailability is false
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        highAvailability: false
+    asserts:
+      - isEmpty:
+          path: "haEnabled"
+
+  - it: should return not empty string when global highAvailability is true
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - equal:
+          path: "haEnabled"
+          value: "not empty string"
+
+  - it: should return empty when global highAvailability is false
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - isEmpty:
+          path: "haEnabled"
+
+  - it: should return not empty string when discovery clusterControlPlaneIsHighlyAvailable is true
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+    asserts:
+      - equal:
+          path: "haEnabled"
+          value: "not empty string"
+
+  - it: should return empty when discovery clusterControlPlaneIsHighlyAvailable is false
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: false
+    asserts:
+      - isEmpty:
+          path: "haEnabled"
