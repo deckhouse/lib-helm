@@ -1,0 +1,14 @@
+suite: helm_lib_resources_management_original_pod_resources definition
+templates:
+  - helm_lib_resources_management_original_pod_resources.yaml
+tests:
+  - it: should return original pod resources for static mode
+    asserts:
+      - notEqual:
+          path: result_static
+          value: ""
+  - it: should return original pod resources for VPA mode
+    asserts:
+      - notEqual:
+          path: result_vpa
+          value: ""

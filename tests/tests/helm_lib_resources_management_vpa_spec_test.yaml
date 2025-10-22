@@ -1,0 +1,21 @@
+suite: helm_lib_resources_management_vpa_spec definition
+templates:
+  - helm_lib_resources_management_vpa_spec.yaml
+tests:
+  - it: should return VPA spec for VPA mode
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "apiVersion: apps/v1"
+      - matchRegex:
+          path: result
+          pattern: "kind: Deployment"
+      - matchRegex:
+          path: result
+          pattern: "name: test-deployment"
+      - matchRegex:
+          path: result
+          pattern: 'updateMode: "Auto"'

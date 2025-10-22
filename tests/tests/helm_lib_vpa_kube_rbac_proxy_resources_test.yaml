@@ -1,0 +1,18 @@
+suite: helm_lib_vpa_kube_rbac_proxy_resources definition
+templates:
+  - helm_lib_vpa_kube_rbac_proxy_resources.yaml
+tests:
+  - it: should return kube-rbac-proxy VPA resources
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "containerName: kube-rbac-proxy"
+      - matchRegex:
+          path: result
+          pattern: "cpu: 10m"
+      - matchRegex:
+          path: result
+          pattern: "memory: 25Mi"

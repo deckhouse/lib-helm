@@ -1,0 +1,6 @@
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "100Mi" }}
+result_100Mi: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "2Gi" }}
+result_2Gi: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "512" }}
+result_512: {{ $result }}
