@@ -1,2 +1,5 @@
 chownDeckhouseVolume:
 {{ include "helm_lib_module_init_container_chown_deckhouse_volume" (list . "data") }}
+
+checkLinuxKernel:
+{{ include "helm_lib_module_init_container_check_linux_kernel" (list . ">= 4.9.17") }}

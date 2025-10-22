@@ -1,0 +1,1 @@
+is_dns01: {{ include "helm_lib_module_https_cert_manager_cluster_issuer_is_dns01_challenge_solver" . }}

@@ -1,0 +1,30 @@
+suite: helm_lib_module_https_cert_manager_cluster_issuer_is_dns01_challenge_solver definition
+templates:
+  - helm_lib_module_https_cert_manager_cluster_issuer_is_dns01_challenge_solver.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "CertManager"
+        certManager:
+          clusterIssuerName: "route53"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return true for DNS01 challenge solver
+    asserts:
+      - equal:
+          path: "is_dns01"
+          value: "not empty string"
+
+  - it: should return null for HTTP01 challenge solver
+    set:
+      global:
+        modules:
+          https:
+            mode: "CertManager"
+            certManager:
+              clusterIssuerName: "letsencrypt"
+    asserts:
+      - equal:
+          path: "is_dns01"
+          value: null
