@@ -1,0 +1,33 @@
+suite: helm_lib_deployment_strategy_and_replicas_for_ha definition
+templates:
+  - helm_lib_deployment_strategy_and_replicas_for_ha.yaml
+tests:
+  - it: should return deployment spec with 2 replicas and strategy when HA is enabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "replicas: 2"
+      - matchRegex:
+          path: result
+          pattern: "type: RollingUpdate"
+  - it: should return deployment spec with 1 replica when HA is disabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "replicas: 1"

@@ -1,0 +1,2 @@
+{{- $result := include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" . }}
+result: {{ $result | toString | quote }}
