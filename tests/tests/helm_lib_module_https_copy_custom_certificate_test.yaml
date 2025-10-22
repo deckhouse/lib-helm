@@ -33,7 +33,7 @@ tests:
           path: "data"
           value:
             tls.crt: "Y2VydGRhdGE="
-            tls.key: "a2V5ZGF®YQ=="
+            tls.key: "a2V5ZGF0YQ=="
       - equal:
           path: "metadata.labels"
           value:
