@@ -1,0 +1,2 @@
+{{- $result := include "helm_lib_module_ingress_class" . }}
+result: "{{ $result }}"

@@ -1,0 +1,9 @@
+suite: helm_lib_module_ephemeral_storage_only_logs definition
+templates:
+  - helm_lib_module_ephemeral_storage_only_logs.yaml
+tests:
+  - it: should return ephemeral storage for only logs
+    asserts:
+      - equal:
+          path: "result"
+          value: "ephemeral-storage: 50Mi"

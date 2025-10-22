@@ -1,0 +1,18 @@
+suite: helm_lib_module_labels definition
+templates:
+  - helm_lib_module_labels.yaml
+tests:
+  - it: should return module labels with additional labels
+    asserts:
+      - equal:
+          path: "labels.heritage"
+          value: "deckhouse"
+      - equal:
+          path: "labels.module"
+          value: "test-module"
+      - equal:
+          path: "labels.app"
+          value: "test"
+      - equal:
+          path: "labels.component"
+          value: "testing"

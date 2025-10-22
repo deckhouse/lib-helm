@@ -1,0 +1,9 @@
+suite: helm_lib_pdb_daemonset definition
+templates:
+  - helm_lib_pdb_daemonset.yaml
+tests:
+  - it: should return PDB max unavailable for daemonset
+    asserts:
+      - equal:
+          path: "maxUnavailable"
+          value: "10%"

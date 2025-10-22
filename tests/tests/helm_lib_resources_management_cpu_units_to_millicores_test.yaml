@@ -1,0 +1,12 @@
+suite: test helm_lib_resources_management_cpu_units_to_millicores
+templates:
+  - helm_lib_resources_management_cpu_units_to_millicores.yaml
+tests:
+  - it: should convert CPU units to millicores
+    asserts:
+      - equal:
+          path: result_100m
+          value: 100
+      - equal:
+          path: result_2
+          value: 2000

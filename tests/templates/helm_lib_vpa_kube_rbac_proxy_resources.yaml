@@ -1,0 +1,2 @@
+{{- $result := include "helm_lib_vpa_kube_rbac_proxy_resources" . }}
+result: {{ $result | toString | quote }}

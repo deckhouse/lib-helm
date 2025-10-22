@@ -1,0 +1,1 @@
+{{ include "helm_lib_container_kube_rbac_proxy_resources" . }}

@@ -1,0 +1,37 @@
+suite: helm_lib_module_camelcase_name definition
+templates:
+  - helm_lib_module_camelcase_name.yaml
+tests:
+  - it: should return camelCase name from Chart.Name
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: "result"
+          value: "testModule"
+
+  - it: should convert string with dashes to camelCase
+    documentIndex: 0
+    set:
+      testString: "my-test-module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "myTestModule"
+
+  - it: should convert string with underscores to camelCase
+    documentIndex: 0
+    set:
+      testString: "my_test_module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "myTestModule"
+
+  - it: should handle single word
+    documentIndex: 0
+    set:
+      testString: "module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module"
