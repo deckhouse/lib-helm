@@ -1,0 +1,5 @@
+{{- $context := dict "Values" (dict "global" (dict "discovery" (dict "prometheusScrapeInterval" 30))) }}
+{{- $result := include "helm_lib_prometheus_target_scrape_timeout_seconds" (list $context 25) }}
+result_timeout_25: {{ $result | toString | quote }}
+{{- $result := include "helm_lib_prometheus_target_scrape_timeout_seconds" (list $context 35) }}
+result_timeout_35: {{ $result | toString | quote }}

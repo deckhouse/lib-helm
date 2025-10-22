@@ -1,0 +1,18 @@
+suite: test prometheus target scrape timeout
+templates:
+  - helm_lib_prometheus_target_scrape_timeout.yaml
+tests:
+  - it: should return timeout when less than scrape interval
+    set:
+      global.discovery.prometheusScrapeInterval: 30
+    asserts:
+      - equal:
+          path: result_timeout_25
+          value: "25s"
+  - it: should return scrape interval when timeout greater than scrape interval
+    set:
+      global.discovery.prometheusScrapeInterval: 30
+    asserts:
+      - equal:
+          path: result_timeout_35
+          value: "30s"

@@ -1,0 +1,21 @@
+suite: test grafana single dashboard
+templates:
+  - helm_lib_grafana_single_dashboard.yaml
+tests:
+  - it: should generate single dashboard
+    set:
+      Chart.Name: test-chart
+      global.enabledModules: ["observability"]
+    asserts:
+      - matchRegex:
+          path: result_single_dashboard
+          pattern: "kind: GrafanaDashboardDefinition"
+      - matchRegex:
+          path: result_single_dashboard
+          pattern: "name: d8-test-dashboard"
+      - matchRegex:
+          path: result_single_dashboard
+          pattern: "folder: \"Test Folder\""
+      - matchRegex:
+          path: result_single_dashboard
+          pattern: "kind: ClusterObservabilityDashboard"
