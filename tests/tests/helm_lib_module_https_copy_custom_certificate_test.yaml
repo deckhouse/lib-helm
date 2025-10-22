@@ -1,0 +1,41 @@
+suite: helm_lib_module_https_copy_custom_certificate definition
+templates:
+  - helm_lib_module_https_copy_custom_certificate.yaml
+tests:
+  - it: should render secret with custom certificate
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+            tls.key: "keydata"
+    asserts:
+      - equal:
+          path: "apiVersion"
+          value: "v1"
+      - equal:
+          path: "kind"
+          value: "Secret"
+      - equal:
+          path: "metadata.name"
+          value: "test-prefix-customcertificate"
+      - equal:
+          path: "metadata.namespace"
+          value: "test-namespace"
+      - equal:
+          path: "type"
+          value: "kubernetes.io/tls"
+      - equal:
+          path: "data"
+          value:
+            tls.crt: "certdata"
+            tls.key: "keydata"
+      - equal:
+          path: "metadata.labels"
+          value:
+            heritage: "deckhouse"
+            module: "test-module"
