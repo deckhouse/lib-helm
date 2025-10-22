@@ -1,0 +1,2 @@
+{{- $result := include "helm_lib_module_ephemeral_storage_only_logs" . }}
+result: "{{ $result }}"

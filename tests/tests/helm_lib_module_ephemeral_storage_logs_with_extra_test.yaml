@@ -1,0 +1,9 @@
+suite: helm_lib_module_ephemeral_storage_logs_with_extra definition
+templates:
+  - helm_lib_module_ephemeral_storage_logs_with_extra.yaml
+tests:
+  - it: should return ephemeral storage with extra space for logs
+    asserts:
+      - equal:
+          path: "result"
+          value: "ephemeral-storage: 60Mi"
