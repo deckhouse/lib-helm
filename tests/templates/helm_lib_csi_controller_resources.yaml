@@ -1,0 +1,14 @@
+{{- $result := include "attacher_resources" . }}
+result_attacher: {{ $result | toString | quote }}
+{{- $result := include "provisioner_resources" . }}
+result_provisioner: {{ $result | toString | quote }}
+{{- $result := include "resizer_resources" . }}
+result_resizer: {{ $result | toString | quote }}
+{{- $result := include "syncer_resources" . }}
+result_syncer: {{ $result | toString | quote }}
+{{- $result := include "snapshotter_resources" . }}
+result_snapshotter: {{ $result | toString | quote }}
+{{- $result := include "livenessprobe_resources" . }}
+result_livenessprobe: {{ $result | toString | quote }}
+{{- $result := include "controller_resources" . }}
+result_controller: {{ $result | toString | quote }}

@@ -1,0 +1,1 @@
+issuer_name: {{ include "helm_lib_module_https_cert_manager_cluster_issuer_name" . }}

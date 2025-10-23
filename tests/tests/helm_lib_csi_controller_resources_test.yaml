@@ -1,0 +1,39 @@
+suite: test csi controller resources
+templates:
+  - helm_lib_csi_controller_resources.yaml
+tests:
+  - it: should return attacher resources
+    asserts:
+      - matchRegex:
+          path: result_attacher
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return provisioner resources
+    asserts:
+      - matchRegex:
+          path: result_provisioner
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return resizer resources
+    asserts:
+      - matchRegex:
+          path: result_resizer
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return syncer resources
+    asserts:
+      - matchRegex:
+          path: result_syncer
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return snapshotter resources
+    asserts:
+      - matchRegex:
+          path: result_snapshotter
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return livenessprobe resources
+    asserts:
+      - matchRegex:
+          path: result_livenessprobe
+          pattern: "cpu: 10m\nmemory: 25Mi"
+  - it: should return controller resources
+    asserts:
+      - matchRegex:
+          path: result_controller
+          pattern: "cpu: 10m\nmemory: 50Mi"

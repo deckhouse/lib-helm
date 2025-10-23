@@ -1,0 +1,52 @@
+suite: helm_lib_deployment_on_master_strategy_and_replicas_for_ha definition
+templates:
+  - helm_lib_deployment_on_master_strategy_and_replicas_for_ha.yaml
+tests:
+  - it: should return deployment spec with replicas and strategy when HA is enabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 3
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "replicas: 3"
+      - matchRegex:
+          path: result
+          pattern: "maxUnavailable: 2"
+  - it: should return deployment spec with 2 replicas when HA enabled but no master count
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 0
+          d8SpecificNodeCountByRole:
+            master: 0
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "replicas: 2"
+  - it: should return deployment spec with 1 replica when HA is disabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - notEqual:
+          path: result
+          value: ""
+      - matchRegex:
+          path: result
+          pattern: "replicas: 1"

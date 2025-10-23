@@ -13,6 +13,7 @@ tests:
             common:
               init: sha256
               alpine: sha2
+              checkKernelVersion: sha256:kernel123
 
     asserts:
       - equal:
@@ -45,6 +46,7 @@ tests:
           digests:
             common:
               alpine: sha2
+              checkKernelVersion: sha256:kernel123
     asserts:
       - equal:
           path: "chownDeckhouseVolume"
@@ -66,3 +68,37 @@ tests:
               volumeMounts:
                 - mountPath: /tmp/data
                   name: data
+
+  - it: should render the initialization container for checking linux kernel
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              checkKernelVersion: sha256:kernel123
+              alpine: sha256:alpine123
+    asserts:
+      - equal:
+          path: "checkLinuxKernel"
+          value:
+            - env:
+                - name: KERNEL_CONSTRAINT
+                  value: ">= 4.9.17"
+              image: deckhouse.io/deckhouse/ce@sha256:kernel123
+              name: check-linux-kernel
+              resources:
+                requests:
+                  ephemeral-storage: 50Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+                runAsGroup: 64535
+                runAsNonRoot: true
+                runAsUser: 64535
+                seccompProfile:
+                  type: RuntimeDefault

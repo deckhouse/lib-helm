@@ -1,0 +1,29 @@
+suite: helm_lib_module_https_cert_manager_cluster_issuer_name definition
+templates:
+  - helm_lib_module_https_cert_manager_cluster_issuer_name.yaml
+set:
+  global:
+    modules:
+      https:
+        mode: "CertManager"
+        certManager:
+          clusterIssuerName: "global-issuer"
+    enabledModules: ["cert-manager"]
+tests:
+  - it: should return global cert manager cluster issuer name
+    asserts:
+      - equal:
+          path: "issuer_name"
+          value: "global-issuer"
+
+  - it: should return module cert manager cluster issuer name
+    set:
+      testModule:
+        https:
+          mode: "CertManager"
+          certManager:
+            clusterIssuerName: "module-issuer"
+    asserts:
+      - equal:
+          path: "issuer_name"
+          value: "module-issuer"
