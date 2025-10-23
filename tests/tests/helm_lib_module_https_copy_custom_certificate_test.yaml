@@ -32,10 +32,138 @@ tests:
       - equal:
           path: "data"
           value:
-            tls.crt: "certdata"
-            tls.key: "keydata"
+            tls.crt: "Y2VydGRhdGE="
+            tls.key: "a2V5ZGF0YQ=="
       - equal:
           path: "metadata.labels"
           value:
             heritage: "deckhouse"
             module: "test-module"
+  - it: should fail when internal.customCertificateData is missing
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal: {}
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData is required to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should fail when internal.customCertificateData is not a map
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData: "not-a-map"
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData must be a map to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should fail when tls.crt is missing
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.key: "keydata"
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData.tls.crt is required to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should fail when tls.key is missing
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData.tls.key is required to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should fail when tls.crt is not a string
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: 123
+            tls.key: "keydata"
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData.tls.crt must be a string to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should fail when tls.key is not a string
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+            tls.key: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "internal.customCertificateData.tls.key must be a string to copy custom certificate for secret prefix 'test-prefix'"
+  - it: should render secret with ca.crt when ca.crt is a string
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+            tls.key: "keydata"
+            ca.crt: "cadata"
+    asserts:
+      - equal:
+          path: "data"
+          value:
+            tls.crt: "Y2VydGRhdGE="
+            tls.key: "a2V5ZGF0YQ=="
+            ca.crt: "Y2FkYXRh"
+  - it: should not include ca.crt when ca.crt is not a string
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "CustomCertificate"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+            tls.key: "keydata"
+            ca.crt: 123
+    asserts:
+      - equal:
+          path: "data"
+          value:
+            tls.crt: "Y2VydGRhdGE="
+            tls.key: "a2V5ZGF0YQ=="
+  - it: should not render anything when https mode is not CustomCertificate
+    set:
+      Chart:
+        Name: "testModule"
+      testModule:
+        https:
+          mode: "Disabled"
+        internal:
+          customCertificateData:
+            tls.crt: "certdata"
+            tls.key: "keydata"
+    asserts:
+      - hasDocuments:
+          count: 0
