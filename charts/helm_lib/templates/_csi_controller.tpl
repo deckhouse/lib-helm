@@ -187,7 +187,7 @@ metadata:
 
 spec:
   {{- if $csiControllerHaMode }}
-  {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" $context | nindent 2 }}
+  {{- include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   replicas: 1
   strategy:
