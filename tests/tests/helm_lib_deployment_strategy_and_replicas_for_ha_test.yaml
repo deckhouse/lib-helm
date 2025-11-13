@@ -14,7 +14,7 @@ tests:
           value: ""
       - matchRegex:
           path: result
-          pattern: "replicas: 3"
+          pattern: "replicas: 2"
       - matchRegex:
           path: result
           pattern: "type: RollingUpdate"
