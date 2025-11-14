@@ -8,8 +8,6 @@ securityContext:
   runAsNonRoot: true
   runAsUser: {{ index . 1 }}
   runAsGroup: {{ index . 2 }}
-  seccompProfile:
-    type: RuntimeDefault
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_run_as_user_nobody" . }} */ -}}
@@ -20,8 +18,6 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 65534
   runAsGroup: 65534
-  seccompProfile:
-    type: RuntimeDefault
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_run_as_user_nobody_with_writable_fs" . }} */ -}}
@@ -33,8 +29,6 @@ securityContext:
   runAsUser: 65534
   runAsGroup: 65534
   fsGroup: 65534
-  seccompProfile:
-    type: RuntimeDefault  
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . }} */ -}}
@@ -45,8 +39,6 @@ securityContext:
   runAsNonRoot: true
   runAsUser: 64535
   runAsGroup: 64535
-  seccompProfile:
-    type: RuntimeDefault  
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_run_as_user_deckhouse_with_writable_fs" . }} */ -}}
@@ -58,8 +50,6 @@ securityContext:
   runAsUser: 64535
   runAsGroup: 64535
   fsGroup: 64535
-  seccompProfile:
-    type: RuntimeDefault  
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_run_as_user_deckhouse_pss_restricted" . }} */ -}}
@@ -125,8 +115,6 @@ securityContext:
   runAsNonRoot: false
   runAsUser: 0
   runAsGroup: 0
-  seccompProfile:
-    type: RuntimeDefault
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_pod_security_context_runtime_default" . }} */ -}}
@@ -204,8 +192,6 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  seccompProfile:
-    type: RuntimeDefault
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add"  (list . (list "KILL" "SYS_PTRACE")) }} */ -}}
