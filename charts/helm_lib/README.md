@@ -655,7 +655,6 @@ list:
  .ro   – bool, read-only root FS (default true) 
  .caps – []string, capabilities.add (default empty) 
  .uid  – int, runAsUser/runAsGroup (default 64535) 
- .seccompProfile  – bool, disable seccompProfile when false (default true) 
  .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) 
  .seccompProfile  – bool, disable seccompProfile when false (default true) 
 
