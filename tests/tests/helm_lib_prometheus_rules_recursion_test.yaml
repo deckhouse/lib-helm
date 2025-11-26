@@ -1,0 +1,37 @@
+suite: test helm_lib_prometheus_rules_recursion
+templates:
+  - helm_lib_prometheus_rules_recursion.yaml
+tests:
+  - it: should generate PrometheusRule
+    set:
+      global.enabledModules: ["observability"]
+      global.discovery.prometheusScrapeInterval: 30s
+      global.discovery.apiVersions: []
+    asserts:
+      - equal:
+          path: kind
+          value: PrometheusRule
+      - equal:
+          path: metadata.name
+          value: test-module-deadbeef-propagated-ingress-nginx 
+      - hasDocuments:
+          count: 1
+  - it: should generate ClusterObservabilityPropagatedMetricsRulesGroup
+    set:
+      global.enabledModules: ["observability"]
+      global.discovery.prometheusScrapeInterval: 30s
+      global.discovery.apiVersions: ["observability.deckhouse.io/v1alpha1/ClusterObservabilityMetricsRulesGroup"]
+    asserts:
+      - equal:
+          path: kind
+          value: ClusterObservabilityPropagatedMetricsRulesGroup
+      - equal:
+          path: metadata.name
+          value: test-module-deadbeef-ingress-nginx-0
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-module-deadbeef-ingress-nginx-1
+        documentIndex: 1
+      - hasDocuments:
+          count: 2
