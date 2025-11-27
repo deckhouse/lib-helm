@@ -1,0 +1,13 @@
+- name: kubernetes.ingress-nginx.group-one
+  rules:
+  - alert: NginxIngressSslWillExpire
+    expr: vector(1) 
+  - alert: NginxIngressSslExpired
+    expr: vector(1)
+- name: kubernetes.ingress-nginx.group-two
+  rules:
+  - alert: NginxIngress5xxErrors
+    expr: vector(1)
+  - alert: NginxIngress5xxErrors
+    expr: vector(1)
+
