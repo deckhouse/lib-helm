@@ -74,7 +74,6 @@ securityContext:
 {{- /* .ro   – bool, read-only root FS (default true) */ -}}
 {{- /* .caps – []string, capabilities.add (default empty) */ -}}
 {{- /* .uid  – int, runAsUser/runAsGroup (default 64535) */ -}}
-{{- /* .seccompProfile  – bool, disable seccompProfile when false (default true) */ -}}
 {{- /* .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) */ -}}
 {{- /* .seccompProfile  – bool, disable seccompProfile when false (default true) */ -}}
 {{- /* Usage: include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true) */ -}}
@@ -97,14 +96,17 @@ securityContext:
 securityContext:
   readOnlyRootFilesystem: {{ $ro }}
   allowPrivilegeEscalation: {{ not $runAsNonRoot }}
+{{- if $runAsNonRoot }}
+  privileged: false
+{{- end }}
   capabilities:
     drop:
       - ALL
 {{- if $caps }}
     add: {{ $caps | toJson }}
 {{- end }}
-  runAsUser:   {{ $uid }}
-  runAsGroup:  {{ $uid }}
+  runAsUser:   {{ ternary $uid 0 $runAsNonRoot }}
+  runAsGroup:  {{ ternary $uid 0 $runAsNonRoot }}
   runAsNonRoot: {{ $runAsNonRoot }}
 {{- if $seccompProfile }}
   seccompProfile:
