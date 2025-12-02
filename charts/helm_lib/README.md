@@ -39,6 +39,7 @@
 | [helm_lib_module_common_image_no_fail](#helm_lib_module_common_image_no_fail) |
 | [helm_lib_module_image_digest](#helm_lib_module_image_digest) |
 | [helm_lib_module_image_digest_no_fail](#helm_lib_module_image_digest_no_fail) |
+| [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
 | **Module Ingress Class** |
 | [helm_lib_module_ingress_class](#helm_lib_module_ingress_class) |
 | **Module Ingress Snippets** |
@@ -461,6 +462,21 @@ list:
 #### Usage
 
 `{{ include "helm_lib_module_image_digest_no_fail" (list . "<container-name>" "<module-name>(optional)") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_csi_image_with_common_fallback
+
+ returns image name from storage foundation module if enabled, otherwise from common module 
+
+#### Usage
+
+`{{ include "helm_lib_csi_image_with_common_fallback" (list . "<container-name>") }} `
 
 #### Arguments
 
