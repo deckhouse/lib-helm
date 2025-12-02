@@ -109,3 +109,23 @@
   {{- $imageDigest := index $moduleMap $containerName | default "" }}
   {{- printf "%s" $imageDigest }}
 {{- end }}
+
+{{- /* Usage: {{ include "helm_lib_csi_image_with_common_fallback" (list . "<container-name>") }} */ -}}
+{{- /* returns image name from storage foundation module if enabled, otherwise from common module */ -}}
+{{- define "helm_lib_csi_image_with_common_fallback" }}
+  {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
+  {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
+  {{- $imageDigest := "" }}
+  {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
+  {{- /* Try to get from storage foundation module if enabled */}}
+  {{- if $context.Values.global.enabledModules | has "storage-foundation" }}
+    {{- $registryBase = join "/" (list $registryBase "modules" "storage-foundation" ) }}
+    {{- $imageDigest = index $context.Values.global.modulesImages.digests "storageFoundation" $containerName | default "" }}
+  {{- /* Fallback to common module if not found in storage foundation */}}
+  {{- else }}
+    {{- $imageDigest = index $context.Values.global.modulesImages.digests "common" $containerName | default "" }}
+  {{- end }}
+  {{- if $imageDigest }}
+    {{- printf "%s@%s" $registryBase $imageDigest }}
+  {{- end }}
+{{- end }}
