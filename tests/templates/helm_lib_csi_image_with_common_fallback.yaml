@@ -1,0 +1,17 @@
+storageFoundationEnabledWithVersion: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.25.0")) }}
+---
+storageFoundationEnabledWithoutVersion: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalAttacher" (semver "1.25.0")) }}
+---
+storageFoundationEnabledNotFoundFallbackCommon: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalResizer" (semver "1.25.0")) }}
+---
+storageFoundationDisabledUseCommon: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalSnapshotter" (semver "1.25.0")) }}
+---
+storageFoundationVersionFallback: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiLivenessprobe" (semver "1.34.0")) }}
+---
+storageFoundationEnabledNoImage: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiNodeDriverRegistrar" (semver "1.25.0")) }}
+---
+storageFoundationK8s126: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.26.0")) }}
+---
+commonFallbackDifferentVersion: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalSnapshotter" (semver "1.24.0")) }}
+---
+storageFoundationVersionIteration: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.34.0")) }}
