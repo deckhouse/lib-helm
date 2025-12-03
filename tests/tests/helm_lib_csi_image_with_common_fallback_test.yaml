@@ -40,7 +40,7 @@ tests:
           path: "storageFoundationEnabledWithoutVersion"
           value: "registry.deckhouse.io/deckhouse/ce/modules/storage-foundation@sha256:storage-foundation-attacher-base"
 
-  - it: should return null when storage-foundation enabled but image not found (no fallback to common in current implementation)
+  - it: should return null when storage-foundation enabled but image not found
     documentIndex: 2
     set:
       global:
@@ -56,7 +56,7 @@ tests:
               csiExternalResizer125: "sha256:common-resizer-125"
     asserts:
       - equal:
-          path: "storageFoundationEnabledNotFoundFallbackCommon"
+          path: "storageFoundationEnabledNotFound"
           value: null
 
   - it: should use common module when storage-foundation disabled
@@ -96,27 +96,8 @@ tests:
           path: "storageFoundationVersionFallback"
           value: "registry.deckhouse.io/deckhouse/ce/modules/storage-foundation@sha256:storage-foundation-livenessprobe-133"
 
-  - it: should return null when no image found in storage-foundation and common
-    documentIndex: 5
-    set:
-      global:
-        enabledModules:
-          - storage-foundation
-        modulesImages:
-          registry:
-            base: "registry.deckhouse.io/deckhouse/ce"
-          digests:
-            storageFoundation:
-              csiExternalProvisionerForK8SGE125: "sha256:provisioner-125"
-            common:
-              csiExternalProvisioner125: "sha256:provisioner-125"
-    asserts:
-      - equal:
-          path: "storageFoundationEnabledNoImage"
-          value: null
-
   - it: should handle different Kubernetes versions correctly
-    documentIndex: 6
+    documentIndex: 5
     set:
       global:
         enabledModules:
@@ -135,7 +116,7 @@ tests:
           value: "registry.deckhouse.io/deckhouse/ce/modules/storage-foundation@sha256:storage-foundation-provisioner-126"
 
   - it: should use common module with correct version format when storage-foundation disabled
-    documentIndex: 7
+    documentIndex: 6
     set:
       global:
         enabledModules: []
@@ -153,7 +134,7 @@ tests:
           value: "registry.deckhouse.io/deckhouse/ce@sha256:common-snapshotter-124"
 
   - it: should iterate through minor versions from current down to 0
-    documentIndex: 8
+    documentIndex: 7
     set:
       global:
         enabledModules:
@@ -170,4 +151,60 @@ tests:
       - equal:
           path: "storageFoundationVersionIteration"
           value: "registry.deckhouse.io/deckhouse/ce/modules/storage-foundation@sha256:storage-foundation-provisioner-130"
+
+  - it: should return null when common module image not found
+    documentIndex: 8
+    set:
+      global:
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiExternalProvisionerForK8SGE125: "sha256:storage-foundation-provisioner-125"
+            common:
+              csiExternalAttacher125: "sha256:common-attacher-125"
+    asserts:
+      - equal:
+          path: "commonNotFound"
+          value: null
+
+  - it: should use common module when other modules enabled but not storage-foundation
+    documentIndex: 9
+    set:
+      global:
+        enabledModules:
+          - monitoring
+          - ingress-nginx
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiExternalProvisionerForK8SGE125: "sha256:storage-foundation-provisioner-125"
+            common:
+              csiExternalProvisioner125: "sha256:common-provisioner-125"
+    asserts:
+      - equal:
+          path: "otherModulesEnabled"
+          value: "registry.deckhouse.io/deckhouse/ce@sha256:common-provisioner-125"
+
+  - it: should return null when storage-foundation enabled but digests empty
+    documentIndex: 10
+    set:
+      global:
+        enabledModules:
+          - storage-foundation
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation: {}
+            common:
+              csiExternalProvisioner125: "sha256:common-provisioner-125"
+    asserts:
+      - equal:
+          path: "emptyStorageFoundationDigests"
+          value: null
 
