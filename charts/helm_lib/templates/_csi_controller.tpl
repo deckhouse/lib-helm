@@ -74,6 +74,7 @@ memory: 50Mi
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
   {{- $forceCsiControllerPrivilegedContainer := $config.forceCsiControllerPrivilegedContainer | default false }}
+  {{- $dnsPolicy := $config.dnsPolicy | default "ClusterFirstWithHostNet" }}
 
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
 
@@ -212,7 +213,7 @@ spec:
       hostNetwork: {{ $csiControllerHostNetwork }}
       hostPID: {{ $csiControllerHostPID }}
       {{- if eq $csiControllerHostNetwork "true" }}
-      dnsPolicy: ClusterFirstWithHostNet
+      dnsPolicy: {{ $dnsPolicy | quote }}
       {{- end }}
       imagePullSecrets:
       - name: deckhouse-registry
