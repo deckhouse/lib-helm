@@ -139,7 +139,7 @@
     {{- if not $imageDigest }}
       {{- $imageDigest = index $storageFoundationDigests $rawContainerName | default "" }}
     {{- end }}
-  {{- /* Fallback to common module if not found in storage foundation */}}
+  {{- /* Fallback to common module if storage foundation module is not enabled */}}
   {{- else }}
     {{- $containerName := join "" (list $rawContainerName $kubernetesSemVer.Major $kubernetesSemVer.Minor) }}
     {{- $imageDigest = index $context.Values.global.modulesImages.digests "common" $containerName | default "" }}
