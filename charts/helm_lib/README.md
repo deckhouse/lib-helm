@@ -476,13 +476,14 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_csi_image_with_common_fallback" (list . "<container-name>") }} `
+`{{ include "helm_lib_csi_image_with_common_fallback" (list . "<raw-container-name>" "<semver>") }} `
 
 #### Arguments
 
 list:
 -  Template context with .Values, .Chart, etc 
--  Container name 
+-  Container raw name 
+-  Kubernetes semantic version 
 
 ## Module Ingress Class
 
