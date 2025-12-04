@@ -42,6 +42,31 @@ tests:
       - equal:
           path: spec.template.spec.dnsPolicy
           value: "ClusterFirstWithHostNet"
+
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "deckhouse.io/deckhouse/ce@csiControllerProvisioner125"
+
+      - equal:
+          path: spec.template.spec.containers[1].image
+          value: "deckhouse.io/deckhouse/ce@csiControllerAttacher125"
+
+      - equal:
+          path: spec.template.spec.containers[2].image
+          value: "deckhouse.io/deckhouse/ce@csiControllerResizer125"
+
+      - equal:
+          path: spec.template.spec.containers[3].image
+          value: "deckhouse.io/deckhouse/ce@csiControllerSnapshotter125"
+
+      - equal:
+          path: spec.template.spec.containers[4].image
+          value: "deckhouse.io/deckhouse/ce@csiLivenessProbe125"
+
+      - equal:
+          path: spec.template.spec.containers[5].image
+          value: "controllerImage"
+
   - it: renders csi controller manifests with dnsPolicy defined
 
     set:
@@ -83,3 +108,45 @@ tests:
       - equal:
           path: spec.template.spec.dnsPolicy
           value: "Default"
+
+  - it: renders csi controller manifests with no dnsPolicy when hostNetwork is false
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiVsphereSyncer125: csiControllerSyncer125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        csiControllerHostNetwork: "false"
+        dnsPolicy: Default
+
+    documentSelector:
+      path: kind
+      value: Deployment
+
+    asserts:
+      - hasDocuments:
+          count: 2
+
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: csi-controller
+          namespace: d8-test-module
+
+      - notExists:
+          path: spec.template.spec.dnsPolicy
