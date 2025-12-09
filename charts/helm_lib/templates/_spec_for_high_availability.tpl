@@ -16,6 +16,38 @@ affinity:
   {{- end }}
 {{- end }}
 
+{{- /* Usage: {{- include "helm_lib_affinity_ha_with_arch_avoid" (list . (dict "app" "test") (list "arm" "arm64")) }} */}}
+{{- /* Returns affinity spec for HA components that combines: podAntiAffinity by provided labels (same as helm_lib_pod_anti_affinity_for_ha) and nodeAffinity that avoids specified architectures. If the list of architectures is not provided, defaults to ["arm", "arm64"]. */ -}}
+{{- define "helm_lib_affinity_ha_with_arch_avoid" }}
+{{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc */ -}}
+{{- $labels := index . 1 }} {{- /* Match labels for podAntiAffinity label selector */ -}}
+{{- $avoidArchs := list "arm" "arm64" -}}
+{{- if ge (len .) 3 }}
+  {{- $avoidArchs = index . 2 }}
+{{- end }}
+  {{- if (include "helm_lib_ha_enabled" $context) }}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+    {{- range $key, $value := $labels }}
+            {{ $key }}: {{ $value | quote }}
+    {{- end }}
+        topologyKey: kubernetes.io/hostname
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/arch
+              operator: NotIn
+              values:
+          {{- range $avoidArchs }}
+                - {{ . | quote }}
+          {{- end }}
+  {{- end }}
+{{- end }}
+
 {{- /* Usage: {{ include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" }} */ -}}
 {{- /* returns deployment strategy and replicas for ha components running on master nodes */ -}}
 {{- define "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" }}

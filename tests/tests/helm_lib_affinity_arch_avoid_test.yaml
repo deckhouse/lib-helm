@@ -1,0 +1,38 @@
+suite: helm_lib_affinity_arch_avoid definition
+templates:
+  - helm_lib_affinity_arch_avoid.yaml
+tests:
+  - it: should render node affinity for provided architectures
+    set:
+      Chart:
+        Name: "testModule"
+    asserts:
+      - notEqual:
+          path: resultDefault
+          value: ""
+      - matchRegex:
+          path: resultDefault
+          pattern: "nodeAffinity"
+      - matchRegex:
+          path: resultDefault
+          pattern: "kubernetes.io/arch"
+      - matchRegex:
+          path: resultDefault
+          pattern: "- \\\"arm\\\""
+      - matchRegex:
+          path: resultDefault
+          pattern: "- \\\"arm64\\\""
+  - it: should allow overriding architectures list
+    set:
+      Chart:
+        Name: "testModule"
+    asserts:
+      - matchRegex:
+          path: resultCustom
+          pattern: "- \\\"amd64\\\""
+      - matchRegex:
+          path: resultCustom
+          pattern: "- \\\"ppc64le\\\""
+      - notMatchRegex:
+          path: resultCustom
+          pattern: "\\\"arm\\\""

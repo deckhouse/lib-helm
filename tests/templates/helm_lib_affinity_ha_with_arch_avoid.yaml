@@ -1,0 +1,4 @@
+{{- $default := include "helm_lib_affinity_ha_with_arch_avoid" (list . (dict "app" "test")) }}
+resultDefault: {{ $default | toString | quote }}
+{{- $custom := include "helm_lib_affinity_ha_with_arch_avoid" (list . (dict "app" "test") (list "amd64" "ppc64le")) }}
+resultCustom: {{ $custom | toString | quote }}

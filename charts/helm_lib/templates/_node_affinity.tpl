@@ -260,3 +260,22 @@ tolerations:
   operator: Exists
   {{- end }}
 {{- end }}
+
+{{- /* Returns nodeAffinity that avoids specified architectures.*/ -}}
+{{- /* Usage: {{- include "helm_lib_affinity_arch_avoid" (list . (list "arm" "arm64")) */ -}}
+{{- define "helm_lib_affinity_arch_avoid" -}}
+  {{- $context := index . 0 -}}
+  {{- $avoidArchs := index . 1 -}}
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/arch
+              operator: NotIn
+              values:
+              {{- range $avoidArchs }}
+                - {{ . | quote }}
+              {{- end }}
+{{- end -}}
+
