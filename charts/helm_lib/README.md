@@ -192,7 +192,7 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_dns_policy_bootstraping_state" . }} `
+`{{ include "helm_lib_dns_policy_bootstraping_state" (list . "Default" "ClusterFirstWithHostNet") }} `
 
 
 ## Enable Ds Eviction

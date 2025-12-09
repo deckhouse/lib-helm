@@ -1,0 +1,25 @@
+suite: helm_lib_dns_policy definition
+templates:
+  - helm_lib_dns_policy.yaml
+tests:
+  - it: renders one value with bootstraped cluster
+
+    set:
+      global:
+        clusterIsBootstrapped: true
+
+    asserts:
+      - equal:
+          path: "dnsPolicy"
+          value: "ClusterFirstWithHostNet"
+
+  - it: renders another value with bootstraped cluster
+
+    set:
+      global:
+        clusterIsBootstrapped: false
+
+    asserts:
+      - equal:
+          path: "dnsPolicy"
+          value: "Default"
