@@ -1,8 +1,8 @@
-suite: helm_lib_affinity_arch_avoid definition
+suite: helm_lib_affinity_arch_require definition
 templates:
-  - helm_lib_affinity_arch_avoid.yaml
+  - helm_lib_affinity_arch_require.yaml
 tests:
-  - it: should render node affinity for provided architectures
+  - it: should render node affinity for allowed architectures
     set:
       Chart:
         Name: "testModule"
@@ -18,6 +18,12 @@ tests:
           pattern: "kubernetes.io/arch"
       - matchRegex:
           path: resultDefault
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultDefault
+          pattern: "operator:\\s*NotIn"
+      - matchRegex:
+          path: resultDefault
           pattern: "- \\\"arm\\\""
       - matchRegex:
           path: resultDefault
@@ -27,6 +33,12 @@ tests:
       Chart:
         Name: "testModule"
     asserts:
+      - matchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*NotIn"
       - matchRegex:
           path: resultCustom
           pattern: "- \\\"amd64\\\""

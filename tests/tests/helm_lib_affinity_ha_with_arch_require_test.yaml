@@ -1,8 +1,8 @@
-suite: helm_lib_affinity_ha_with_arch_avoid definition
+suite: helm_lib_affinity_ha_with_arch_require definition
 templates:
-  - helm_lib_affinity_ha_with_arch_avoid.yaml
+  - helm_lib_affinity_ha_with_arch_require.yaml
 tests:
-  - it: should render pod anti-affinity and default arch avoidance when HA is enabled
+  - it: should render pod anti-affinity and default allowed architectures when HA is enabled
     set:
       Chart:
         Name: "testModule"
@@ -20,17 +20,26 @@ tests:
           pattern: "kubernetes.io/arch"
       - matchRegex:
           path: resultDefault
-          pattern: "values:\\s*- \\\"arm\\\""
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultDefault
+          pattern: "operator:\\s*NotIn"
       - matchRegex:
           path: resultDefault
-          pattern: "values:[\\s\\S]*- \\\"arm64\\\""
-  - it: should use provided architectures list when passed explicitly
+          pattern: "values:\\s*- \\\"amd64\\\""
+  - it: should use provided allowed architectures list when passed explicitly
     set:
       Chart:
         Name: "testModule"
       global:
         highAvailability: true
     asserts:
+      - matchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*NotIn"
       - matchRegex:
           path: resultCustom
           pattern: "- \\\"amd64\\\""
