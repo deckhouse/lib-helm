@@ -1,0 +1,64 @@
+suite: helm_lib_affinity_ha_with_arch_require definition
+templates:
+  - helm_lib_affinity_ha_with_arch_require.yaml
+tests:
+  - it: should render pod anti-affinity and default allowed architectures when HA is enabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - notEqual:
+          path: resultDefault
+          value: ""
+      - matchRegex:
+          path: resultDefault
+          pattern: "podAntiAffinity"
+      - matchRegex:
+          path: resultDefault
+          pattern: "kubernetes.io/arch"
+      - matchRegex:
+          path: resultDefault
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultDefault
+          pattern: "operator:\\s*NotIn"
+      - matchRegex:
+          path: resultDefault
+          pattern: "values:\\s*- \\\"amd64\\\""
+  - it: should use provided allowed architectures list when passed explicitly
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - matchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultCustom
+          pattern: "operator:\\s*NotIn"
+      - matchRegex:
+          path: resultCustom
+          pattern: "- \\\"amd64\\\""
+      - matchRegex:
+          path: resultCustom
+          pattern: "- \\\"ppc64le\\\""
+      - notMatchRegex:
+          path: resultCustom
+          pattern: "\\\"arm\\\""
+  - it: should render empty string when HA is disabled
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - equal:
+          path: resultDefault
+          value: ""
+      - equal:
+          path: resultCustom
+          value: ""
