@@ -9,6 +9,13 @@
 | **Api Version And Kind** |
 | [helm_lib_kind_exists](#helm_lib_kind_exists) |
 | [helm_lib_get_api_version_by_kind](#helm_lib_get_api_version_by_kind) |
+| **Application Image** |
+| [helm_lib_application_image](#helm_lib_application_image) |
+| [helm_lib_application_image_no_fail](#helm_lib_application_image_no_fail) |
+| [helm_lib_application_common_image](#helm_lib_application_common_image) |
+| [helm_lib_application_common_image_no_fail](#helm_lib_application_common_image_no_fail) |
+| [helm_lib_application_image_digest](#helm_lib_application_image_digest) |
+| [helm_lib_application_image_digest_no_fail](#helm_lib_application_image_digest_no_fail) |
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
 | **Dns Policy** |
@@ -168,6 +175,97 @@ list:
 list:
 -  Template context with .Values, .Chart, etc 
 -  Kind name portion 
+
+## Application Image
+
+### helm_lib_application_image
+
+ returns image name 
+
+#### Usage
+
+`{{ include "helm_lib_application_image" (list . "<container-name>" "<application-name>(optional)") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_application_image_no_fail
+
+ returns image name if found 
+
+#### Usage
+
+`{{ include "helm_lib_application_image_no_fail" (list . "<container-name>") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_application_common_image
+
+ returns image name from common application 
+
+#### Usage
+
+`{{ include "helm_lib_application_common_image" (list . "<container-name>") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_application_common_image_no_fail
+
+ returns image name from common application if found 
+
+#### Usage
+
+`{{ include "helm_lib_application_common_image_no_fail" (list . "<container-name>") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_application_image_digest
+
+ returns image digest 
+
+#### Usage
+
+`{{ include "helm_lib_application_image_digest" (list . "<container-name>" "<application-name>(optional)") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
+
+
+### helm_lib_application_image_digest_no_fail
+
+ returns image digest if found 
+
+#### Usage
+
+`{{ include "helm_lib_application_image_digest_no_fail" (list . "<container-name>" "<application-name>(optional)") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container name 
 
 ## Csi Controller
 

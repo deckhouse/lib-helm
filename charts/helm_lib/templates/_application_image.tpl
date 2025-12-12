@@ -8,12 +8,12 @@
     {{- $rawapplicationName = (index . 2) }} {{- /* Optional application name */ -}}
   {{- end }}
   {{- $applicationName := (include "helm_lib_module_camelcase_name" $rawapplicationName) }}
-  {{- $imageDigest := index $context.Values.global.Runtime.Instance.Digests $applicationName $containerName }}
+  {{- $imageDigest := index $context.Values.Runtime.Instance.Digests $applicationName $containerName }}
   {{- if not $imageDigest }}
     {{- $error := (printf "Image %s.%s has no digest" $applicationName $containerName ) }}
     {{- fail $error }}
   {{- end }}
-  {{- $registryBase := $context.Values.global.Runtime.Instance.Registry.base }}
+  {{- $registryBase := $context.Values.Runtime.Instance.Registry.base }}
   {{- /*  handle external applications registry */}}
   {{- if index $context.Values $applicationName }}
     {{- if index $context.Values $applicationName "registry" }}
@@ -37,9 +37,9 @@
   {{- if ge (len .) 3 }}
   {{- $applicationName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional application name */ -}}
   {{- end }}
-  {{- $imageDigest := index $context.Values.global.Runtime.Instance.Digests $applicationName $containerName }}
+  {{- $imageDigest := index $context.Values.Runtime.Instance.Digests $applicationName $containerName }}
   {{- if $imageDigest }}
-    {{- $registryBase := $context.Values.global.Runtime.Instance.Registry.base }}
+    {{- $registryBase := $context.Values.Runtime.Instance.Registry.base }}
     {{- if index $context.Values $applicationName }}
       {{- if index $context.Values $applicationName "registry" }}
         {{- if index $context.Values $applicationName "registry" "base" }}
@@ -58,12 +58,12 @@
 {{- define "helm_lib_application_common_image" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $imageDigest := index $context.Values.global.Runtime.Instance.Digests "common" $containerName }}
+  {{- $imageDigest := index $context.Values.Runtime.Instance.Digests "common" $containerName }}
   {{- if not $imageDigest }}
   {{- $error := (printf "Image %s.%s has no digest" "common" $containerName ) }}
   {{- fail $error }}
   {{- end }}
-  {{- printf "%s@%s" $context.Values.global.Runtime.Instance.Registry.base $imageDigest }}
+  {{- printf "%s@%s" $context.Values.Runtime.Instance.Registry.base $imageDigest }}
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_application_common_image_no_fail" (list . "<container-name>") }} */ -}}
@@ -71,9 +71,9 @@
 {{- define "helm_lib_application_common_image_no_fail" }}
   {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
-  {{- $imageDigest := index $context.Values.global.Runtime.Instance.Digests "common" $containerName }}
+  {{- $imageDigest := index $context.Values.Runtime.Instance.Digests "common" $containerName }}
   {{- if $imageDigest }}
-  {{- printf "%s@%s" $context.Values.global.Runtime.Instance.Registry.base $imageDigest }}
+  {{- printf "%s@%s" $context.Values.Runtime.Instance.Registry.base $imageDigest }}
   {{- end }}
 {{- end }}
 
@@ -87,7 +87,7 @@
   {{- $rawapplicationName = (index . 2) }} {{- /* Optional application name */ -}}
   {{- end }}
   {{- $applicationName := (include "helm_lib_module_camelcase_name" $rawapplicationName) }}
-  {{- $applicationMap := index $context.Values.global.Runtime.Instance.Digests $applicationName | default dict }}
+  {{- $applicationMap := index $context.Values.Runtime.Instance.Digests $applicationName | default dict }}
   {{- $imageDigest := index $applicationMap $containerName | default "" }}
   {{- if not $imageDigest }}
   {{- $error := (printf "Image %s.%s has no digest" $applicationName $containerName ) }}
@@ -105,7 +105,7 @@
   {{- if ge (len .) 3 }}
   {{- $applicationName = (include "helm_lib_module_camelcase_name" (index . 2)) }} {{- /* Optional application name */ -}}
   {{- end }}
-  {{- $applicationMap := index $context.Values.global.Runtime.Instance.Digests $applicationName | default dict }}
+  {{- $applicationMap := index $context.Values.Runtime.Instance.Digests $applicationName | default dict }}
   {{- $imageDigest := index $applicationMap $containerName | default "" }}
   {{- printf "%s" $imageDigest }}
 {{- end }}
