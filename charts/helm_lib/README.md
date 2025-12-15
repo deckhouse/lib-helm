@@ -11,7 +11,6 @@
 | [helm_lib_get_api_version_by_kind](#helm_lib_get_api_version_by_kind) |
 | **Application Image** |
 | [helm_lib_application_image](#helm_lib_application_image) |
-| [helm_lib_application_image_no_fail](#helm_lib_application_image_no_fail) |
 | **Application Security Context** |
 | [helm_lib_application_pod_security_context_run_as_user_custom](#helm_lib_application_pod_security_context_run_as_user_custom) |
 | [helm_lib_v_pod_security_context_run_as_user_nobody](#helm_lib_v_pod_security_context_run_as_user_nobody) |
@@ -202,16 +201,6 @@ list:
 #### Usage
 
 `{{ include "helm_lib_application_image" (list . "<image-name>") }} `
-
-
-
-### helm_lib_application_image_no_fail
-
- returns image name in format "registry/package@digest" with no fail 
-
-#### Usage
-
-`{{ include "helm_lib_application_image_no_fail" (list . "<image-name>") }} `
 
 
 ## Application Security Context

@@ -21,18 +21,3 @@
 
   {{- printf "%s/%s@%s" $registryBase $packageName $imageDigest }}
 {{- end }}
-
-{{- /* Usage: {{ include "helm_lib_application_image_no_fail" (list . "<image-name>") }} */ -}}
-{{- /* returns image name in format "registry/package@digest" with no fail */ -}}
-{{- define "helm_lib_application_image_no_fail" }}
-  {{- $context := index . 0 }}
-
-  {{- $image := index . 1 | trimAll "\"" }}
-  {{- $imageDigest := index $context.Runtime.Instance.Digests $image }}
-
-  {{- $registryBase := $context.Runtime.Instance.Registry.repository }}
-
-  {{- $packageName := $context.Runtime.Instance.Package }}
-
-  {{- printf "%s/%s@%s" $registryBase $packageName $imageDigest }}
-{{- end }}
