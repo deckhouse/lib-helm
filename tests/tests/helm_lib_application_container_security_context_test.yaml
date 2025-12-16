@@ -1,0 +1,82 @@
+suite: helm_lib_application_container_security_context
+templates:
+  - helm_lib_application_container_security_context.yaml
+tests:
+  - it: default options
+    asserts:
+      - equal:
+          path: privileged
+          value:
+            securityContext:
+              privileged: true
+
+  - it: seccompProfile disabled
+    asserts:
+      - equal:
+          path: seccompProfile
+          value:
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsUser: 64535
+              runAsGroup: 64535  
+              privileged: false
+              runAsNonRoot: true
+
+  - it: restricted_flexible default options
+    asserts:
+      - equal:
+          path: restrictedDefault
+          value:
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsUser: 64535
+              privileged: false
+              runAsGroup: 64535
+              runAsNonRoot: true
+              seccompProfile:
+                type: RuntimeDefault
+
+  - it: read_only_root_filesystem default options
+    asserts:
+      - equal:
+          path: readOnlyRootFilesystem
+          value:
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+
+  - it: renders security context with SELinux options
+    asserts:
+      - equal:
+          path: readOnlyRootFilesystemWithSelinux
+          value:
+            securityContext:
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              seLinuxOptions:
+                level: 's0'
+                type: 'spc_t'
+
+  - it: run_as_user_deckhouse renders security context
+    asserts:
+      - equal:
+          path: runAsUserDeckhousePssRestricted
+          value:
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - all
+              runAsGroup: 64535
+              runAsNonRoot: true
+              runAsUser: 64535
+              seccompProfile:
+                type: RuntimeDefault
