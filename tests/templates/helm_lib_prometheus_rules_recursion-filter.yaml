@@ -1,0 +1,5 @@
+{{- $prometheusRules := list
+  "testdata/monitoring/livebeef/propagated-caps.yaml"
+}}
+
+{{- include "helm_lib_prometheus_rules_recursion" (list . "d8-observability" "testdata/monitoring" "testdata/monitoring" $prometheusRules) }}

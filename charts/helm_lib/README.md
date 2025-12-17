@@ -1234,10 +1234,11 @@ list:
 
  returns all the prometheus rules from <root dir>/ 
  current dir is optional — used for recursion but you can use it for partially generating rules 
+ file list is optional - list of files to include (filters all files if provided) 
 
 #### Usage
 
-`{{ include "helm_lib_prometheus_rules_recursion" (list . <namespace> <root dir> [current dir]) }} `
+`{{ include "helm_lib_prometheus_rules_recursion" (list . <namespace> <root dir> [current dir] [file list]) }} `
 
 #### Arguments
 
@@ -1246,15 +1247,16 @@ list:
 -  Namespace for creating rules 
 -  Rules root dir 
 -  Current dir (optional) 
+-  File list for filtering (optional) 
 
 
 ### helm_lib_prometheus_rules
 
- returns all the prometheus rules from monitoring/prometheus-rules/ 
+ returns all the prometheus rules from monitoring/prometheus-rules/ optionally filtered by fileList 
 
 #### Usage
 
-`{{ include "helm_lib_prometheus_rules" (list . <namespace>) }} `
+`{{ include "helm_lib_prometheus_rules" (list . <namespace> [fileList]) }} `
 
 #### Arguments
 
