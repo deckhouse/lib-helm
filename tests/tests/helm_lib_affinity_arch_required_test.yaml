@@ -1,6 +1,6 @@
-suite: helm_lib_affinity_arch_require definition
+suite: helm_lib_affinity_arch_required definition
 templates:
-  - helm_lib_affinity_arch_require.yaml
+  - helm_lib_affinity_arch_required.yaml
 tests:
   - it: should render node affinity for allowed architectures
     set:

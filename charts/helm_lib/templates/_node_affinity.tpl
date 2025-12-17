@@ -262,8 +262,8 @@ tolerations:
 {{- end }}
 
 {{- /* Returns nodeAffinity that schedules pods only on specified architectures.*/ -}}
-{{- /* Usage: {{- include "helm_lib_affinity_arch_require" (list . (list "amd64" "arm64")) */ -}}
-{{- define "helm_lib_affinity_arch_require" -}}
+{{- /* Usage: {{- include "helm_lib_affinity_arch_required" (list . (list "amd64" "arm64")) */ -}}
+{{- define "helm_lib_affinity_arch_required" -}}
   {{- $context := index . 0 -}}
   {{- $allowedArchs := index . 1 -}}
 affinity:

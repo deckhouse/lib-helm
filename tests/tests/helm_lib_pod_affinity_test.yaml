@@ -1,0 +1,74 @@
+suite: helm_lib_pod_affinity definition
+templates:
+  - helm_lib_pod_affinity.yaml
+tests:
+  - it: renders only pod anti-affinity when HA is enabled and architectures are not provided
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - matchRegex:
+          path: resultNoArch
+          pattern: "podAntiAffinity"
+      - matchRegex:
+          path: resultNoArch
+          pattern: "kubernetes.io/hostname"
+      - notMatchRegex:
+          path: resultNoArch
+          pattern: "nodeAffinity"
+  - it: renders pod anti-affinity and node affinity when HA is enabled and architectures are provided
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+    asserts:
+      - matchRegex:
+          path: resultWithArch
+          pattern: "podAntiAffinity"
+      - matchRegex:
+          path: resultWithArch
+          pattern: "nodeAffinity"
+      - matchRegex:
+          path: resultWithArch
+          pattern: "operator:\\s*In"
+      - notMatchRegex:
+          path: resultWithArch
+          pattern: "operator:\\s*NotIn"
+      - matchRegex:
+          path: resultWithArch
+          pattern: "-\\s*\"amd64\""
+      - matchRegex:
+          path: resultWithArch
+          pattern: "-\\s*\"ppc64le\""
+  - it: renders only node affinity when HA is disabled but architectures are provided
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - matchRegex:
+          path: resultWithArch
+          pattern: "nodeAffinity"
+      - notMatchRegex:
+          path: resultWithArch
+          pattern: "podAntiAffinity"
+      - matchRegex:
+          path: resultWithArch
+          pattern: "-\\s*\"amd64\""
+      - matchRegex:
+          path: resultWithArch
+          pattern: "-\\s*\"ppc64le\""
+  - it: renders empty string when HA is disabled and architectures are not provided
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: false
+    asserts:
+      - equal:
+          path: resultNoArch
+          value: ""
