@@ -1,4 +1,0 @@
-{{- $default := include "helm_lib_affinity_arch_required" (list . (list "arm" "arm64")) }}
-resultDefault: {{ $default | toString | quote }}
-{{- $custom := include "helm_lib_affinity_arch_required" (list . (list "amd64" "ppc64le")) }}
-resultCustom: {{ $custom | toString | quote }}
