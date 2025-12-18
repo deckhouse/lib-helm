@@ -1,0 +1,5 @@
+- name: kubernetes.caps.group-one
+  rules:
+  - alert: CapsInstanceUnavailable
+    expr: vector(1) 
+
