@@ -1,0 +1,4 @@
+{{- $noArch := include "helm_lib_pod_affinity" (list . (dict "app" "test")) }}
+resultNoArch: {{ $noArch | toString | quote }}
+{{- $withArch := include "helm_lib_pod_affinity" (list . (dict "app" "test") (list "amd64" "ppc64le")) }}
+resultWithArch: {{ $withArch | toString | quote }}
