@@ -11,7 +11,7 @@
 
   {{- if gt (len .) 3 }} {{- $currentDir = index . 3 }} {{- else }} {{- $currentDir = $rootDir }} {{- end }}
   {{- if gt (len .) 4 }} {{- $fileList = index . 4 }} {{- end }}
-  
+
   {{- $currentDirIndex := (sub ($currentDir | splitList "/" | len) 1) }}
   {{- $rootDirIndex := (sub ($rootDir | splitList "/" | len) 1) }}
   {{- $folderNamesIndex := (add1 $rootDirIndex) }}
@@ -22,7 +22,7 @@
     {{- if gt (len $fileList) 0 }}
       {{- $shouldProcess = has $path $fileList }}
     {{- end }}
-    
+
     {{- if $shouldProcess }}
     {{- $fileName := ($path | splitList "/" | last ) }}
     {{- $definition := "" }}
@@ -62,9 +62,10 @@
     {{- $useObservabilityRules := has "observability.deckhouse.io/v1alpha1/ClusterObservabilityMetricsRulesGroup" $context.Values.global.discovery.apiVersions }}
     {{- if and $hasObservabilityModule $useObservabilityRules }}
       {{- range $idx, $group := $definitionStruct.Rules }}
-        {{- $_ := unset $group "name" }}
-        {{- $resourceName = $resourceName | replace "propagated-" "" }}
-        {{- $groupResourceName := printf "%s-%d" $resourceName $idx }}
+        {{- if $group.rules }}
+          {{- $_ := unset $group "name" }}
+          {{- $resourceName = $resourceName | replace "propagated-" "" }}
+          {{- $groupResourceName := printf "%s-%d" $resourceName $idx }}
 ---
 apiVersion: observability.deckhouse.io/v1alpha1
 kind: {{ $propagated | ternary "ClusterObservabilityPropagatedMetricsRulesGroup" "ClusterObservabilityMetricsRulesGroup" }}
@@ -73,6 +74,7 @@ metadata:
   {{- include "helm_lib_module_labels" (list $context (dict "app" "prometheus" "prometheus" "main" "component" "rules")) | nindent 2 }}
 spec:
   {{- $group | toYaml | nindent 2 }}
+        {{- end }}
       {{- end }}
     {{- else }}
       {{- if $definitionStruct.Rules }}
@@ -87,7 +89,7 @@ metadata:
 spec:
   groups:
     {{- $definition | nindent 4 }}
-      {{- end }} 
+      {{- end }}
     {{- end }}
     {{- end }}
   {{- end }}
