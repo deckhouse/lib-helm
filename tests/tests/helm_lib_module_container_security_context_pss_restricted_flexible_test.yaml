@@ -13,6 +13,7 @@ tests:
               drop:
                 - ALL
             runAsUser: 64535
+            privileged: false
             runAsGroup: 64535
             runAsNonRoot: true
             seccompProfile:

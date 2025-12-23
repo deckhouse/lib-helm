@@ -9,6 +9,8 @@
 | **Api Version And Kind** |
 | [helm_lib_kind_exists](#helm_lib_kind_exists) |
 | [helm_lib_get_api_version_by_kind](#helm_lib_get_api_version_by_kind) |
+| **Csi Controller** |
+| [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
 | **Enable Ds Eviction** |
 | [helm_lib_prevent_ds_eviction_annotation](#helm_lib_prevent_ds_eviction_annotation) |
 | **Envs For Proxy** |
@@ -162,6 +164,23 @@ list:
 list:
 -  Template context with .Values, .Chart, etc 
 -  Kind name portion 
+
+## Csi Controller
+
+### helm_lib_csi_image_with_common_fallback
+
+ returns image name from storage foundation module if enabled, otherwise from common module 
+
+#### Usage
+
+`{{ include "helm_lib_csi_image_with_common_fallback" (list . "<raw-container-name>" "<semver>") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Container raw name 
+-  Kubernetes semantic version 
 
 ## Enable Ds Eviction
 
@@ -650,16 +669,17 @@ list:
 
 ### helm_lib_module_container_security_context_pss_restricted_flexible
 
- SecurityContext for Deckhouse UID/GID 64535, PSS Restricted 
+ SecurityContext for Deckhouse UID/GID 64535 (or root), PSS Restricted 
  Optional keys: 
  .ro   – bool, read-only root FS (default true) 
  .caps – []string, capabilities.add (default empty) 
  .uid  – int, runAsUser/runAsGroup (default 64535) 
+ .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) 
  .seccompProfile  – bool, disable seccompProfile when false (default true) 
 
 #### Usage
 
-`include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false) `
+`include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true) `
 
 
 
