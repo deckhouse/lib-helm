@@ -1,0 +1,5 @@
+{{- if hasKey .Values "_testvalues" -}}
+{{- if and (kindIs "map" .Values._testvalues) .Values._testvalues.roleRules .Values._testvalues.clusterRoleRules -}}
+{{- include "helm_lib_module_controller_rbac" (list . .Values._testvalues) -}}
+{{- end -}}
+{{- end -}}

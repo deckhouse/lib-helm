@@ -1,0 +1,150 @@
+suite: helm_lib_module_validating_webhook_configuration definition
+templates:
+  - helm_lib_module_validating_webhook_configuration.yaml
+tests:
+  - it: renders validating webhook configuration for storageclasses
+    set:
+      testModule:
+        internal:
+          customWebhookCert:
+            ca: my-ca-certificate
+            crt: crt
+            key: key
+      _testvalues:
+        name: sc-validation
+        webhookName: sc-validation
+        valuesKey: testModule
+        webhookCertPath: internal.customWebhookCert
+        path: /sc-validate
+        rules:
+          - apiGroups: ["storage.k8s.io"]
+            apiVersions: ["v1"]
+            operations: ["*"]
+            resources: ["storageclasses"]
+            scope: Cluster
+
+    asserts:
+      - containsDocument:
+          kind: ValidatingWebhookConfiguration
+          apiVersion: admissionregistration.k8s.io/v1
+          name: d8-test-module-sc-validation
+
+      - equal:
+          path: webhooks[0].name
+          value: d8-test-module-sc-validation.deckhouse.io
+
+      - equal:
+          path: webhooks[0].clientConfig.service.namespace
+          value: d8-test-module
+
+      - equal:
+          path: webhooks[0].clientConfig.service.name
+          value: webhooks
+
+      - equal:
+          path: webhooks[0].clientConfig.service.path
+          value: /sc-validate
+
+      - equal:
+          path: webhooks[0].clientConfig.caBundle
+          value: bXktY2EtY2VydGlmaWNhdGU=
+
+      - equal:
+          path: webhooks[0].sideEffects
+          value: None
+
+      - equal:
+          path: webhooks[0].timeoutSeconds
+          value: 5
+
+  - it: renders validating webhook configuration for moduleconfigs with matchConditions
+    set:
+      testModule:
+        internal:
+          customWebhookCert:
+            ca: ca-cert
+            crt: crt
+            key: key
+      _testvalues:
+        name: mc-validation
+        webhookName: mc-validation
+        valuesKey: testModule
+        webhookCertPath: internal.customWebhookCert
+        path: /mc-validate
+        rules:
+          - apiGroups: ["deckhouse.io"]
+            apiVersions: ["v1alpha1"]
+            operations: ["CREATE", "UPDATE"]
+            resources: ["moduleconfigs"]
+            scope: Cluster
+        matchConditions:
+          - name: match-csi-s3
+            expression: 'request.name == "csi-s3"'
+
+    asserts:
+      - containsDocument:
+          kind: ValidatingWebhookConfiguration
+          apiVersion: admissionregistration.k8s.io/v1
+          name: d8-test-module-mc-validation
+
+      - equal:
+          path: webhooks[0].matchConditions[0].name
+          value: match-csi-s3
+
+      - equal:
+          path: webhooks[0].matchConditions[0].expression
+          value: 'request.name == "csi-s3"'
+
+  - it: renders validating webhook configuration with custom service name
+    set:
+      testModule:
+        internal:
+          customWebhookCert:
+            ca: ca
+            crt: crt
+            key: key
+      _testvalues:
+        name: validation
+        webhookName: validation
+        valuesKey: testModule
+        webhookCertPath: internal.customWebhookCert
+        serviceName: custom-webhooks
+        path: /validate
+        rules:
+          - apiGroups: [""]
+            apiVersions: ["v1"]
+            operations: ["CREATE"]
+            resources: ["pods"]
+            scope: Namespaced
+
+    asserts:
+      - equal:
+          path: webhooks[0].clientConfig.service.name
+          value: custom-webhooks
+
+  - it: renders validating webhook configuration with custom timeout
+    set:
+      testModule:
+        internal:
+          customWebhookCert:
+            ca: ca
+            crt: crt
+            key: key
+      _testvalues:
+        name: validation
+        webhookName: validation
+        valuesKey: testModule
+        webhookCertPath: internal.customWebhookCert
+        path: /validate
+        timeoutSeconds: 10
+        rules:
+          - apiGroups: [""]
+            apiVersions: ["v1"]
+            operations: ["CREATE"]
+            resources: ["pods"]
+            scope: Namespaced
+
+    asserts:
+      - equal:
+          path: webhooks[0].timeoutSeconds
+          value: 10

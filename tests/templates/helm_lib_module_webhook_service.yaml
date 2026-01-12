@@ -1,0 +1,5 @@
+{{- if hasKey .Values "_testvalues" }}
+{{- if kindIs "map" .Values._testvalues }}
+{{ include "helm_lib_module_webhook_service" (list . .Values._testvalues) }}
+{{- end }}
+{{- end }}

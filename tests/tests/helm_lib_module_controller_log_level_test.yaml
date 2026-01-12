@@ -1,0 +1,86 @@
+suite: helm_lib_module_controller_log_level definition
+templates:
+  - helm_lib_module_controller_log_level.yaml
+tests:
+  - it: returns 0 for ERROR log level
+    set:
+      testModule:
+        logLevel: ERROR
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "0"
+
+  - it: returns 1 for WARN log level
+    set:
+      testModule:
+        logLevel: WARN
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "1"
+
+  - it: returns 2 for INFO log level
+    set:
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "2"
+
+  - it: returns 3 for DEBUG log level
+    set:
+      testModule:
+        logLevel: DEBUG
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "3"
+
+  - it: returns 4 for TRACE log level
+    set:
+      testModule:
+        logLevel: TRACE
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "4"
+
+  - it: returns 2 (INFO) as default when logLevel is not set
+    set:
+      testModule: {}
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "2"
+
+  - it: returns 2 (INFO) for unknown log level
+    set:
+      testModule:
+        logLevel: UNKNOWN
+      _testvalues:
+        valuesKey: testModule
+
+    asserts:
+      - equal:
+          path: logLevel
+          value: "2"

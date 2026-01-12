@@ -1,0 +1,123 @@
+suite: helm_lib_module_controller_rbac definition
+templates:
+  - helm_lib_module_controller_rbac.yaml
+tests:
+  - it: renders RBAC resources with ServiceAccount
+    set:
+      _testvalues:
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create", "list"]
+        clusterRoleRules:
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["create", "delete", "list", "get", "watch"]
+
+    asserts:
+      - hasDocuments:
+          count: 5
+
+      - matchRegex:
+          path: metadata.name
+          pattern: "^controller$"
+        documentIndex: 0
+
+      - isKind:
+          of: ServiceAccount
+        documentIndex: 0
+
+      - isKind:
+          of: Role
+        documentIndex: 1
+
+      - isKind:
+          of: ClusterRole
+        documentIndex: 2
+
+      - isKind:
+          of: RoleBinding
+        documentIndex: 3
+
+      - isKind:
+          of: ClusterRoleBinding
+        documentIndex: 4
+
+  - it: renders RBAC resources with custom fullname
+    set:
+      _testvalues:
+        fullname: my-controller
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+        clusterRoleRules:
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["list"]
+
+    asserts:
+      - hasDocuments:
+          count: 5
+
+      - equal:
+          path: metadata.name
+          value: my-controller
+        documentIndex: 0
+
+      - equal:
+          path: metadata.name
+          value: d8:test-module:my-controller
+        documentIndex: 2
+
+  - it: renders Role with correct rules
+    set:
+      _testvalues:
+        roleRules:
+          - apiGroups: [""]
+            resources: ["secrets"]
+            verbs: ["get", "list", "watch"]
+          - apiGroups: ["coordination.k8s.io"]
+            resources: ["leases"]
+            verbs: ["get", "create", "update"]
+        clusterRoleRules:
+          - apiGroups: [""]
+            resources: ["nodes"]
+            verbs: ["get"]
+
+    asserts:
+      - lengthEqual:
+          path: rules
+          count: 2
+        documentIndex: 1
+
+      - equal:
+          path: rules[0].resources[0]
+          value: secrets
+        documentIndex: 1
+
+  - it: renders ClusterRole with correct rules
+    set:
+      _testvalues:
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+        clusterRoleRules:
+          - apiGroups: ["storage.deckhouse.io"]
+            resources: ["s3storageclasses", "s3storageclasses/status"]
+            verbs: ["get", "list", "create", "watch", "update"]
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["create", "delete", "list", "get", "watch", "update"]
+
+    asserts:
+      - lengthEqual:
+          path: rules
+          count: 2
+        documentIndex: 2
+
+      - contains:
+          path: rules[0].resources
+          content: s3storageclasses
+        documentIndex: 2
