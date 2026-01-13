@@ -1,0 +1,62 @@
+suite: helm_lib_module_webhook_service definition
+templates:
+  - helm_lib_module_webhook_service.yaml
+tests:
+  - it: renders webhook service with defaults
+    set:
+      _testvalues: {}
+
+    asserts:
+      - containsDocument:
+          kind: Service
+          apiVersion: v1
+          name: webhooks
+          namespace: d8-test-module
+
+      - equal:
+          path: spec.type
+          value: ClusterIP
+
+      - equal:
+          path: spec.ports[0].port
+          value: 443
+
+      - equal:
+          path: spec.ports[0].targetPort
+          value: https
+
+      - equal:
+          path: spec.selector.app
+          value: controller
+
+  - it: renders webhook service with custom fullname
+    set:
+      _testvalues:
+        fullname: my-webhooks
+
+    asserts:
+      - containsDocument:
+          kind: Service
+          apiVersion: v1
+          name: my-webhooks
+          namespace: d8-test-module
+
+  - it: renders webhook service with custom selector
+    set:
+      _testvalues:
+        selectorApp: my-controller
+
+    asserts:
+      - equal:
+          path: spec.selector.app
+          value: my-controller
+
+  - it: renders webhook service with custom targetPort
+    set:
+      _testvalues:
+        targetPort: 8443
+
+    asserts:
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 8443

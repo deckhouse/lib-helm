@@ -1,0 +1,155 @@
+suite: helm_lib_module_controller_manifests definition
+templates:
+  - helm_lib_module_controller_manifests.yaml
+tests:
+  - it: renders PDB manifest
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+        highAvailability: true
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+
+    asserts:
+      - hasDocuments:
+          count: 2
+
+      - isKind:
+          of: PodDisruptionBudget
+        documentIndex: 0
+
+      - equal:
+          path: metadata.name
+          value: controller
+        documentIndex: 0
+
+      - equal:
+          path: spec.minAvailable
+          value: 1
+        documentIndex: 0
+
+      - isKind:
+          of: Deployment
+        documentIndex: 1
+
+  - it: renders VPA when vertical-pod-autoscaler-crd is enabled
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+
+    asserts:
+      - hasDocuments:
+          count: 3
+
+      - isKind:
+          of: VerticalPodAutoscaler
+        documentIndex: 0
+
+      - equal:
+          path: metadata.name
+          value: controller
+        documentIndex: 0
+
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: Initial
+        documentIndex: 0
+
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: controller
+        documentIndex: 0
+
+      - isKind:
+          of: PodDisruptionBudget
+        documentIndex: 1
+
+      - isKind:
+          of: Deployment
+        documentIndex: 2
+
+  - it: renders VPA with webhooks container policy when webhook is enabled
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+              webhooks: sha256:def456
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+        internal:
+          customWebhookCert:
+            ca: test-ca-cert
+            crt: test-crt
+            key: test-key
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: true
+        webhookCertPath: internal.customWebhookCert
+        onMasterNode: true
+
+    asserts:
+      - hasDocuments:
+          count: 3
+
+      - isKind:
+          of: VerticalPodAutoscaler
+        documentIndex: 0
+
+      - lengthEqual:
+          path: spec.resourcePolicy.containerPolicies
+          count: 2
+        documentIndex: 0
+
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: controller
+        documentIndex: 0
+
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].containerName
+          value: webhooks
+        documentIndex: 0
