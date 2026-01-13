@@ -40,6 +40,7 @@ memory: 50Mi
   - webhooksCertMountPath: mount path for webhook certs (default: "/etc/webhook/certs")
   - webhooksCommand: command for webhooks container
   - controllerPort: port for controller probes (default: 8081)
+  - controllerMetricsPort: port for controller metrics (optional, no port exposed if not set)
 */ -}}
 {{- define "helm_lib_module_controller_manifests" }}
   {{- $context := index . 0 }}
@@ -68,6 +69,7 @@ memory: 50Mi
   {{- $webhooksCertMountPath := $config.webhooksCertMountPath | default "/etc/webhook/certs" }}
   {{- $webhooksCommand := $config.webhooksCommand }}
   {{- $controllerPort := $config.controllerPort | default 8081 }}
+  {{- $controllerMetricsPort := $config.controllerMetricsPort }}
 
   {{- /* Get module values */ -}}
   {{- $moduleValues := index $context.Values $valuesKey }}
@@ -195,6 +197,12 @@ spec:
               scheme: HTTP
             periodSeconds: 1
             failureThreshold: 3
+          {{- if $controllerMetricsPort }}
+          ports:
+            - name: metrics
+              containerPort: {{ $controllerMetricsPort }}
+              protocol: TCP
+          {{- end }}
           resources:
             requests:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
