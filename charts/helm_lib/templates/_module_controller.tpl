@@ -315,6 +315,11 @@ spec:
   - fullname: name of the service (default: "webhooks")
   - selectorApp: app label for selector (default: "controller")
   - targetPort: target port name or number (default: "https")
+  - additionalPorts: list of additional ports (optional), each port is a dict with:
+    - name: port name (required)
+    - port: service port (required)
+    - targetPort: target port name or number (required)
+    - protocol: protocol (default: "TCP")
 */ -}}
 {{- define "helm_lib_module_webhook_service" }}
   {{- $context := index . 0 }}
@@ -323,6 +328,7 @@ spec:
   {{- $fullname := $config.fullname | default "webhooks" }}
   {{- $selectorApp := $config.selectorApp | default "controller" }}
   {{- $targetPort := $config.targetPort | default "https" }}
+  {{- $additionalPorts := $config.additionalPorts }}
 ---
 apiVersion: v1
 kind: Service
@@ -337,6 +343,12 @@ spec:
       targetPort: {{ $targetPort }}
       protocol: TCP
       name: https
+    {{- range $additionalPorts }}
+    - name: {{ .name }}
+      port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol | default "TCP" }}
+    {{- end }}
   selector:
     app: {{ $selectorApp }}
 {{- end }}
