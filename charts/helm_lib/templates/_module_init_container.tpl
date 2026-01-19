@@ -68,13 +68,13 @@
 {{- /* Usage: {{ include "helm_lib_module_init_container_iptables_wrapper" . }} */ -}}
 {{- /* returns initContainer with iptables-wrapper */ -}}
 {{- define "helm_lib_module_init_container_iptables_wrapper" -}}
-  {{- /* Template context with .Values, .Chart, etc */ -}}
+  {{- $context := . -}} {{- /* Template context with .Values, .Chart, etc */ -}}
   - name: iptables-wrapper-init
   {{- include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add" (list . (list "NET_ADMIN" "NET_RAW")) | nindent 2 }}
     runAsNonRoot: false
     runAsUser: 0
     runAsGroup: 0
-  image: {{ include "helm_lib_module_image" (list . "iptablesWrapperInit") }}
+  image: {{ include "helm_lib_module_image" (list $context  "iptablesWrapperInit") }}
   command:
   - /bin/bash
   - -ec
@@ -92,7 +92,8 @@
   resources:
     requests:
       {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 6 }}
-  {{- if not ( .Values.global.enabledModules | has "vertical-pod-autoscaler") }}
-    {{- include "iptables_wrapper_init_resources" . | nindent 4 }}
+  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler") }}
+    cpu: 10m
+    memory: 10Mi
   {{- end }}
 {{- end }}

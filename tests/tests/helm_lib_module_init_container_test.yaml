@@ -14,6 +14,8 @@ tests:
               init: sha256
               alpine: sha2
               checkKernelVersion: sha256:kernel123
+            testModule:
+              iptablesWrapperInit: sha256:iptables123
 
     asserts:
       - equal:
@@ -47,6 +49,8 @@ tests:
             common:
               alpine: sha2
               checkKernelVersion: sha256:kernel123
+            testModule:
+              iptablesWrapperInit: sha256:iptables123
     asserts:
       - equal:
           path: "chownDeckhouseVolume"
@@ -79,6 +83,8 @@ tests:
             common:
               checkKernelVersion: sha256:kernel123
               alpine: sha256:alpine123
+            testModule:
+              iptablesWrapperInit: sha256:iptables123
     asserts:
       - equal:
           path: "checkLinuxKernel"
@@ -103,3 +109,105 @@ tests:
                 runAsUser: 64535
                 seccompProfile:
                   type: RuntimeDefault
+  - it: should render the iptables wrapper container if not has enabledModules "vertical-pod-autoscaler"
+    set:
+      global:
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common: 
+              alpine: alp
+              checkKernelVersion: kernel
+              iptablesWrapperInit: s:d
+            testModule:
+              iptablesWrapperInit: sha256:iptables123
+    asserts:
+      - equal:
+          path: "checkIptablesWrapper"
+          value:
+            - command:
+                - /bin/bash
+                - -ec
+                - |
+                  /usr/bin/cp /iptables-wrapper /sbin/ -rv
+                  /usr/bin/cp /_sbin/* /sbin/ -rv
+                  /usr/bin/cp /relocate/sbin/* /sbin/ -rv
+                  /sbin/iptables --version
+                  /usr/bin/rm /sbin/iptables-wrapper -v
+              image: deckhouse.io/deckhouse/ce@sha256:iptables123
+              name: iptables-wrapper-init
+              resources:
+                cpu: 10m
+                memory: 10Mi
+                requests:
+                    ephemeral-storage: 60Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                    add:
+                        - NET_ADMIN
+                        - NET_RAW
+                    drop:
+                        - ALL
+                readOnlyRootFilesystem: true
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+              volumeMounts:
+                - mountPath: /sbin
+                  name: sbin
+                - mountPath: /run/xtables.lock
+                  name: xtables-lock
+  - it: should render the iptables wrapper container if has enabledModules "vertical-pod-autoscaler"
+    set:
+      global:
+        enabledModules:
+        - vertical-pod-autoscaler
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common: 
+              alpine: alp
+              checkKernelVersion: kernel
+              iptablesWrapperInit: s:d
+            testModule:
+              iptablesWrapperInit: sha256:iptables123
+    asserts:
+      - equal:
+          path: "checkIptablesWrapper"
+          value:
+            - command:
+                - /bin/bash
+                - -ec
+                - |
+                  /usr/bin/cp /iptables-wrapper /sbin/ -rv
+                  /usr/bin/cp /_sbin/* /sbin/ -rv
+                  /usr/bin/cp /relocate/sbin/* /sbin/ -rv
+                  /sbin/iptables --version
+                  /usr/bin/rm /sbin/iptables-wrapper -v
+              image: deckhouse.io/deckhouse/ce@sha256:iptables123
+              name: iptables-wrapper-init
+              resources:
+                requests:
+                    ephemeral-storage: 60Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                    add:
+                        - NET_ADMIN
+                        - NET_RAW
+                    drop:
+                        - ALL
+                readOnlyRootFilesystem: true
+                runAsGroup: 0
+                runAsNonRoot: false
+                runAsUser: 0
+              volumeMounts:
+                - mountPath: /sbin
+                  name: sbin
+                - mountPath: /run/xtables.lock
+                  name: xtables-lock
+
+
