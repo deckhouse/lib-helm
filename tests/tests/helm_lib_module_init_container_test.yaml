@@ -209,5 +209,3 @@ tests:
                   name: sbin
                 - mountPath: /run/xtables.lock
                   name: xtables-lock
-
-
