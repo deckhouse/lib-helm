@@ -3,3 +3,6 @@ chownDeckhouseVolume:
 
 checkLinuxKernel:
 {{ include "helm_lib_module_init_container_check_linux_kernel" (list . ">= 4.9.17") }}
+
+checkIptablesWrapper:
+{{ include "helm_lib_module_init_container_iptables_wrapper" . }}
