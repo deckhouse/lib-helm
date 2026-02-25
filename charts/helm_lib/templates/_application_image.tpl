@@ -2,20 +2,19 @@
 {{- /* returns image name in format "registry/package@digest" */ -}}
 {{- define "helm_lib_application_image" }}
   {{- $context := index . 0 }}
-  {{- $pkg := $context.Package | default $context.Values.Package }}
 
   {{- $image := index . 1 | trimAll "\"" }}
-  {{- $imageDigest := index $pkg.Digests $image }}
+  {{- $imageDigest := index $context.Package.Digests $image }}
   {{- if not $imageDigest }}
   {{- fail (printf "Image %s has no digest" $image) }}
   {{- end }}
 
-  {{- $registryBase := $pkg.Registry.repository }}
+  {{- $registryBase := $context.Package.Registry.repository }}
   {{- if not $registryBase }}
   {{- fail "Registry base is not set" }}
   {{- end }}
 
-  {{- $packageName := $pkg.Name }}
+  {{- $packageName := $context.Package.Name }}
   {{- if not $packageName }}
   {{- fail "Package name is not set" }}
   {{- end }}
