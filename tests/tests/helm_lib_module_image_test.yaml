@@ -2,6 +2,35 @@ suite: helm_lib_module_image definition
 templates:
   - helm_lib_module_image.yaml
 set:
+  new:
+    Chart:
+      Name: test-module
+    Module:
+      Package:
+        Name:     "test-module"
+        Digests:
+          testContainer: "sha111"
+          externalContainer: "sha222"
+          commonContainer: "sha333"
+        Registry:
+          name:         "deckhouse"
+          repository:   "registry.deckhouse.io/deckhouse/ce"
+        Version:  "1.0.0"
+    Deckhouse:
+      modulesImages:
+        registry:
+          base: "registry.deckhouse.io/ce/modules/"
+        digests:
+          testModule:
+            testContainer: "sha444"
+            externalContainer: "sha555"
+          fooBar:
+            testContainer: "sha666"
+          someModule:
+            externalContainer: "sha777"
+          common:
+            commonContainer: "sha888"
+
   global:
     modulesImages:
       registry:
@@ -17,6 +46,7 @@ set:
         common:
           commonContainer: "sha999"
 tests:
+  # Fallbacked logic
   - it: should render embedded module image
     documentIndex: 0
     asserts:
@@ -116,3 +146,17 @@ tests:
       - equal:
           path: "commonImageNoFailNotExist"
           value: null
+
+  # New approach: use module package values
+  - it: should render external module image
+    documentIndex: 7
+    asserts:
+      - equal:
+          path: "externalModuleImage"
+          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha111"
+      - equal:
+          path: "externalModuleImageWithOptionalName"
+          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha111"
+      - equal:
+          path: "externalModuleKebabImageWithOptionalName"
+          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha222"

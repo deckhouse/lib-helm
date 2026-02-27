@@ -1,10 +1,10 @@
 {{- /* Usage: {{ include "helm_lib_module_image" (list . "<container-name>" "<module-name>(optional)") }} */ -}}
 {{- /* returns image name */ -}}
 {{- define "helm_lib_module_image" }}
-  {{- $context := index . 0 }}
-  {{- $containerName := index . 1 | trimAll "\"" }}
+  {{- $context := index . 0 }} {{- /* Template context with .Values, .Chart, etc */ -}}
+  {{- $containerName := index . 1 | trimAll "\"" }} {{- /* Container name */ -}}
 
-  {{- /* New approach: use module package values */}}
+  {{- /* New approach: use module package values */}} 
   {{- if and $context.Module $context.Module.Package }}
     {{- $registryBase := $context.Module.Package.Registry.repository }}
     {{- if not $registryBase }}
@@ -33,11 +33,12 @@
 
     {{- $imageDigest := index $context.Values.global.modulesImages.digests $moduleName $containerName }}
     {{- if not $imageDigest }}
-      {{- fail (printf "Image %s.%s has no digest" $moduleName $containerName) }}
+      {{- $error := (printf "Image %s.%s has no digest" $moduleName $containerName ) }}
+      {{- fail $error }}
     {{- end }}
 
     {{- $registryBase := $context.Values.global.modulesImages.registry.base }}
-    {{- /* handle external modules registry */}}
+  {{- /*  handle external modules registry */}}
     {{- if index $context.Values $moduleName }}
       {{- if index $context.Values $moduleName "registry" }}
         {{- if index $context.Values $moduleName "registry" "base" }}
@@ -47,7 +48,7 @@
         {{- end }}
       {{- end }}
     {{- end }}
-
+  {{- /* end of external module handling block */}}
     {{- printf "%s@%s" $registryBase $imageDigest }}
   {{- end }}
 {{- end }}
