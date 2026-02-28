@@ -34,6 +34,8 @@
 | [helm_lib_application_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted](#helm_lib_application_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted) |
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
+| **Default Gateway** |
+| [helm_lib_module_default_gateway](#helm_lib_module_default_gateway) |
 | **Dns Policy** |
 | [helm_lib_dns_policy_bootstraping_state](#helm_lib_dns_policy_bootstraping_state) |
 | **Enable Ds Eviction** |
@@ -488,6 +490,20 @@ list:
 -  Template context with .Values, .Chart, etc 
 -  Container raw name 
 -  Kubernetes semantic version 
+
+## Default Gateway
+
+### helm_lib_module_default_gateway
+
+ returns default gateway namespaced name in JSON from global config or, if not set, from discovery 
+
+#### Usage
+
+`{{ include "helm_lib_default_gateway" . | fromJson }} `
+
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
 
 ## Dns Policy
 
