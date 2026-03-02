@@ -1,0 +1,7 @@
+{{- $gateway := dict -}}
+{{- include "helm_lib_default_gateway" (list . $gateway) }}
+result: 
+{{- if $gateway }}
+  name: {{ $gateway.name }}
+  namespace: {{ $gateway.namespace }}
+{{- end }}

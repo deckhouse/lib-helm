@@ -35,7 +35,7 @@
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
 | **Default Gateway** |
-| [helm_lib_module_default_gateway](#helm_lib_module_default_gateway) |
+| [helm_lib_default_gateway](#helm_lib_default_gateway) |
 | **Dns Policy** |
 | [helm_lib_dns_policy_bootstraping_state](#helm_lib_dns_policy_bootstraping_state) |
 | **Enable Ds Eviction** |
@@ -493,13 +493,13 @@ list:
 
 ## Default Gateway
 
-### helm_lib_module_default_gateway
+### helm_lib_default_gateway
 
- returns default gateway namespaced name in JSON from global config or, if not set, from discovery 
+ accepts a dict that is updated with current default gateway name and namespace 
 
 #### Usage
 
-`{{ include "helm_lib_default_gateway" . | fromJson }} `
+`{{- include "helm_lib_default_gateway" (list . $gateway) `
 
 #### Arguments
 
