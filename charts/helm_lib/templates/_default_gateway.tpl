@@ -2,7 +2,7 @@
 {{- /* accepts a dict that is updated with current default gateway name and namespace */ -}}
 {{- define "helm_lib_default_gateway" -}}
   {{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc */ -}}
-  {{- $result := index . 1 -}} 
+  {{- $result := index . 1 -}}  {{- /* An empty dict to update with current default gateway name and namespace */ -}}
   {{- $g := dict -}}
 
   {{- if hasKey $context.Values.global.modules "gatewayAPIDefaultGateway" -}}

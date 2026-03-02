@@ -503,7 +503,9 @@ list:
 
 #### Arguments
 
+list:
 -  Template context with .Values, .Chart, etc 
+-  An empty dict to update with current default gateway name and namespace 
 
 ## Dns Policy
 
