@@ -1,0 +1,48 @@
+suite: helm_lib_default_gateway definition
+templates:
+  - helm_lib_default_gateway.yaml
+tests:
+  - it: should return an empty result if default gateway isn't discovered
+    set:
+      global:
+        modules: {}
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: ""
+            namespace: ""
+    asserts:
+      - isEmpty:
+          path: "result"
+
+  - it: should return a default gateway from the discovery section
+    set:
+      global:
+        modules: {}
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "d8"
+            namespace: "d8-alb-istio"
+
+  - it: should return a default gateway from the module config
+    set:
+      global:
+        modules: 
+          gatewayAPIDefaultGateway:
+            name: "shared-gateway"
+            namespace: "d8-shared-gateway"
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "shared-gateway"
+            namespace: "d8-shared-gateway"
