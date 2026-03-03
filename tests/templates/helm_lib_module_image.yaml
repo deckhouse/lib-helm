@@ -1,3 +1,4 @@
+# Fallbacked logic
 embeddedModule: {{ include "helm_lib_module_image" (list . "testContainer") }}
 embeddedModuleWithOptionalName: {{ include "helm_lib_module_image" (list . "testContainer" "fooBar") }}
 ---
@@ -22,3 +23,8 @@ moduleImageNoFailNotExist: {{ include "helm_lib_module_image_no_fail" (list . "n
 commonImage: {{ include "helm_lib_module_common_image" (list . "commonContainer") }}
 commonImageNoFail: {{ include "helm_lib_module_common_image_no_fail" (list . "commonContainer") }}
 commonImageNoFailNotExist: {{ include "helm_lib_module_common_image_no_fail" (list . "nonExistentCommonContainer") }}
+---
+# New approach: use module package values
+externalModuleImage: {{ include "helm_lib_module_image" (list .Values.new "testContainer") }}
+externalModuleImageWithOptionalName: {{ include "helm_lib_module_image" (list .Values.new "testContainer" "fooBar") }}
+externalModuleKebabImageWithOptionalName: {{ include "helm_lib_module_image" (list .Values.new "externalContainer" "some-module") }}
