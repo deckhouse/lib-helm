@@ -1,0 +1,569 @@
+suite: test csi controller security policy exception
+templates:
+  - helm_lib_csi_controller_value.yaml
+tests:
+  - it: does not render SecurityPolicyException when securityPolicyExceptionEnabled is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: false
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when both conditions are false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: false
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not add security-policy-exception label when securityPolicyExceptionEnabled is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: false
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.selector.matchLabels["security.deckhouse.io/security-policy-exception"]
+
+  - it: does not add security-policy-exception label when admission-policy-engine-crd is not enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.selector.matchLabels["security.deckhouse.io/security-policy-exception"]
+
+  - it: adds security-policy-exception label to Deployment pod template
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+          value: csi-controller
+
+  - it: renders SecurityPolicyException with hostNetwork only
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+          name: csi-controller
+          namespace: d8-test-module
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - notExists:
+          path: spec.securityContext
+      - notExists:
+          path: spec.network.hostPID
+      - notExists:
+          path: spec.volumes
+
+  - it: renders SecurityPolicyException with privileged controller
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        forceCsiControllerPrivilegedContainer: true
+        csiControllerHostNetwork: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+      - contains:
+          path: spec.securityContext.capabilities.allowedValues.add
+          content: SYS_ADMIN
+      - notExists:
+          path: spec.securityContext.runAsUser
+      - notExists:
+          path: spec.securityContext.runAsNonRoot
+
+  - it: renders SecurityPolicyException with runAsRootUser
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        runAsRootUser: true
+        csiControllerHostNetwork: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.runAsNonRoot.allowedValue
+          value: false
+      - equal:
+          path: spec.securityContext.runAsUser.allowedValues[0]
+          value: 0
+      - notExists:
+          path: spec.securityContext.privileged
+      - notExists:
+          path: spec.securityContext.capabilities
+
+  - it: renders SecurityPolicyException with all security options enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        forceCsiControllerPrivilegedContainer: true
+        runAsRootUser: true
+        csiControllerHostNetwork: "true"
+        csiControllerHostPID: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+      - contains:
+          path: spec.securityContext.capabilities.allowedValues.add
+          content: SYS_ADMIN
+      - equal:
+          path: spec.securityContext.runAsNonRoot.allowedValue
+          value: false
+      - equal:
+          path: spec.securityContext.runAsUser.allowedValues[0]
+          value: 0
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+      - notExists:
+          path: spec.volumes
+
+  - it: renders SecurityPolicyException with hostPID only
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "false"
+        csiControllerHostPID: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+      - notExists:
+          path: spec.network.hostNetwork
+      - notExists:
+          path: spec.securityContext
+      - notExists:
+          path: spec.volumes
+
+  - it: renders SecurityPolicyException without network section when hostNetwork and hostPID are both false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        forceCsiControllerPrivilegedContainer: true
+        csiControllerHostNetwork: "false"
+        csiControllerHostPID: "false"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.network
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+
+  - it: renders SecurityPolicyException with additional hostPath volumes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+        additionalControllerVolumes:
+          - name: cloud-config
+            hostPath:
+              path: /etc/kubernetes/cloud-config
+              type: File
+          - name: another-path
+            hostPath:
+              path: /var/lib/custom-csi
+              type: Directory
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - contains:
+          path: spec.volumes.types.allowedValues
+          content: hostPath
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].path
+          value: /etc/kubernetes/cloud-config
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].readOnly
+          value: false
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[1].path
+          value: /var/lib/custom-csi
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[1].readOnly
+          value: false
+
+  - it: renders SecurityPolicyException with mixed volumes filtering only hostPath
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+        additionalControllerVolumes:
+          - name: config
+            configMap:
+              name: my-config
+          - name: cloud-config
+            hostPath:
+              path: /etc/kubernetes/cloud-config
+              type: File
+          - name: secret-vol
+            secret:
+              secretName: my-secret
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - contains:
+          path: spec.volumes.types.allowedValues
+          content: hostPath
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].path
+          value: /etc/kubernetes/cloud-config
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].readOnly
+          value: false
+      - isNull:
+          path: spec.volumes.hostPath.allowedValues[1]
+
+  - it: renders SecurityPolicyException without volumes section when additional volumes have no hostPath
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+        additionalControllerVolumes:
+          - name: config
+            configMap:
+              name: my-config
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.volumes

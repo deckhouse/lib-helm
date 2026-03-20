@@ -1,0 +1,583 @@
+suite: test csi node security policy exception
+templates:
+  - helm_lib_csi_node_value.yaml
+tests:
+  - it: does not render SecurityPolicyException when securityPolicyExceptionEnabled is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: false
+        forceCsiNodeAndStaticNodesDepoloy: true
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when both conditions are false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: false
+        forceCsiNodeAndStaticNodesDepoloy: true
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not add security-policy-exception label when securityPolicyExceptionEnabled is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: false
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+
+  - it: does not add security-policy-exception label when admission-policy-engine-crd is not enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+
+  - it: adds security-policy-exception label to DaemonSet pod template
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+          value: csi-node
+
+  - it: renders SecurityPolicyException with default settings
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+          name: csi-node
+          namespace: d8-test-module
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+      - equal:
+          path: spec.securityContext.runAsNonRoot.allowedValue
+          value: false
+      - equal:
+          path: spec.securityContext.runAsUser.allowedValues[0]
+          value: 0
+      - notExists:
+          path: spec.securityContext.capabilities
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - notExists:
+          path: spec.network.hostPID
+      - contains:
+          path: spec.volumes.types.allowedValues
+          content: hostPath
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].path
+          value: /var/lib/kubelet/plugins_registry/
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].readOnly
+          value: false
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[1].path
+          value: /var/lib/kubelet
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[1].readOnly
+          value: false
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[2].path
+          value: /var/lib/kubelet/csi-plugins/test.csi.example.com/
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[2].readOnly
+          value: false
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[3].path
+          value: /dev
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[3].readOnly
+          value: false
+      - isNull:
+          path: spec.volumes.hostPath.allowedValues[4]
+
+  - it: renders SecurityPolicyException with SYS_ADMIN capability
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        setSysAdminCapability: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - contains:
+          path: spec.securityContext.capabilities.allowedValues.add
+          content: SYS_ADMIN
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+
+  - it: renders SecurityPolicyException without SYS_ADMIN capability when not set
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        setSysAdminCapability: false
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.securityContext.capabilities
+
+  - it: renders SecurityPolicyException with hostNetwork and hostPID
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        csiNodeHostNetwork: "true"
+        csiNodeHostPID: "true"
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+
+  - it: renders SecurityPolicyException with hostPID only
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        csiNodeHostNetwork: "false"
+        csiNodeHostPID: "true"
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.network.hostNetwork
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+
+  - it: renders SecurityPolicyException without network section when hostNetwork and hostPID are both false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        csiNodeHostNetwork: "false"
+        csiNodeHostPID: "false"
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.network
+
+  - it: renders SecurityPolicyException with additional hostPath volumes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        additionalNodeVolumes:
+          - name: cloud-config
+            hostPath:
+              path: /etc/kubernetes/cloud-config
+              type: File
+          - name: custom-path
+            hostPath:
+              path: /var/lib/custom-csi
+              type: Directory
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[4].path
+          value: /etc/kubernetes/cloud-config
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[4].readOnly
+          value: false
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[5].path
+          value: /var/lib/custom-csi
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[5].readOnly
+          value: false
+
+  - it: renders SecurityPolicyException with mixed volumes filtering only hostPath
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        additionalNodeVolumes:
+          - name: config
+            configMap:
+              name: my-config
+          - name: cloud-config
+            hostPath:
+              path: /etc/kubernetes/cloud-config
+              type: File
+          - name: secret-vol
+            secret:
+              secretName: my-secret
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[4].path
+          value: /etc/kubernetes/cloud-config
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[4].readOnly
+          value: false
+      - isNull:
+          path: spec.volumes.hostPath.allowedValues[5]
+
+  - it: renders SecurityPolicyException without additional volumes when no hostPath in additional volumes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        additionalNodeVolumes:
+          - name: config
+            configMap:
+              name: my-config
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[3].path
+          value: /dev
+      - isNull:
+          path: spec.volumes.hostPath.allowedValues[4]
+
+  - it: renders SecurityPolicyException with all options enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        setSysAdminCapability: true
+        csiNodeHostNetwork: "true"
+        csiNodeHostPID: "true"
+        forceCsiNodeAndStaticNodesDepoloy: true
+        additionalNodeVolumes:
+          - name: extra
+            hostPath:
+              path: /opt/extra
+              type: Directory
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+      - equal:
+          path: spec.securityContext.runAsNonRoot.allowedValue
+          value: false
+      - equal:
+          path: spec.securityContext.runAsUser.allowedValues[0]
+          value: 0
+      - contains:
+          path: spec.securityContext.capabilities.allowedValues.add
+          content: SYS_ADMIN
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[4].path
+          value: /opt/extra
