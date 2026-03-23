@@ -63,6 +63,7 @@
 | [helm_lib_module_https_mode](#helm_lib_module_https_mode) |
 | [helm_lib_module_https_cert_manager_cluster_issuer_name](#helm_lib_module_https_cert_manager_cluster_issuer_name) |
 | [helm_lib_module_https_ingress_tls_enabled](#helm_lib_module_https_ingress_tls_enabled) |
+| [helm_lib_module_https_route_tls_enabled](#helm_lib_module_https_route_tls_enabled) |
 | [helm_lib_module_https_copy_custom_certificate](#helm_lib_module_https_copy_custom_certificate) |
 | [helm_lib_module_https_secret_name](#helm_lib_module_https_secret_name) |
 | **Module Image** |
@@ -721,11 +722,24 @@ list:
 
 ### helm_lib_module_https_ingress_tls_enabled
 
- returns not empty string if tls should enable for ingress  
+ returns not empty string if tls should be enabled for ingress  
 
 #### Usage
 
 `{{ if (include "helm_lib_module_https_ingress_tls_enabled" .) }} `
+
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
+
+
+### helm_lib_module_https_route_tls_enabled
+
+ returns not empty string if tls should be enabled for route  
+
+#### Usage
+
+`{{ if (include "helm_lib_module_https_route_tls_enabled" .) }} `
 
 #### Arguments
 
