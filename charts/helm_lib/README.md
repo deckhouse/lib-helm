@@ -722,7 +722,7 @@ list:
 
 ### helm_lib_module_https_ingress_tls_enabled
 
- returns not empty string if tls should be enabled for ingress  
+ returns not empty string if tls should be enabled for the ingress  
 
 #### Usage
 
@@ -735,7 +735,7 @@ list:
 
 ### helm_lib_module_https_route_tls_enabled
 
- returns not empty string if tls should be enabled for route  
+ returns not empty string if tls should be enabled for the route  
 
 #### Usage
 
