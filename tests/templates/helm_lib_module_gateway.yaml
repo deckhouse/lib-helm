@@ -1,5 +1,5 @@
 {{- $gateway := dict -}}
-{{- include "helm_lib_default_gateway" (list . $gateway) }}
+{{- include "helm_lib_module_gateway" (list . $gateway) }}
 result: 
 {{- if $gateway }}
   name: {{ $gateway.name }}
