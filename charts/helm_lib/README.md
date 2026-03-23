@@ -34,8 +34,6 @@
 | [helm_lib_application_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted](#helm_lib_application_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted) |
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
-| **Default Gateway** |
-| [helm_lib_default_gateway](#helm_lib_default_gateway) |
 | **Dns Policy** |
 | [helm_lib_dns_policy_bootstraping_state](#helm_lib_dns_policy_bootstraping_state) |
 | **Enable Ds Eviction** |
@@ -56,6 +54,8 @@
 | **Module Ephemeral Storage** |
 | [helm_lib_module_ephemeral_storage_logs_with_extra](#helm_lib_module_ephemeral_storage_logs_with_extra) |
 | [helm_lib_module_ephemeral_storage_only_logs](#helm_lib_module_ephemeral_storage_only_logs) |
+| **Module Gateway** |
+| [helm_lib_module_gateway](#helm_lib_module_gateway) |
 | **Module Generate Common Name** |
 | [helm_lib_module_generate_common_name](#helm_lib_module_generate_common_name) |
 | **Module Https** |
@@ -491,22 +491,6 @@ list:
 -  Container raw name 
 -  Kubernetes semantic version 
 
-## Default Gateway
-
-### helm_lib_default_gateway
-
- accepts a dict that is updated with current default gateway name and namespace 
-
-#### Usage
-
-`{{- include "helm_lib_default_gateway" (list . $gateway) `
-
-#### Arguments
-
-list:
--  Template context with .Values, .Chart, etc 
--  An empty dict to update with current default gateway name and namespace 
-
 ## Dns Policy
 
 ### helm_lib_dns_policy_bootstraping_state
@@ -661,6 +645,22 @@ list:
 #### Arguments
 
 -  Template context with .Values, .Chart, etc 
+
+## Module Gateway
+
+### helm_lib_module_gateway
+
+ accepts a dict that is updated with current gateway name and namespace 
+
+#### Usage
+
+`{{- include "helm_lib_module_gateway" (list . $gateway) `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  An empty dict to update with current default gateway name and namespace 
 
 ## Module Generate Common Name
 
