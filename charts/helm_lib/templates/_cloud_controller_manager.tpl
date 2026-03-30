@@ -8,11 +8,56 @@ cpu: 50m
 memory: 50Mi
 {{- end }}
 
-{{- /* Usage: {{ include "helm_lib_cloud_controller_manager_manifests" (list . $config) }} */ -}}
-{{- define "helm_lib_cloud_controller_manager_manifests" }}
-  {{- $context := index . 0 }}
-  {{- $config := index . 1 }}
+{{- define "cloud_controller_manager_liveness_probe" -}}
+httpGet:
+  path: /healthz
+  port: 10471
+  host: 127.0.0.1
+  scheme: HTTPS
+{{- end -}}
 
+{{- define "cloud_controller_manager_readiness_probe" -}}
+httpGet:
+  path: /healthz
+  port: 10471
+  host: 127.0.0.1
+  scheme: HTTPS
+{{- end -}}
+
+{{- /* Usage: {{ include "helm_lib_cloud_controller_manager_manifests" (list . $config) }} */ -}}
+{{- /* Renders common manifests for provider-specific Cloud Controller Managers. */ -}}
+{{- /* Includes Deployment, VerticalPodAutoscaler (optional), PodDisruptionBudget (optional), and SecurityPolicyException (optional). */ -}}
+{{- /* Supported configuration parameters: */ -}}
+{{- /* + fullname (optional, default: `"cloud-controller-manager"`) — resource base name used for Deployment, PDB, VPA, SecurityPolicyException, and the main container name by default. */ -}}
+{{- /* + image (required) — image for the main container. */ -}}
+{{- /* + resources (optional, default: `{cpu: 25m, memory: 50Mi}`) — main container resource requests used when VPA is disabled. */ -}}
+{{- /* + priorityClassName (optional, default: `"system-cluster-critical"`) — Pod priority class name. */ -}}
+{{- /* + nodeSelectorStrategy (optional, default: `"master"`) — strategy passed to helm_lib_node_selector. */ -}}
+{{- /* + tolerationsStrategies (optional, default: ["wildcard"]) — strategies passed to helm_lib_tolerations. */ -}}
+{{- /* + hostNetwork (optional, default: `true`) — enables host networking for the Pod and SecurityPolicyException network rule generation. */ -}}
+{{- /* + dnsPolicy (optional, default: `"Default"`) — Pod DNS policy. */ -}}
+{{- /* + automountServiceAccountToken (optional, default: `true`) — controls whether the service account token is mounted into the Pod. */ -}}
+{{- /* + serviceAccountName (optional, default: `$config.fullname`) — ServiceAccount name used by the Pod. */ -}}
+{{- /* + revisionHistoryLimit (optional, default: `2`) — number of old ReplicaSets retained by the Deployment. */ -}}
+{{- /* + livenessProbe (optional, default: `{httpGet: {path: /healthz, port: 10471, host: 127.0.0.1, scheme: HTTPS}}`) — liveness probe configuration for the main container. */ -}}
+{{- /* + readinessProbe (optional, default: `{httpGet: {path: /healthz, port: 10471, host: 127.0.0.1, scheme: HTTPS}}`) — readiness probe configuration for the main container. */ -}}
+{{- /* + additionalEnvs (optional, default: `[]`) — extra environment variables for the main container. */ -}}
+{{- /* + additionalArgs (optional, default: `nil`) — extra args for the main container. */ -}}
+{{- /* + additionalVolumeMounts (optional, default: `[]`) — extra volumeMounts for the main container. */ -}}
+{{- /* + additionalVolumes (optional, default: `[]`) — extra Pod volumes; hostPath volumes are also used to build SecurityPolicyException rules when enabled. */ -}}
+{{- /* + additionalPodLabels (optional, default: `{}`) — extra labels added to the pod template metadata. */ -}}
+{{- /* + additionalPodAnnotations (optional, default: `{}`) — extra annotations added to the pod template metadata. */ -}}
+{{- /* + pdbEnabled (optional, default: `true`) — enables PodDisruptionBudget rendering. */ -}}
+{{- /* + pdbMaxUnavailable (optional, default: `1`) — maxUnavailable value for PodDisruptionBudget. */ -}}
+{{- /* + additionalPDBAnnotations (optional, default: `{}`) — extra annotations added to PodDisruptionBudget metadata. */ -}}
+{{- /* + vpaEnabled (optional, default: `true`) — enables VerticalPodAutoscaler rendering. */ -}}
+{{- /* + vpaUpdateMode (optional, default: `"InPlaceOrRecreate"`) — VPA update mode. */ -}}
+{{- /* + vpaMaxAllowed (optional, default: `{cpu: 50m, memory: 50Mi}`) — maximum resource values used in VPA policy. */ -}}
+{{- /* + securityPolicyExceptionEnabled (optional, default: `false`) — enables SecurityPolicyException rendering and adds the related pod label. */ -}}
+{{- define "helm_lib_cloud_controller_manager_manifests" }}
+  {{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc. */ -}}
+  {{- $config := index . 1 -}} {{- /* Configuration dict for the Cloud Controller Manager. */ -}}
+  
   {{- $fullname := dig "fullname" "cloud-controller-manager" $config }}
   {{- $image := $config.image | required "image is required" }}
   {{- $resources := dig "resources" (include "cloud_controller_manager_resources" $context | fromYaml) $config }}
@@ -24,23 +69,22 @@ memory: 50Mi
   {{- $automountServiceAccountToken := dig "automountServiceAccountToken" true $config }}
   {{- $serviceAccountName := dig "serviceAccountName" $fullname $config }}
   {{- $revisionHistoryLimit := dig "revisionHistoryLimit" 2 $config }}
+  {{- $livenessProbe := dig "livenessProbe" (include "cloud_controller_manager_liveness_probe" $context | fromYaml) $config }}
+  {{- $readinessProbe := dig "readinessProbe" (include "cloud_controller_manager_readiness_probe" $context | fromYaml) $config }}
   {{- $additionalEnvs := dig "additionalEnvs" (list) $config }}
   {{- $additionalArgs := dig "additionalArgs" nil $config }}
   {{- $additionalVolumeMounts := dig "additionalVolumeMounts" (list) $config }}
   {{- $additionalVolumes := dig "additionalVolumes" (list) $config }}
   {{- $additionalPodLabels := dig "additionalPodLabels" (dict) $config }}
   {{- $additionalPodAnnotations := dig "additionalPodAnnotations" (dict) $config }}
-
   {{- $pdbEnabled := dig "pdbEnabled" true $config }}
   {{- $pdbMaxUnavailable := dig "pdbMaxUnavailable" 1 $config }}
   {{- $additionalPDBAnnotations := dig "additionalPDBAnnotations" (dict) $config }}
-
   {{- $vpaEnabled := dig "vpaEnabled" true $config }}
   {{- $vpaUpdateMode := dig "vpaUpdateMode" "InPlaceOrRecreate" $config }}
   {{- $vpaMaxAllowed := dig "vpaMaxAllowed" (include "cloud_controller_manager_max_allowed_resources" $context | fromYaml) $config }}
-
   {{- $securityPolicyExceptionEnabled := dig "securityPolicyExceptionEnabled" false $config }}
-
+  
 {{- if and $vpaEnabled ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -153,17 +197,13 @@ spec:
           {{- end }}
             {{- include "helm_lib_envs_for_proxy" $context | nindent 12 }}
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 10471
-              host: 127.0.0.1
-              scheme: HTTPS
+          {{- with $livenessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 10471
-              host: 127.0.0.1
-              scheme: HTTPS
+          {{- with $readinessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- with $additionalVolumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}

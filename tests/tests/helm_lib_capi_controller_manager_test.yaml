@@ -311,8 +311,18 @@ tests:
         dnsPolicy: ClusterFirstWithHostNet
         tolerationsStrategies:
           - wildcard
-        livenessProbePort: 9445
-        readinessProbePort: 9445
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9445
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9445
+          initialDelaySeconds: 5
+          periodSeconds: 10
         additionalArgs:
           - --diagnostics-address=127.0.0.1:9446
           - --insecure-diagnostics
@@ -548,7 +558,7 @@ tests:
             name: tmp
             emptyDir: {}
 
-  - it: renders custom liveness and readiness probe ports
+  - it: renders custom liveness and readiness probes
     set:
       global:
         modules:
@@ -560,18 +570,38 @@ tests:
         fullname: caphc-controller-manager
         image: controllerImage
         capiProviderName: infrastructure-huaweicloud
-        livenessProbePort: 8082
-        readinessProbePort: 9555
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
     documentSelector:
       path: kind
       value: Deployment
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
-          value: 8082
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
       - equal:
-          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
-          value: 9555
+          path: spec.template.spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
 
   - it: renders custom priorityClassName
     set:

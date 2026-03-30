@@ -104,6 +104,56 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: 50Mi
 
+  - it: renders custom liveness and readiness probes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
   - it: renders basic cloud-controller-manager PodDisruptionBudget
     set:
       global:

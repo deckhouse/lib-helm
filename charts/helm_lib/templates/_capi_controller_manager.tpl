@@ -8,10 +8,57 @@ cpu: 50m
 memory: 50Mi
 {{- end -}}
 
+{{- define "capi_controller_manager_liveness_probe" -}}
+httpGet:
+  path: /healthz
+  port: 8081
+initialDelaySeconds: 15
+periodSeconds: 20
+{{- end -}}
+
+{{- define "capi_controller_manager_readiness_probe" -}}
+httpGet:
+  path: /readyz
+  port: 8081
+initialDelaySeconds: 5
+periodSeconds: 10
+{{- end -}}
+
 {{- /* Usage: {{ include "helm_lib_capi_controller_manager_manifests" (list . $config) }} */ -}}
+{{- /* Renders common manifests for provider-specific CAPI Controller Managers. */ -}}
+{{- /* Includes Deployment, VerticalPodAutoscaler (optional) and PodDisruptionBudget (optional). */ -}}
+{{- /* Supported configuration parameters: */ -}}
+{{- /* + fullname (required) — resource base name used for Deployment, PDB, VPA, and by default for the main container name. */ -}}
+{{- /* + image (required) — image for the main container. */ -}}
+{{- /* + capiProviderName (required) — value for the cluster.x-k8s.io/provider label in selectors and pod labels. */ -}}
+{{- /* + resources (optional, default: `{cpu: 25m, memory: 50Mi}`) — main container resource requests used when VPA is disabled. */ -}}
+{{- /* + priorityClassName (optional, default: `"system-cluster-critical"`) — Pod priority class name. */ -}}
+{{- /* + serviceAccountName (optional, default: `$config.fullname`) — ServiceAccount name used by the Pod. */ -}}
+{{- /* + automountServiceAccountToken (optional, default: `true`) — controls whether the service account token is mounted into the Pod. */ -}}
+{{- /* + revisionHistoryLimit (optional, default: `2`) — number of old ReplicaSets retained by the Deployment. */ -}}
+{{- /* + terminationGracePeriodSeconds (optional, default: `10`) — Pod termination grace period. */ -}}
+{{- /* + hostNetwork (optional, default: `false`) — enables host networking for the Pod. */ -}}
+{{- /* + dnsPolicy (optional, default: `nil`) — Pod DNS policy; if not set, the field is omitted. */ -}}
+{{- /* + nodeSelectorStrategy (optional, default: `"master"`) — strategy passed to helm_lib_node_selector. */ -}}
+{{- /* + tolerationsStrategies (optional, default: `["any-node", "uninitialized"]`) — arguments passed to helm_lib_tolerations. */ -}}
+{{- /* + livenessProbe (optional, default: `{httpGet: {path: /healthz, port: 8081}, initialDelaySeconds: 15, periodSeconds: 20}`) — liveness probe configuration for the main container. */ -}}
+{{- /* + readinessProbe (optional, default: `{httpGet: {path: /readyz, port: 8081}, initialDelaySeconds: 5, periodSeconds: 10}`) — readiness probe configuration for the main container. */ -}}
+{{- /* + additionalArgs (optional, default: `[]`) — extra args for the main container. */ -}}
+{{- /* + additionalEnv (optional, default: `[]`) — extra environment variables for the main container. */ -}}
+{{- /* + additionalPorts (optional, default: `[]`) — extra container ports for the main container. */ -}}
+{{- /* + additionalInitContainers (optional, default: `[]`) — extra initContainers for the Pod. */ -}}
+{{- /* + additionalVolumeMounts (optional, default: `[]`) — extra volumeMounts for the main container. */ -}}
+{{- /* + additionalVolumes (optional, default: `[]`) — extra Pod volumes. */ -}}
+{{- /* + additionalPodLabels (optional, default: `{}`) — extra labels added to the pod template metadata. */ -}}
+{{- /* + additionalPodAnnotations (optional, default: `{}`) — extra annotations added to the pod template metadata. */ -}}
+{{- /* + pdbEnabled (optional, default: `true`) — enables PodDisruptionBudget rendering. */ -}}
+{{- /* + pdbMaxUnavailable (optional, default: `1`) — maxUnavailable value for PodDisruptionBudget. */ -}}
+{{- /* + vpaEnabled (optional, default: `false`) — enables VerticalPodAutoscaler rendering. */ -}}
+{{- /* + vpaUpdateMode (optional, default: `"InPlaceOrRecreate"`) — VPA update mode. */ -}}
+{{- /* + vpaMaxAllowed (optional, default: `{cpu: 50m, memory: 50Mi}`) — maximum resource values used in VPA policy. */ -}}
 {{- define "helm_lib_capi_controller_manager_manifests" -}}
-  {{- $context := index . 0 -}}
-  {{- $config := index . 1 -}}
+  {{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc. */ -}}
+  {{- $config := index . 1 -}} {{- /* Configuration dict for the CAPI Controller Manager. */ -}}
 
   {{- $fullname := required "helm_lib_capi_controller_manager_manifests: fullname is required" $config.fullname -}}
   {{- $image := required "helm_lib_capi_controller_manager_manifests: image is required" $config.image -}}
@@ -26,9 +73,8 @@ memory: 50Mi
   {{- $dnsPolicy := dig "dnsPolicy" nil $config -}}
   {{- $nodeSelectorStrategy := dig "nodeSelectorStrategy" "master" $config -}}
   {{- $tolerationsStrategies := dig "tolerationsStrategies" (list "any-node" "uninitialized") $config -}}
-  {{- $livenessProbePort := dig "livenessProbePort" 8081 $config }}
-  {{- $readinessProbePort := dig "readinessProbePort" 8081 $config }}
-
+  {{- $livenessProbe := dig "livenessProbe" (include "capi_controller_manager_liveness_probe" $context | fromYaml) $config }}
+  {{- $readinessProbe := dig "readinessProbe" (include "capi_controller_manager_readiness_probe" $context | fromYaml) $config }}
   {{- $additionalArgs := dig "additionalArgs" (list) $config -}}
   {{- $additionalEnv := dig "additionalEnv" (list) $config -}}
   {{- $additionalPorts := dig "additionalPorts" (list) $config -}}
@@ -37,10 +83,8 @@ memory: 50Mi
   {{- $additionalVolumes := dig "additionalVolumes" (list) $config -}}
   {{- $additionalPodLabels := dig "additionalPodLabels" (dict) $config -}}
   {{- $additionalPodAnnotations := dig "additionalPodAnnotations" (dict) $config -}}
-
   {{- $pdbEnabled := dig "pdbEnabled" true $config -}}
   {{- $pdbMaxUnavailable := dig "pdbMaxUnavailable" 1 $config -}}
-
   {{- $vpaEnabled := dig "vpaEnabled" false $config -}}
   {{- $vpaUpdateMode := dig "vpaUpdateMode" "InPlaceOrRecreate" $config -}}
   {{- $vpaMaxAllowed := dig "vpaMaxAllowed" (include "capi_controller_manager_max_allowed_resources" $context | fromYaml) $config -}}
@@ -150,17 +194,13 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         livenessProbe:
-          httpGet:
-            path: /healthz
-            port: {{ $livenessProbePort }}
-          initialDelaySeconds: 15
-          periodSeconds: 20
+        {{- with $livenessProbe }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         readinessProbe:
-          httpGet:
-            path: /readyz
-            port: {{ $readinessProbePort }}
-          initialDelaySeconds: 5
-          periodSeconds: 10
+        {{- with $readinessProbe }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         {{- with $additionalVolumeMounts }}
         volumeMounts:
           {{- toYaml . | nindent 10 }}

@@ -8,21 +8,64 @@ cpu: 50m
 memory: 50Mi
 {{- end -}}
 
-{{- /* Usage: {{ include "helm_lib_cloud_data_discoverer_manifests" (list . $config) }} */ -}}
-{{- define "helm_lib_cloud_data_discoverer_manifests" -}}
-  {{- $context := index . 0 -}}
-  {{- $config := index . 1 -}}
+{{- define "cloud_data_discoverer_liveness_probe" -}}
+httpGet:
+  path: /healthz
+  port: 8080
+  scheme: HTTPS
+{{- end -}}
 
+{{- define "cloud_data_discoverer_readiness_probe" -}}
+httpGet:
+  path: /healthz
+  port: 8080
+  scheme: HTTPS
+{{- end -}}
+
+{{- /* Usage: {{ include "helm_lib_cloud_data_discoverer_manifests" (list . $config) }} */ -}}
+{{- /* Renders common manifests for provider-specific Cloud Data Discoverers. */ -}}
+{{- /* Includes Deployment, VerticalPodAutoscaler (optional) and PodDisruptionBudget (optional). */ -}}
+{{- /* Supported configuration parameters: */ -}}
+{{- /* + fullname (optional, default: `"cloud-data-discoverer"`) — resource base name used for Deployment, PDB, VPA, and the main container name by default. */ -}}
+{{- /* + image (required) — image for the main container. */ -}}
+{{- /* + resources (optional, default: `{cpu: 25m, memory: 50Mi}`) — main container resource requests used when VPA is disabled. */ -}}
+{{- /* + replicas (optional, default: `1`) — number of Deployment replicas. */ -}}
+{{- /* + revisionHistoryLimit (optional, default: `2`) — number of old ReplicaSets retained by the Deployment. */ -}}
+{{- /* + serviceAccountName (optional, default: `$config.fullname`) — ServiceAccount name used by the Pod. */ -}}
+{{- /* + automountServiceAccountToken (optional, default: `true`) — controls whether the service account token is mounted into the Pod. */ -}}
+{{- /* + priorityClassName (optional, default: `"cluster-low"`) — Pod priority class name. */ -}}
+{{- /* + nodeSelectorStrategy (optional, default: `"master"`) — strategy passed to helm_lib_node_selector. */ -}}
+{{- /* + tolerationsStrategies (optional, default: `["any-node", "with-uninitialized"]`) — strategies passed to helm_lib_tolerations. */ -}}
+{{- /* + livenessProbe (optional, default: `{httpGet: {path: /healthz, port: 8080, scheme: HTTPS}}`) — liveness probe configuration for the main container. */ -}}
+{{- /* + readinessProbe (optional, default: `{httpGet: {path: /healthz, port: 8080, scheme: HTTPS}}`) — readiness probe configuration for the main container. */ -}}
+{{- /* + additionalArgs (optional, default: `[]`) — extra args for the main container. */ -}}
+{{- /* + additionalEnv (optional, default: `[]`) — extra environment variables for the main container. */ -}}
+{{- /* + additionalPodLabels (optional, default: `{}`) — extra labels added to the pod template metadata. */ -}}
+{{- /* + additionalPodAnnotations (optional, default: `{}`) — extra annotations added to the pod template metadata. */ -}}
+{{- /* + additionalInitContainers (optional, default: `[]`) — extra initContainers for the Pod. */ -}}
+{{- /* + additionalVolumes (optional, default: `[]`) — extra Pod volumes. */ -}}
+{{- /* + additionalVolumeMounts (optional, default: `[]`) — extra volumeMounts for the main container. */ -}}
+{{- /* + pdbEnabled (optional, default: `true`) — enables PodDisruptionBudget rendering. */ -}}
+{{- /* + pdbMaxUnavailable (optional, default: `1`) — maxUnavailable value for PodDisruptionBudget. */ -}}
+{{- /* + vpaEnabled (optional, default: `true`) — enables VerticalPodAutoscaler rendering. */ -}}
+{{- /* + vpaUpdateMode (optional, default: `"Initial"`) — VPA update mode. */ -}}
+{{- /* + vpaMaxAllowed (optional, default: `{cpu: 50m, memory: 50Mi}`) — maximum resource values used in VPA policy. */ -}}
+{{- define "helm_lib_cloud_data_discoverer_manifests" -}}
+  {{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc. */ -}}
+  {{- $config := index . 1 -}} {{- /* Configuration dict for the Cloud Data Discoverer. */ -}}
+  
   {{- $fullname := dig "fullname" "cloud-data-discoverer" $config -}}
   {{- $image := required "helm_lib_cloud_data_discoverer_manifests: image is required" $config.image -}}
   {{- $resources := dig "resources" (include "cloud_data_discoverer_resources" $context | fromYaml) $config -}}
   {{- $replicas := dig "replicas" 1 $config -}}
   {{- $revisionHistoryLimit := dig "revisionHistoryLimit" 2 $config -}}
-  {{- $serviceAccountName := dig "serviceAccountName" "cloud-data-discoverer" $config -}}
+  {{- $serviceAccountName := dig "serviceAccountName" $fullname $config -}}
   {{- $automountServiceAccountToken := dig "automountServiceAccountToken" true $config -}}
   {{- $priorityClassName := dig "priorityClassName" "cluster-low" $config -}}
   {{- $nodeSelectorStrategy := dig "nodeSelectorStrategy" "master" $config -}}
   {{- $tolerationsStrategies := dig "tolerationsStrategies" (list "any-node" "with-uninitialized") $config -}}
+  {{- $livenessProbe := dig "livenessProbe" (include "cloud_data_discoverer_liveness_probe" $context | fromYaml) $config }}
+  {{- $readinessProbe := dig "readinessProbe" (include "cloud_data_discoverer_readiness_probe" $context | fromYaml) $config }}
   {{- $additionalArgs := dig "additionalArgs" (list) $config -}}
   {{- $additionalEnv := dig "additionalEnv" (list) $config -}}
   {{- $additionalPodLabels := dig "additionalPodLabels" (dict) $config }}
@@ -30,14 +73,12 @@ memory: 50Mi
   {{- $additionalInitContainers := dig "additionalInitContainers" (list) $config -}}
   {{- $additionalVolumes := dig "additionalVolumes" (list) $config -}}
   {{- $additionalVolumeMounts := dig "additionalVolumeMounts" (list) $config -}}
-
   {{- $pdbEnabled := dig "pdbEnabled" true $config -}}
   {{- $pdbMaxUnavailable := dig "pdbMaxUnavailable" 1 $config -}}
-
   {{- $vpaEnabled := dig "vpaEnabled" true $config -}}
   {{- $vpaUpdateMode := dig "vpaUpdateMode" "Initial" $config -}}
   {{- $vpaMaxAllowed := dig "vpaMaxAllowed" (include "cloud_data_discoverer_max_allowed_resources" $context | fromYaml) $config -}}
-
+  
 {{- if and $vpaEnabled ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -135,15 +176,13 @@ spec:
           {{- toYaml . | nindent 10 }}
         {{- end }}
         livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-            scheme: HTTPS
+        {{- with $livenessProbe }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-            scheme: HTTPS
+        {{- with $readinessProbe }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         {{- with $additionalVolumeMounts }}
         volumeMounts:
           {{- toYaml . | nindent 10 }}
