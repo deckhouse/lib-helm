@@ -1,0 +1,703 @@
+suite: helm_lib_capi_controller_manager_value definition
+templates:
+  - helm_lib_capi_controller_manager_value.yaml
+
+tests:
+  - it: renders basic CAPI controller manager deployment with defaults
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: capz-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: capz-controller-manager
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 2
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: capz-controller-manager
+      - equal:
+          path: spec.selector.matchLabels["cluster.x-k8s.io/provider"]
+          value: infrastructure-zvirt
+      - equal:
+          path: spec.selector.matchLabels["control-plane"]
+          value: controller-manager
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: capz-controller-manager
+      - equal:
+          path: spec.template.metadata.labels["cluster.x-k8s.io/provider"]
+          value: infrastructure-zvirt
+      - equal:
+          path: spec.template.metadata.labels["control-plane"]
+          value: controller-manager
+      - notExists:
+          path: spec.template.metadata.annotations
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: true
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: capz-controller-manager
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 10
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - notExists:
+          path: spec.template.spec.dnsPolicy
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: deckhouse-registry
+      - exists:
+          path: spec.template.spec.tolerations
+      - exists:
+          path: spec.template.spec.securityContext
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: capz-controller-manager
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: controllerImage
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+      - equal:
+          path: spec.template.spec.containers[0].args[0]
+          value: --leader-elect
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8081
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
+          value: 15
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.periodSeconds
+          value: 20
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /readyz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 8081
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
+          value: 5
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.periodSeconds
+          value: 10
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 25m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 50Mi
+
+  - it: renders basic CAPI controller manager PodDisruptionBudget
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+          name: capz-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: capz-controller-manager
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: capz-controller-manager
+
+  - it: does not render PodDisruptionBudget when disabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        pdbEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: capz-controller-manager
+          namespace: d8-test-module
+
+  - it: renders custom PDB maxUnavailable
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        pdbMaxUnavailable: 2
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 2
+
+  - it: renders custom serviceAccountName and custom resources
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caps-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        serviceAccountName: custom-sa
+        resources:
+          cpu: 100m
+          memory: 128Mi
+        additionalArgs:
+          - --sync-period=1m
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: custom-sa
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --sync-period=1m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 128Mi
+
+  - it: renders custom automountServiceAccountToken when disabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        automountServiceAccountToken: false
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+
+  - it: renders custom revisionHistoryLimit and terminationGracePeriodSeconds
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        revisionHistoryLimit: 5
+        terminationGracePeriodSeconds: 30
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 5
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 30
+
+  - it: renders custom dnsPolicy when provided
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caphc-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-huaweicloud
+        dnsPolicy: ClusterFirstWithHostNet
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+
+  - it: renders custom deployment options for capcd style controller
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capcd-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        serviceAccountName: capcd-controller-manager
+        hostNetwork: true
+        dnsPolicy: ClusterFirstWithHostNet
+        tolerationsStrategies:
+          - wildcard
+        livenessProbePort: 9445
+        readinessProbePort: 9445
+        additionalArgs:
+          - --diagnostics-address=127.0.0.1:9446
+          - --insecure-diagnostics
+          - --health-probe-bind-address=:9445
+          - --zap-encoder=json
+        additionalEnv:
+          - name: CAPVCD_SKIP_RDE
+            value: "true"
+          - name: USE_K8S_ENV_AS_CONTROL_PLANE_IP
+            value: "true"
+        additionalPorts:
+          - containerPort: 4201
+            name: webhook-server
+            protocol: TCP
+        additionalVolumeMounts:
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
+            readOnly: true
+        additionalVolumes:
+          - name: cert
+            secret:
+              defaultMode: 420
+              secretName: capcd-controller-manager-webhook-tls
+        additionalPodAnnotations:
+          checksum/config: deadbeef
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: capcd-controller-manager
+      - equal:
+          path: spec.selector.matchLabels["cluster.x-k8s.io/provider"]
+          value: infrastructure-static
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: capcd-controller-manager
+      - equal:
+          path: spec.template.metadata.annotations["checksum/config"]
+          value: deadbeef
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --leader-elect
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --diagnostics-address=127.0.0.1:9446
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --insecure-diagnostics
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --health-probe-bind-address=:9445
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --zap-encoder=json
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CAPVCD_SKIP_RDE
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: USE_K8S_ENV_AS_CONTROL_PLANE_IP
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            containerPort: 4201
+            name: webhook-server
+            protocol: TCP
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: cert
+            secret:
+              defaultMode: 420
+              secretName: capcd-controller-manager-webhook-tls
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 9445
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 9445
+
+  - it: renders additional initContainers when provided
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caps-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        additionalInitContainers:
+          - name: init-test
+            image: busybox
+            command:
+              - sh
+              - -c
+              - echo init
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: init-test
+            image: busybox
+            command:
+              - sh
+              - -c
+              - echo init
+
+  - it: renders additional env entries
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capd-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-dynamix
+        additionalEnv:
+          - name: DYNAMIX_APP_ID
+            valueFrom:
+              secretKeyRef:
+                name: dynamix-credentials
+                key: appId
+          - name: DYNAMIX_CONTROLLER_URL
+            valueFrom:
+              secretKeyRef:
+                name: dynamix-credentials
+                key: controllerUrl
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DYNAMIX_APP_ID
+            valueFrom:
+              secretKeyRef:
+                name: dynamix-credentials
+                key: appId
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DYNAMIX_CONTROLLER_URL
+            valueFrom:
+              secretKeyRef:
+                name: dynamix-credentials
+                key: controllerUrl
+
+  - it: renders additional ports
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caps-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        additionalPorts:
+          - containerPort: 9443
+            name: webhook-server
+            protocol: TCP
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            containerPort: 9443
+            name: webhook-server
+            protocol: TCP
+
+  - it: renders additional volume mounts and volumes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caps-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        additionalVolumeMounts:
+          - mountPath: /tmp
+            name: tmp
+        additionalVolumes:
+          - name: tmp
+            emptyDir: {}
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /tmp
+            name: tmp
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: tmp
+            emptyDir: {}
+
+  - it: renders custom liveness and readiness probe ports
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: caphc-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-huaweicloud
+        livenessProbePort: 8082
+        readinessProbePort: 9555
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8082
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 9555
+
+  - it: renders custom priorityClassName
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        priorityClassName: cluster-low
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: cluster-low
+
+  - it: renders VPA when enabled and vertical-pod-autoscaler-crd module is present
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capd-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-dynamix
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - hasDocuments:
+          count: 3
+      - containsDocument:
+          kind: VerticalPodAutoscaler
+          apiVersion: autoscaling.k8s.io/v1
+          name: capd-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: spec.targetRef.apiVersion
+          value: apps/v1
+      - equal:
+          path: spec.targetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.targetRef.name
+          value: capd-controller-manager
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: InPlaceOrRecreate
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: capd-controller-manager
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.cpu
+          value: 25m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.memory
+          value: 50Mi
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 50m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 50Mi
+
+  - it: renders custom VPA update mode and maxAllowed
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capdvp-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-dvp
+        vpaEnabled: true
+        vpaUpdateMode: Initial
+        vpaMaxAllowed:
+          cpu: 200m
+          memory: 256Mi
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: Initial
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 200m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 256Mi
+
+  - it: does not render cpu and memory requests when VPA is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capdvp-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-dvp
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.memory

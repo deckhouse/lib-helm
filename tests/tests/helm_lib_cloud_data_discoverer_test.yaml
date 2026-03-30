@@ -1,0 +1,643 @@
+suite: helm_lib_cloud_data_discoverer_manifests definition
+templates:
+  - helm_lib_cloud_data_discoverer_value.yaml
+
+tests:
+  - it: renders basic cloud-data-discoverer deployment with defaults
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: cloud-data-discoverer
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 2
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.template.metadata.annotations["kubectl.kubernetes.io/default-exec-container"]
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.template.metadata.annotations["kubectl.kubernetes.io/default-logs-container"]
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: deckhouse-registry
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: cluster-low
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirstWithHostNet
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: true
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: cloud-data-discoverer
+      - notExists:
+          path: spec.template.spec.initContainers
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: controllerImage
+      - equal:
+          path: spec.template.spec.containers[0].args[0]
+          value: --discovery-period=1h
+      - equal:
+          path: spec.template.spec.containers[0].args[1]
+          value: --listen-address=127.0.0.1:8081
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: HTTPS
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
+          value: HTTPS
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 25m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 50Mi
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: kube-rbac-proxy
+      - equal:
+          path: spec.template.spec.containers[1].image
+          value: deckhouse.io/deckhouse/ce@kubeRbacProxyDigest
+      - equal:
+          path: spec.template.spec.containers[1].ports[0].name
+          value: https-metrics
+      - equal:
+          path: spec.template.spec.containers[1].ports[0].containerPort
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[1].env[0].name
+          value: KUBE_RBAC_PROXY_LISTEN_ADDRESS
+      - equal:
+          path: spec.template.spec.containers[1].livenessProbe.httpGet.path
+          value: /livez
+      - equal:
+          path: spec.template.spec.containers[1].readinessProbe.httpGet.path
+          value: /livez
+      - notExists:
+          path: spec.template.spec.volumes
+
+  - it: renders basic cloud-data-discoverer PodDisruptionBudget
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+          name: cloud-data-discoverer
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cloud-data-discoverer
+
+  - it: does not render PodDisruptionBudget when disabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        pdbEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: cloud-data-discoverer
+          namespace: d8-test-module
+
+  - it: renders custom PDB maxUnavailable
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        pdbMaxUnavailable: 2
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 2
+
+  - it: renders VPA when enabled and vertical-pod-autoscaler-crd module is present
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - hasDocuments:
+          count: 3
+      - containsDocument:
+          kind: VerticalPodAutoscaler
+          apiVersion: autoscaling.k8s.io/v1
+          name: cloud-data-discoverer
+          namespace: d8-test-module
+      - equal:
+          path: spec.targetRef.apiVersion
+          value: apps/v1
+      - equal:
+          path: spec.targetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.targetRef.name
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: Initial
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.cpu
+          value: 25m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.memory
+          value: 50Mi
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 50m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 50Mi
+
+  - it: renders custom VPA update mode and maxAllowed
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+        vpaUpdateMode: InPlaceOrRecreate
+        vpaMaxAllowed:
+          cpu: 200m
+          memory: 256Mi
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: InPlaceOrRecreate
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 200m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 256Mi
+
+  - it: does not render main container cpu and memory requests when VPA is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.memory
+
+  - it: renders custom fullname replicas revision history and service account
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        fullname: cdd-custom
+        image: controllerImage
+        replicas: 3
+        revisionHistoryLimit: 5
+        serviceAccountName: custom-sa
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: cdd-custom
+      - equal:
+          path: spec.replicas
+          value: 3
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 5
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cdd-custom
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: custom-sa
+      - equal:
+          path: spec.template.metadata.annotations["kubectl.kubernetes.io/default-exec-container"]
+          value: cdd-custom
+      - equal:
+          path: spec.template.metadata.annotations["kubectl.kubernetes.io/default-logs-container"]
+          value: cdd-custom
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: cdd-custom
+      - equal:
+          path: spec.template.spec.containers[1].env[1].value
+          value: |
+            excludePaths:
+            - /healthz
+            upstreams:
+            - upstream: http://127.0.0.1:8081/
+              path: /
+              authorization:
+                resourceAttributes:
+                  namespace: d8-test-module
+                  apiGroup: apps
+                  apiVersion: v1
+                  resource: deployments
+                  subresource: prometheus-metrics
+                  name: cdd-custom
+
+  - it: renders custom service account automount priority class and resources
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        automountServiceAccountToken: false
+        priorityClassName: system-cluster-critical
+        resources:
+          cpu: 100m
+          memory: 128Mi
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: system-cluster-critical
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 128Mi
+
+  - it: renders additional args and env
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        additionalArgs:
+          - --credentials-file=/etc/config/credentials.json
+          - --project=test-project
+        additionalEnv:
+          - name: TEST_ENV
+            value: test
+          - name: TEST_ENV_FROM
+            valueFrom:
+              secretKeyRef:
+                name: test-secret
+                key: token
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --credentials-file=/etc/config/credentials.json
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --project=test-project
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_ENV
+            value: test
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_ENV_FROM
+            valueFrom:
+              secretKeyRef:
+                name: test-secret
+                key: token
+
+  - it: renders additional pod annotations
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        additionalPodAnnotations:
+          checksum/config: deadbeef
+          custom.annotation/test: ok
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["checksum/config"]
+          value: deadbeef
+      - equal:
+          path: spec.template.metadata.annotations["custom.annotation/test"]
+          value: ok
+      - equal:
+          path: spec.template.metadata.annotations["kubectl.kubernetes.io/default-exec-container"]
+          value: cloud-data-discoverer
+
+  - it: renders additional init containers
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        additionalInitContainers:
+          - name: migrator
+            image: busybox
+            command:
+              - sh
+              - -c
+              - echo migrate
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: migrator
+            image: busybox
+            command:
+              - sh
+              - -c
+              - echo migrate
+
+  - it: renders additional volumes and volume mounts
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        additionalVolumeMounts:
+          - mountPath: /etc/config
+            name: config
+            readOnly: true
+        additionalVolumes:
+          - name: config
+            secret:
+              secretName: cloud-data-discoverer
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/config
+            name: config
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: cloud-data-discoverer
+
+  - it: renders bootstrapping dnsPolicy variant when cluster is not bootstrapped
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: false
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: Default

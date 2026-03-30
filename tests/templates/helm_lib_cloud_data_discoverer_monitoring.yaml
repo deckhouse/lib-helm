@@ -1,0 +1,1 @@
+{{ include "helm_lib_cloud_data_discoverer_pod_monitor" (list . .Values._testvalues) }}

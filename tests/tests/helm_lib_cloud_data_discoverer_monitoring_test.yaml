@@ -1,0 +1,166 @@
+suite: helm_lib_cloud_data_discoverer_pod_monitor definition
+templates:
+  - helm_lib_cloud_data_discoverer_monitoring.yaml
+
+tests:
+  - it: renders basic PodMonitor when operator-prometheus-crd module is enabled
+    set:
+      global:
+        discovery:
+          prometheusScrapeInterval: 30
+        enabledModules:
+          - operator-prometheus-crd
+      _testvalues:
+        targetNamespace: d8-test-module
+    asserts:
+      - hasDocuments:
+          count: 1
+      - containsDocument:
+          kind: PodMonitor
+          apiVersion: monitoring.coreos.com/v1
+          name: cloud-data-discoverer-metrics
+          namespace: d8-monitoring
+
+  - it: renders PodMonitor default fields
+    set:
+      global:
+        discovery:
+          prometheusScrapeInterval: 30
+        enabledModules:
+          - operator-prometheus-crd
+      _testvalues:
+        targetNamespace: d8-test-module
+    documentSelector:
+      path: kind
+      value: PodMonitor
+    asserts:
+      - equal:
+          path: metadata.name
+          value: cloud-data-discoverer-metrics
+      - equal:
+          path: metadata.namespace
+          value: d8-monitoring
+      - equal:
+          path: spec.jobLabel
+          value: app
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.namespaceSelector.matchNames[0]
+          value: d8-test-module
+      - equal:
+          path: spec.podMetricsEndpoints[0].port
+          value: https-metrics
+      - equal:
+          path: spec.podMetricsEndpoints[0].path
+          value: /metrics
+      - equal:
+          path: spec.podMetricsEndpoints[0].scheme
+          value: https
+      - equal:
+          path: spec.podMetricsEndpoints[0].bearerTokenSecret.name
+          value: prometheus-token
+      - equal:
+          path: spec.podMetricsEndpoints[0].bearerTokenSecret.key
+          value: token
+      - equal:
+          path: spec.podMetricsEndpoints[0].tlsConfig.insecureSkipVerify
+          value: true
+      - equal:
+          path: spec.podMetricsEndpoints[0].honorLabels
+          value: true
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[0].regex
+          value: endpoint|pod|container
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[0].action
+          value: labeldrop
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[1].targetLabel
+          value: job
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[1].replacement
+          value: cloud-data-discoverer
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[2].targetLabel
+          value: node
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[3].targetLabel
+          value: tier
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[3].replacement
+          value: cluster
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[4].regex
+          value: "true"
+
+  - it: renders custom fullname in PodMonitor
+    set:
+      global:
+        discovery:
+          prometheusScrapeInterval: 30
+        enabledModules:
+          - operator-prometheus-crd
+      _testvalues:
+        fullname: cdd-custom
+        targetNamespace: d8-cloud-provider-openstack
+    documentSelector:
+      path: kind
+      value: PodMonitor
+    asserts:
+      - equal:
+          path: metadata.name
+          value: cdd-custom-metrics
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cdd-custom
+      - equal:
+          path: spec.podMetricsEndpoints[0].relabelings[1].replacement
+          value: cdd-custom
+      - equal:
+          path: spec.namespaceSelector.matchNames[0]
+          value: d8-cloud-provider-openstack
+
+  - it: renders additional relabelings
+    set:
+      global:
+        discovery:
+          prometheusScrapeInterval: 30
+        enabledModules:
+          - operator-prometheus-crd
+      _testvalues:
+        targetNamespace: d8-test-module
+        additionalRelabelings:
+          - targetLabel: custom
+            replacement: value
+          - sourceLabels:
+              - __meta_kubernetes_namespace
+            targetLabel: namespace
+    documentSelector:
+      path: kind
+      value: PodMonitor
+    asserts:
+      - contains:
+          path: spec.podMetricsEndpoints[0].relabelings
+          content:
+            targetLabel: custom
+            replacement: value
+      - contains:
+          path: spec.podMetricsEndpoints[0].relabelings
+          content:
+            sourceLabels:
+              - __meta_kubernetes_namespace
+            targetLabel: namespace
+
+  - it: does not render PodMonitor when operator-prometheus-crd module is disabled
+    set:
+      global:
+        discovery:
+          prometheusScrapeInterval: 30
+        enabledModules: []
+      _testvalues:
+        targetNamespace: d8-test-module
+    asserts:
+      - hasDocuments:
+          count: 0
