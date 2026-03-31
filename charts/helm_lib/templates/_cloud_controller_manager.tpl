@@ -57,7 +57,7 @@ httpGet:
 {{- define "helm_lib_cloud_controller_manager_manifests" }}
   {{- $context := index . 0 -}} {{- /* Template context with .Values, .Chart, etc. */ -}}
   {{- $config := index . 1 -}} {{- /* Configuration dict for the Cloud Controller Manager. */ -}}
-  
+
   {{- $fullname := dig "fullname" "cloud-controller-manager" $config }}
   {{- $image := $config.image | required "image is required" }}
   {{- $resources := dig "resources" (include "cloud_controller_manager_resources" $context | fromYaml) $config }}
@@ -84,7 +84,7 @@ httpGet:
   {{- $vpaUpdateMode := dig "vpaUpdateMode" "InPlaceOrRecreate" $config }}
   {{- $vpaMaxAllowed := dig "vpaMaxAllowed" (include "cloud_controller_manager_max_allowed_resources" $context | fromYaml) $config }}
   {{- $securityPolicyExceptionEnabled := dig "securityPolicyExceptionEnabled" false $config }}
-  
+
 {{- if and $vpaEnabled ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
 ---
 apiVersion: autoscaling.k8s.io/v1
@@ -252,8 +252,8 @@ spec:
         - hostPath
       metadata:
         description: |
-          Allow hostPath volume type for CSI Controller.
-          The CSI Controller requires hostPath volumes for accessing host-level resources needed for storage management operations specific to the cloud provider implementation.
+          Allow hostPath volume type for Cloud Controller Manager.
+          The Cloud Controller Manager requires hostPath volumes for accessing host-level resources needed for cloud provider integration and infrastructure management operations.
     hostPath:
       allowedValues:
       {{- range $volume := $additionalVolumes }}
@@ -269,7 +269,7 @@ spec:
           metadata:
             description: |
               Allow access to additional hostPath volume at {{ $volume.hostPath.path }}.
-              This additional hostPath volume is required by the CSI Node Driver for extended storage operations specific to the cloud provider implementation.
+              This additional hostPath volume is required by the Cloud Controller Manager for provider-specific infrastructure management operations.
         {{- end }}
       {{- end }}
   {{- end }}
