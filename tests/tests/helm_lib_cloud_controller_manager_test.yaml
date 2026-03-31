@@ -1,0 +1,641 @@
+suite: helm_lib_cloud_controller_manager_manifests definition
+templates:
+  - helm_lib_cloud_controller_manager_value.yaml
+
+tests:
+  - it: renders basic cloud-controller-manager deployment with defaults
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: cloud-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: cloud-controller-manager
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 2
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cloud-controller-manager
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: cloud-controller-manager
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: system-cluster-critical
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: true
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: true
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: Default
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: cloud-controller-manager
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: deckhouse-registry
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: cloud-controller-manager
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: controllerImage
+      - equal:
+          path: spec.template.spec.containers[0].args[0]
+          value: --leader-elect=true
+      - equal:
+          path: spec.template.spec.containers[0].args[1]
+          value: --bind-address=127.0.0.1
+      - equal:
+          path: spec.template.spec.containers[0].args[2]
+          value: --secure-port=10471
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: HOST_IP
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 10471
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.host
+          value: 127.0.0.1
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: HTTPS
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /healthz
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 10471
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.host
+          value: 127.0.0.1
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.scheme
+          value: HTTPS
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 25m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 50Mi
+
+  - it: renders custom liveness and readiness probes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe
+          value:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+
+  - it: renders basic cloud-controller-manager PodDisruptionBudget
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: PodDisruptionBudget
+          apiVersion: policy/v1
+          name: cloud-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: cloud-controller-manager
+      - equal:
+          path: spec.maxUnavailable
+          value: 1
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: cloud-controller-manager
+
+  - it: does not render PodDisruptionBudget when disabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        pdbEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: cloud-controller-manager
+          namespace: d8-test-module
+
+  - it: renders custom PDB maxUnavailable and annotations
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        pdbMaxUnavailable: 2
+        additionalPDBAnnotations:
+          checksum/config: deadbeef
+          test.annotation: ok
+    documentSelector:
+      path: kind
+      value: PodDisruptionBudget
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 2
+      - equal:
+          path: metadata.annotations["checksum/config"]
+          value: deadbeef
+      - equal:
+          path: metadata.annotations["test.annotation"]
+          value: ok
+
+  - it: renders bootstrap API envs when cluster is not bootstrapped
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: false
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: KUBERNETES_SERVICE_HOST
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: KUBERNETES_SERVICE_PORT
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "6443"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: HOST_IP
+
+  - it: renders custom fullname service account and resources
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: ccm-custom
+        image: controllerImage
+        serviceAccountName: custom-sa
+        resources:
+          cpu: 100m
+          memory: 128Mi
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.name
+          value: ccm-custom
+      - equal:
+          path: spec.selector.matchLabels.app
+          value: ccm-custom
+      - equal:
+          path: spec.template.metadata.labels.app
+          value: ccm-custom
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: custom-sa
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: ccm-custom
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 128Mi
+
+  - it: renders custom deployment options and pod annotations
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        priorityClassName: cluster-low
+        nodeSelectorStrategy: master
+        tolerationsStrategies:
+          - wildcard
+        hostNetwork: false
+        dnsPolicy: ClusterFirst
+        automountServiceAccountToken: false
+        revisionHistoryLimit: 5
+        additionalArgs:
+          - --cloud-provider=test
+          - --v=4
+        additionalEnvs:
+          - name: TEST_ENV
+            value: "true"
+          - name: TEST_ENV_FROM
+            valueFrom:
+              secretKeyRef:
+                name: test-secret
+                key: token
+        additionalPodAnnotations:
+          checksum/config: deadbeef
+          custom.annotation/test: ok
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 5
+      - equal:
+          path: spec.template.spec.priorityClassName
+          value: cluster-low
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - equal:
+          path: spec.template.spec.dnsPolicy
+          value: ClusterFirst
+      - equal:
+          path: spec.template.spec.automountServiceAccountToken
+          value: false
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --cloud-provider=test
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --v=4
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_ENV
+            value: "true"
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: TEST_ENV_FROM
+            valueFrom:
+              secretKeyRef:
+                name: test-secret
+                key: token
+      - equal:
+          path: spec.template.metadata.annotations["checksum/config"]
+          value: deadbeef
+      - equal:
+          path: spec.template.metadata.annotations["custom.annotation/test"]
+          value: ok
+
+  - it: renders additional volume mounts and volumes
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        additionalVolumeMounts:
+          - mountPath: /etc/config
+            name: config
+            readOnly: true
+        additionalVolumes:
+          - name: config
+            secret:
+              secretName: cloud-controller-manager
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/config
+            name: config
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: cloud-controller-manager
+
+  - it: renders VPA when enabled and vertical-pod-autoscaler-crd module is present
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - hasDocuments:
+          count: 3
+      - containsDocument:
+          kind: VerticalPodAutoscaler
+          apiVersion: autoscaling.k8s.io/v1
+          name: cloud-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: spec.targetRef.apiVersion
+          value: apps/v1
+      - equal:
+          path: spec.targetRef.kind
+          value: Deployment
+      - equal:
+          path: spec.targetRef.name
+          value: cloud-controller-manager
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: InPlaceOrRecreate
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: cloud-controller-manager
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.cpu
+          value: 25m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].minAllowed.memory
+          value: 50Mi
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 50m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 50Mi
+
+  - it: renders custom VPA update mode and maxAllowed
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+        vpaUpdateMode: Initial
+        vpaMaxAllowed:
+          cpu: 200m
+          memory: 256Mi
+    documentSelector:
+      path: kind
+      value: VerticalPodAutoscaler
+    asserts:
+      - equal:
+          path: spec.updatePolicy.updateMode
+          value: Initial
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.cpu
+          value: 200m
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed.memory
+          value: 256Mi
+
+  - it: does not render cpu and memory requests when VPA is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+      - notExists:
+          path: spec.template.spec.containers[0].resources.requests.memory
+
+  - it: does not render VPA when disabled even if module is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        vpaEnabled: false
+    asserts:
+      - hasDocuments:
+          count: 2
+
+  - it: renders security policy exception and pod metadata marker when enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        securityPolicyExceptionEnabled: true
+        additionalVolumeMounts:
+          - mountPath: /etc/kubernetes/pki
+            name: k8s-certs
+            readOnly: true
+        additionalVolumes:
+          - name: k8s-certs
+            hostPath:
+              path: /etc/kubernetes/pki
+              type: DirectoryOrCreate
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - hasDocuments:
+          count: 3
+      - equal:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+          value: cloud-controller-manager
+
+  - it: renders SecurityPolicyException with hostNetwork and hostPath details
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+        additionalVolumeMounts:
+          - mountPath: /etc/kubernetes/pki
+            name: k8s-certs
+            readOnly: true
+        additionalVolumes:
+          - name: k8s-certs
+            hostPath:
+              path: /etc/kubernetes/pki
+              type: DirectoryOrCreate
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+          name: cloud-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - equal:
+          path: spec.volumes.types.allowedValues[0]
+          value: hostPath
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].path
+          value: /etc/kubernetes/pki
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].readOnly
+          value: true
+
+  - it: does not render SecurityPolicyException when admission policy module is disabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        securityPolicyExceptionEnabled: true
+        additionalVolumes:
+          - name: k8s-certs
+            hostPath:
+              path: /etc/kubernetes/pki
+              type: DirectoryOrCreate
+    asserts:
+      - hasDocuments:
+          count: 2
