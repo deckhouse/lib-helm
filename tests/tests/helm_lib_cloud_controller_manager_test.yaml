@@ -104,6 +104,32 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: 50Mi
 
+  - it: renders custom namespace
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+        modulesImages:
+          registry:
+            base: deckhouse.io/deckhouse/ce
+          digests:
+            common:
+              kubeRbacProxy: kubeRbacProxyDigest
+      _testvalues:
+        image: controllerImage
+        namespace: d8-cloud-provider-example
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: d8-cloud-provider-example
+
   - it: renders custom liveness and readiness probes
     set:
       global:

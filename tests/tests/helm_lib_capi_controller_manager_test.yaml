@@ -171,6 +171,27 @@ tests:
           name: capz-controller-manager
           namespace: d8-test-module
 
+  - it: renders custom namespace
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        namespace: d8-cloud-provider-example
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: d8-cloud-provider-example
+
   - it: renders custom PDB maxUnavailable
     set:
       global:
