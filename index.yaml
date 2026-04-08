@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   deckhouse_lib_helm:
   - apiVersion: v2
+    created: "2026-04-08T11:35:09.353886405Z"
+    description: Helm utils template definitions for Deckhouse modules.
+    digest: a7eed8d2d426c1fd49b533e920907e1b668d8ffffee0f6aab084b0867769dd14
+    name: deckhouse_lib_helm
+    type: library
+    urls:
+    - https://github.com/deckhouse/lib-helm/releases/download/deckhouse_lib_helm-1.71.8/deckhouse_lib_helm-1.71.8.tgz
+    version: 1.71.8
+  - apiVersion: v2
     created: "2026-04-01T13:37:59.727374558Z"
     description: Helm utils template definitions for Deckhouse modules.
     digest: 229ad099e5a26a09b7f3a51bfe0c34f91f40573475a0c7f8ef93baa5bfcc7dd5
@@ -1432,4 +1441,4 @@ entries:
     urls:
     - https://github.com/deckhouse/lib-helm/releases/download/deckhouse_lib_helm-0.0.1/deckhouse_lib_helm-0.0.1.tgz
     version: 0.0.1
-generated: "2026-04-01T13:37:59.728839134Z"
+generated: "2026-04-08T11:35:09.355206627Z"
