@@ -99,3 +99,80 @@ tests:
       - equal:
           path: "spec.template.spec.initContainers[0].name"
           value: init-container-name
+
+  - it: node container sets allowPrivilegeEscalation and drops all capabilities by default
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        additionalNodeVolumes: {}
+        additionalNodeVolumeMounts: {}
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: node
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: true
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.privileged
+          value: true
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.capabilities.drop
+          value:
+            - ALL
+      - notExists:
+          path: spec.template.spec.containers[1].securityContext.capabilities.add
+
+  - it: node container adds SYS_ADMIN capability when setSysAdminCapability is true
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        setSysAdminCapability: true
+        additionalNodeVolumes: {}
+        additionalNodeVolumeMounts: {}
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: node
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: true
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.capabilities.drop
+          value:
+            - ALL
+      - contains:
+          path: spec.template.spec.containers[1].securityContext.capabilities.add
+          content: SYS_ADMIN

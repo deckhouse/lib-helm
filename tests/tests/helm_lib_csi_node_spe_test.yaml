@@ -202,6 +202,9 @@ tests:
           path: spec.securityContext.runAsNonRoot.allowedValue
           value: false
       - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
+      - equal:
           path: spec.securityContext.runAsUser.allowedValues[0]
           value: 0
       - notExists:
@@ -267,6 +270,9 @@ tests:
       path: kind
       value: SecurityPolicyException
     asserts:
+      - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
       - contains:
           path: spec.securityContext.capabilities.allowedValues.add
           content: SYS_ADMIN
@@ -300,6 +306,9 @@ tests:
       path: kind
       value: SecurityPolicyException
     asserts:
+      - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
       - notExists:
           path: spec.securityContext.capabilities
 
@@ -569,6 +578,9 @@ tests:
       - equal:
           path: spec.securityContext.runAsUser.allowedValues[0]
           value: 0
+      - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
       - contains:
           path: spec.securityContext.capabilities.allowedValues.add
           content: SYS_ADMIN
