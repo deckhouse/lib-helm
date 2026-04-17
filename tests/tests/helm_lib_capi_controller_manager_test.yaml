@@ -752,3 +752,131 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.cpu
       - notExists:
           path: spec.template.spec.containers[0].resources.requests.memory
+
+  - it: does not render SecurityPolicyException when securityPolicyExceptionEnabled is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        securityPolicyExceptionEnabled: false
+        hostNetwork: true
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules: []
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when hostNetwork is false
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        securityPolicyExceptionEnabled: true
+        hostNetwork: false
+    asserts:
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+      - hasDocuments:
+          count: 2
+
+  - it: renders SecurityPolicyException with hostNetwork when enabled and module is present
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capcd-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - hasDocuments:
+          count: 3
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+          name: capcd-controller-manager
+          namespace: d8-test-module
+      - equal:
+          path: metadata.name
+          value: capcd-controller-manager
+      - equal:
+          path: spec.network.hostNetwork.allowedValue
+          value: true
+      - matchRegex:
+          path: spec.network.hostNetwork.metadata.description
+          pattern: host network access
+      - notExists:
+          path: spec.securityContext
+      - notExists:
+          path: spec.volumes
+
+  - it: renders SecurityPolicyException in custom namespace
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capcd-controller-manager
+        namespace: d8-cloud-provider-example
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: d8-cloud-provider-example
