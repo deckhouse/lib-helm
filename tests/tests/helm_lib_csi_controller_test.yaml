@@ -176,7 +176,8 @@ tests:
       _testvalues:
         controllerImage: controllerImage
         dnsPolicy: Default
-        livenessProbeTimeout: "10s"
+        livenessProbeInitialDelaySeconds: 10
+        livenessProbeTimeoutSeconds: 10
     documentSelector:
       path: kind
       value: Deployment
@@ -195,5 +196,8 @@ tests:
           path: spec.template.spec.containers[4].args[1]
           value: "--probe-timeout=10s"
       - equal:
+          path: spec.template.spec.containers[5].livenessProbe.initialDelaySeconds
+          value: 10
+      - equal:
           path: spec.template.spec.containers[5].livenessProbe.timeoutSeconds
-          value: "10s"
+          value: 10

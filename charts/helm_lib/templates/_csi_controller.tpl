@@ -92,7 +92,6 @@ memory: 50Mi
   {{- $attacherTimeout := $config.attacherTimeout | default "600s" }}
   {{- $resizerTimeout := $config.resizerTimeout | default "600s" }}
   {{- $snapshotterTimeout := $config.snapshotterTimeout | default "600s" }}
-  {{- $livenessProbeTimeout := $config.livenessProbeTimeout | default "5s" }}
   {{- $provisionerWorkers := $config.provisionerWorkers | default "10" }}
   {{- $volumeNamePrefix := $config.volumeNamePrefix }}
   {{- $volumeNameUUIDLength := $config.volumeNameUUIDLength }}
@@ -112,6 +111,8 @@ memory: 50Mi
   {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
   {{- $csiControllerHostPID := $config.csiControllerHostPID | default "false" }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
+  {{- $livenessProbeTimeoutSeconds := $config.livenessProbeTimeoutSeconds | default 5 }}
+  {{- $livenessProbeInitialDelaySeconds := $config.livenessProbeInitialDelaySeconds | default 5 }}
   {{- $initContainers := $config.initContainers }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $additionalPullSecrets := $config.additionalPullSecrets }}
@@ -466,7 +467,7 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
-        - "--probe-timeout={{ $livenessProbeTimeout }}"
+        - "--probe-timeout={{ $livenessProbeTimeoutSeconds }}s"
   {{- if eq $csiControllerHostNetwork "true" }}
         - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
   {{- else }}
@@ -514,8 +515,8 @@ spec:
           httpGet:
             path: /healthz
             port: {{ $livenessProbePort }}
-          initialDelaySeconds: 5
-          timeoutSeconds: {{ $livenessProbeTimeout }}
+          initialDelaySeconds: {{ $livenessProbeInitialDelaySeconds }}
+          timeoutSeconds: {{ $livenessProbeTimeoutSeconds }}
 
     {{- if $additionalControllerPorts }}
         ports:
