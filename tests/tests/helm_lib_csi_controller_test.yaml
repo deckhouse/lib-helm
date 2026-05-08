@@ -153,3 +153,51 @@ tests:
 
       - notExists:
           path: spec.template.spec.dnsPolicy
+
+  - it: renders csi controller manifests with liveness probe timeout
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        dnsPolicy: Default
+        livenessProbeInitialDelaySeconds: 10
+        livenessProbeTimeoutSeconds: 10
+    documentSelector:
+      path: kind
+      value: Deployment
+
+    asserts:
+      - hasDocuments:
+          count: 2
+
+      - containsDocument:
+          kind: Deployment
+          apiVersion: apps/v1
+          name: csi-controller
+          namespace: d8-test-module
+
+      - equal:
+          path: spec.template.spec.containers[4].args[1]
+          value: "--probe-timeout=10s"
+      - equal:
+          path: spec.template.spec.containers[5].livenessProbe.initialDelaySeconds
+          value: 10
+      - equal:
+          path: spec.template.spec.containers[5].livenessProbe.timeoutSeconds
+          value: 10
