@@ -92,6 +92,7 @@ memory: 50Mi
   {{- $attacherTimeout := $config.attacherTimeout | default "600s" }}
   {{- $resizerTimeout := $config.resizerTimeout | default "600s" }}
   {{- $snapshotterTimeout := $config.snapshotterTimeout | default "600s" }}
+  {{- $livenessProbeTimeout := $config.livenessProbeTimeout | default "5s" }}
   {{- $provisionerWorkers := $config.provisionerWorkers | default "10" }}
   {{- $volumeNamePrefix := $config.volumeNamePrefix }}
   {{- $volumeNameUUIDLength := $config.volumeNameUUIDLength }}
@@ -465,6 +466,7 @@ spec:
         image: {{ $livenessprobeImage | quote }}
         args:
         - "--csi-address=$(ADDRESS)"
+        - "--probe-timeout={{ $livenessProbeTimeout }}"
   {{- if eq $csiControllerHostNetwork "true" }}
         - "--http-endpoint=$(HOST_IP):{{ $livenessProbePort }}"
   {{- else }}
@@ -512,6 +514,9 @@ spec:
           httpGet:
             path: /healthz
             port: {{ $livenessProbePort }}
+          initialDelaySeconds: 5
+          timeoutSeconds: {{ $livenessProbeTimeout }}
+
     {{- if $additionalControllerPorts }}
         ports:
         {{- $additionalControllerPorts | toYaml | nindent 8 }}
