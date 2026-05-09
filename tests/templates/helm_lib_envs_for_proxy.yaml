@@ -1,2 +1,4 @@
 proxyEnvs:
 {{ include "helm_lib_envs_for_proxy" . }}
+proxyEnvsWithExtra:
+{{ include "helm_lib_envs_for_proxy" (list . (list "extra1" "extra2")) }}
