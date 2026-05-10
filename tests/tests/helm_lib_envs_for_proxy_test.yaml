@@ -51,6 +51,18 @@ tests:
       - equal:
           path: "proxyEnvs[5].value"
           value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16,example.com"
+      - equal:
+          path: "proxyEnvsWithExtra[4].name"
+          value: "NO_PROXY"
+      - equal:
+          path: "proxyEnvsWithExtra[4].value"
+          value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16,example.com,extra1,extra2"
+      - equal:
+          path: "proxyEnvsWithExtra[5].name"
+          value: "no_proxy"
+      - equal:
+          path: "proxyEnvsWithExtra[5].value"
+          value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16,example.com,extra1,extra2"
 
   - it: should render proxy env vars with only http proxy
     set:
@@ -86,6 +98,18 @@ tests:
       - equal:
           path: "proxyEnvs[3].value"
           value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16"
+      - equal:
+          path: "proxyEnvsWithExtra[2].name"
+          value: "NO_PROXY"
+      - equal:
+          path: "proxyEnvsWithExtra[2].value"
+          value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16,extra1,extra2"
+      - equal:
+          path: "proxyEnvsWithExtra[3].name"
+          value: "no_proxy"
+      - equal:
+          path: "proxyEnvsWithExtra[3].value"
+          value: "127.0.0.1,169.254.169.254,registry.d8-system.svc,cluster.local,10.0.0.0/16,10.1.0.0/16,extra1,extra2"
 
   - it: should not render proxy env vars when no proxy configured
     set:
@@ -97,3 +121,5 @@ tests:
     asserts:
       - isEmpty:
           path: "proxyEnvs"
+      - isEmpty:
+          path: "proxyEnvsWithExtra"

@@ -681,11 +681,13 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_envs_for_proxy" . }} `
+`{{ include "helm_lib_envs_for_proxy" . }} or {{ include "helm_lib_envs_for_proxy" (list . (list "extra1" "extra2")) }} `
 
 #### Arguments
 
+list:
 -  Template context with .Values, .Chart, etc 
+-  List of additional NO_PROXY entries (optional) 
 
 ## High Availability
 
