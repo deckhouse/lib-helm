@@ -1,0 +1,205 @@
+suite: helm_lib_cloud_provider_user_authz_cluster_roles definition
+templates:
+  - helm_lib_cloud_provider_user_authz_cluster_roles.yaml
+
+tests:
+  - it: renders VCD user-authz ClusterRoles with CAPI resources and extra rules
+    set:
+      _testvalues:
+        providerName: vcd
+        instanceClassResource: vcdinstanceclasses
+        capiResources:
+          - vcdclusters
+          - vcdclustertemplates
+          - vcdmachines
+          - vcdmachinetemplates
+        additionalUserRules:
+          - apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdaffinityrules
+            verbs:
+              - get
+              - list
+              - watch
+        additionalClusterAdminRules:
+          - apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdaffinityrules
+            verbs:
+              - patch
+              - update
+    documentSelector:
+      path: metadata.name
+      value: d8:user-authz:vcd:user
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: ClusterRole
+          apiVersion: rbac.authorization.k8s.io/v1
+          name: d8:user-authz:vcd:user
+      - equal:
+          path: metadata.annotations["user-authz.deckhouse.io/access-level"]
+          value: User
+      - equal:
+          path: rules[0]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdinstanceclasses
+            verbs:
+              - get
+              - list
+              - watch
+      - equal:
+          path: rules[1]
+          value:
+            apiGroups:
+              - infrastructure.cluster.x-k8s.io
+            resources:
+              - vcdclusters
+              - vcdclustertemplates
+              - vcdmachines
+              - vcdmachinetemplates
+            verbs:
+              - get
+              - list
+              - watch
+      - equal:
+          path: rules[2]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdaffinityrules
+            verbs:
+              - get
+              - list
+              - watch
+
+  - it: renders VCD cluster-admin ClusterRole with CAPI resources and extra rules
+    set:
+      _testvalues:
+        providerName: vcd
+        instanceClassResource: vcdinstanceclasses
+        capiResources:
+          - vcdclusters
+          - vcdclustertemplates
+          - vcdmachines
+          - vcdmachinetemplates
+        additionalClusterAdminRules:
+          - apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdaffinityrules
+            verbs:
+              - patch
+              - update
+    documentSelector:
+      path: metadata.name
+      value: d8:user-authz:vcd:cluster-admin
+    asserts:
+      - containsDocument:
+          kind: ClusterRole
+          apiVersion: rbac.authorization.k8s.io/v1
+          name: d8:user-authz:vcd:cluster-admin
+      - equal:
+          path: metadata.annotations["user-authz.deckhouse.io/access-level"]
+          value: ClusterAdmin
+      - equal:
+          path: rules[0]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdinstanceclasses
+            verbs:
+              - create
+              - delete
+              - deletecollection
+              - patch
+              - update
+      - equal:
+          path: rules[1]
+          value:
+            apiGroups:
+              - infrastructure.cluster.x-k8s.io
+            resources:
+              - vcdclusters
+              - vcdclustertemplates
+              - vcdmachines
+              - vcdmachinetemplates
+            verbs:
+              - patch
+              - update
+      - equal:
+          path: rules[2]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - vcdaffinityrules
+            verbs:
+              - patch
+              - update
+
+  - it: renders OpenStack user ClusterRole without CAPI resources
+    set:
+      _testvalues:
+        providerName: openstack
+        instanceClassResource: openstackinstanceclasses
+    documentSelector:
+      path: metadata.name
+      value: d8:user-authz:openstack:user
+    asserts:
+      - hasDocuments:
+          count: 2
+      - containsDocument:
+          kind: ClusterRole
+          apiVersion: rbac.authorization.k8s.io/v1
+          name: d8:user-authz:openstack:user
+      - equal:
+          path: rules[0]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - openstackinstanceclasses
+            verbs:
+              - get
+              - list
+              - watch
+      - notExists:
+          path: rules[1]
+
+  - it: renders OpenStack cluster-admin ClusterRole without CAPI resources
+    set:
+      _testvalues:
+        providerName: openstack
+        instanceClassResource: openstackinstanceclasses
+    documentSelector:
+      path: metadata.name
+      value: d8:user-authz:openstack:cluster-admin
+    asserts:
+      - containsDocument:
+          kind: ClusterRole
+          apiVersion: rbac.authorization.k8s.io/v1
+          name: d8:user-authz:openstack:cluster-admin
+      - equal:
+          path: rules[0]
+          value:
+            apiGroups:
+              - deckhouse.io
+            resources:
+              - openstackinstanceclasses
+            verbs:
+              - create
+              - delete
+              - deletecollection
+              - patch
+              - update
+      - notExists:
+          path: rules[1]
