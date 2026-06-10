@@ -8,14 +8,23 @@
   {{- $annotations := dict -}}
 
   {{- $volume_expansion_mode_offline := false -}}
-  {{- range $module_name := list "cloud-provider-azure" "cloud-provider-yandex" "cloud-provider-vsphere" "cloud-provider-vcd"}}
+  {{- range $module_name := list "cloud-provider-azure" "cloud-provider-vsphere" "cloud-provider-vcd"}}
     {{- if has $module_name $context.Values.global.enabledModules }}
       {{- $volume_expansion_mode_offline = true }}
     {{- end }}
   {{- end }}
 
+  {{- $volume_expansion_mode_online := false -}}
+  {{- range $module_name := list "cloud-provider-yandex"}}
+    {{- if has $module_name $context.Values.global.enabledModules }}
+      {{- $volume_expansion_mode_online = true }}
+    {{- end }}
+  {{- end }}
+
   {{- if $volume_expansion_mode_offline }}
     {{- $_ := set $annotations "storageclass.deckhouse.io/volume-expansion-mode" "offline" }}
+  {{- else if $volume_expansion_mode_online }}
+    {{- $_ := set $annotations "storageclass.deckhouse.io/volume-expansion-mode" "online" }}
   {{- end }}
 
   {{- if $context.Values.global.discovery.defaultStorageClass }}
