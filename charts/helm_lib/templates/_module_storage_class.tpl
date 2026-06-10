@@ -16,7 +16,7 @@
 
   {{- if $volume_expansion_mode_offline }}
     {{- $_ := set $annotations "storageclass.deckhouse.io/volume-expansion-mode" "offline" }}
-
+  {{- end }}
   {{- if $context.Values.global.discovery.defaultStorageClass }}
     {{- if eq $context.Values.global.discovery.defaultStorageClass $sc_name }}
       {{- $_ := set $annotations "storageclass.kubernetes.io/is-default-class" "true" }}
