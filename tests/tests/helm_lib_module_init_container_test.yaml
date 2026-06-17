@@ -153,6 +153,8 @@ tests:
                 runAsGroup: 0
                 runAsNonRoot: false
                 runAsUser: 0
+                seccompProfile:
+                  type: RuntimeDefault
               volumeMounts:
                 - mountPath: /sbin
                   name: sbin
@@ -202,6 +204,8 @@ tests:
                 runAsGroup: 0
                 runAsNonRoot: false
                 runAsUser: 0
+                seccompProfile:
+                  type: RuntimeDefault
               volumeMounts:
                 - mountPath: /sbin
                   name: sbin
