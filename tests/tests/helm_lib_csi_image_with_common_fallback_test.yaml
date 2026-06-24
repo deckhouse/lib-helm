@@ -208,3 +208,25 @@ tests:
           path: "emptyStorageFoundationDigests"
           value: null
 
+  - it: should use storageFoundation registry base when explicitly set
+    documentIndex: 11
+    set:
+      global:
+        enabledModules:
+          - storage-foundation
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiExternalProvisionerForK8SGE125: "sha256:sf-provisioner-125"
+            common:
+              csiExternalProvisioner125: "sha256:common-provisioner-125"
+      storageFoundation:
+        registry:
+          base: "registry.example.com/deckhouse"
+    asserts:
+      - equal:
+          path: "storageFoundationCustomRegistry"
+          value: "registry.example.com/deckhouse/modules/storage-foundation@sha256:sf-provisioner-125"
+

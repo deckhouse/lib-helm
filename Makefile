@@ -31,7 +31,10 @@ doc/diff: ## Check documentation 'charts/helm_lib/README.md' was rebuilt only
 
 .PHONY: ci/tests/install-plugin
 ci/tests/unit/install-plugin: ## Install unittest plugin locally
-	helm plugin list | grep -q unittest || helm plugin install --version $(UNITTEST_VERSION) https://github.com/helm-unittest/helm-unittest
+	@helm plugin list 2>/dev/null | grep -q "unittest.*$(UNITTEST_VERSION)" || { \
+		helm plugin uninstall unittest 2>/dev/null || true; \
+		helm plugin install --version $(UNITTEST_VERSION) https://github.com/helm-unittest/helm-unittest; \
+	}
 
 .PHONY: ci/tests/unit
 ci/tests/unit: ## Run unittest locally
