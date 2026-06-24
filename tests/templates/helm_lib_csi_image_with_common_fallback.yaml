@@ -19,3 +19,5 @@ commonNotFound: {{ include "helm_lib_csi_image_with_common_fallback" (list . "cs
 otherModulesEnabled: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.25.0")) }}
 ---
 emptyStorageFoundationDigests: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.25.0")) }}
+---
+storageFoundationCustomRegistry: {{ include "helm_lib_csi_image_with_common_fallback" (list . "csiExternalProvisioner" (semver "1.25.0")) }}
