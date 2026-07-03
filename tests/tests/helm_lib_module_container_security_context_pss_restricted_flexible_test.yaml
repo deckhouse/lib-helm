@@ -1,8 +1,12 @@
 suite: helm_lib_module_container_security_context_pss_restricted_flexible
 templates:
   - helm_lib_module_container_security_context_pss_restricted_flexible.yaml
+  - helm_lib_module_container_security_context_pss_restricted_flexible_seccomp_disabled.yaml
+  - helm_lib_module_container_security_context_pss_restricted_flexible_apparmor_custom.yaml
+  - helm_lib_module_container_security_context_pss_restricted_flexible_apparmor_disabled.yaml
 tests:
   - it: default options
+    template: helm_lib_module_container_security_context_pss_restricted_flexible.yaml
     asserts:
       - equal:
           path: securityContext
@@ -18,3 +22,35 @@ tests:
             runAsNonRoot: true
             seccompProfile:
               type: RuntimeDefault
+            appArmorProfile:
+              type: RuntimeDefault
+  - it: seccompProfile disabled still has appArmorProfile
+    template: helm_lib_module_container_security_context_pss_restricted_flexible_seccomp_disabled.yaml
+    asserts:
+      - equal:
+          path: securityContext
+          value:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsUser: 64535
+            runAsGroup: 64535
+            privileged: false
+            runAsNonRoot: true
+            appArmorProfile:
+              type: RuntimeDefault
+  - it: custom appArmorProfile value
+    template: helm_lib_module_container_security_context_pss_restricted_flexible_apparmor_custom.yaml
+    asserts:
+      - equal:
+          path: securityContext.appArmorProfile
+          value:
+            type: Localhost
+            localhostProfile: k8s-apparmor-example-deny-write
+  - it: disable appArmorProfile with empty string
+    template: helm_lib_module_container_security_context_pss_restricted_flexible_apparmor_disabled.yaml
+    asserts:
+      - notExists:
+          path: securityContext.appArmorProfile

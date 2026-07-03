@@ -76,7 +76,9 @@ securityContext:
 {{- /* .uid  – int, runAsUser/runAsGroup (default 64535) */ -}}
 {{- /* .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) */ -}}
 {{- /* .seccompProfile  – bool, disable seccompProfile when false (default true) */ -}}
-{{- /* Usage: include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true) */ -}}
+{{- /* .appArmorProfile – string, appArmorProfile.type, set to empty string to disable (default RuntimeDefault) */ -}}
+{{- /* .appArmorProfileLocalhost – string, appArmorProfile.localhostProfile, used only when appArmorProfile is "Localhost" (default empty) */ -}}
+{{- /* Usage: include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true "appArmorProfile" "Localhost" "appArmorProfileLocalhost" "k8s-apparmor-example-deny-write") */ -}}
 {{- define "helm_lib_module_container_security_context_pss_restricted_flexible" -}}
 {{- $ro := true -}}
 {{- if hasKey . "ro" -}}
@@ -85,6 +87,14 @@ securityContext:
 {{- $seccompProfile := true -}}
 {{- if hasKey . "seccompProfile" -}}
   {{- $seccompProfile = .seccompProfile -}}
+{{- end -}}
+{{- $appArmorProfile := "RuntimeDefault" -}}
+{{- if hasKey . "appArmorProfile" -}}
+  {{- $appArmorProfile = .appArmorProfile -}}
+{{- end -}}
+{{- $appArmorProfileLocalhost := "" -}}
+{{- if hasKey . "appArmorProfileLocalhost" -}}
+  {{- $appArmorProfileLocalhost = .appArmorProfileLocalhost -}}
 {{- end -}}
 {{- $caps := default (list) .caps -}}
 {{- $uid  := default 64535 .uid  -}}
@@ -111,6 +121,13 @@ securityContext:
 {{- if $seccompProfile }}
   seccompProfile:
     type: RuntimeDefault
+{{- end }}
+{{- if $appArmorProfile }}
+  appArmorProfile:
+    type: {{ $appArmorProfile }}
+{{- if and (eq $appArmorProfile "Localhost") $appArmorProfileLocalhost }}
+    localhostProfile: {{ $appArmorProfileLocalhost }}
+{{- end }}
 {{- end }}
 {{- end }}
 
