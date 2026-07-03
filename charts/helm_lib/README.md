@@ -311,10 +311,12 @@ list:
  .uid  – int, runAsUser/runAsGroup (default 64535) 
  .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) 
  .seccompProfile  – bool, disable seccompProfile when false (default true) 
+ .appArmorProfile – string, appArmorProfile.type, set to empty string to disable (default RuntimeDefault) 
+ .appArmorProfileLocalhost – string, appArmorProfile.localhostProfile, used only when appArmorProfile is "Localhost" (default empty) 
 
 #### Usage
 
-`include "helm_lib_application_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true) `
+`include "helm_lib_application_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true "appArmorProfile" "Localhost" "appArmorProfileLocalhost" "k8s-apparmor-example-deny-write") `
 
 
 
@@ -1249,10 +1251,12 @@ list:
  .uid  – int, runAsUser/runAsGroup (default 64535) 
  .runAsNonRoot   – bool, run as Deckhouse user when true, root when false (default true) 
  .seccompProfile  – bool, disable seccompProfile when false (default true) 
+ .appArmorProfile – string, appArmorProfile.type, set to empty string to disable (default RuntimeDefault) 
+ .appArmorProfileLocalhost – string, appArmorProfile.localhostProfile, used only when appArmorProfile is "Localhost" (default empty) 
 
 #### Usage
 
-`include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true) `
+`include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" false "caps" (list "NET_ADMIN" "SYS_TIME") "uid" 1001 "seccompProfile" false "runAsNonRoot" true "appArmorProfile" "Localhost" "appArmorProfileLocalhost" "k8s-apparmor-example-deny-write") `
 
 
 

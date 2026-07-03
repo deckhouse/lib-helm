@@ -18,11 +18,13 @@ tests:
             securityContext:
               readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
+              appArmorProfile:
+                type: RuntimeDefault
               capabilities:
                 drop:
                   - ALL
               runAsUser: 64535
-              runAsGroup: 64535  
+              runAsGroup: 64535
               privileged: false
               runAsNonRoot: true
 
@@ -42,6 +44,8 @@ tests:
               runAsGroup: 64535
               runAsNonRoot: true
               seccompProfile:
+                type: RuntimeDefault
+              appArmorProfile:
                 type: RuntimeDefault
 
   - it: read_only_root_filesystem default options

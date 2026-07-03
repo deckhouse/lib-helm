@@ -99,6 +99,8 @@ tests:
                   ephemeral-storage: 50Mi
               securityContext:
                 allowPrivilegeEscalation: false
+                appArmorProfile:
+                  type: RuntimeDefault
                 capabilities:
                   drop:
                     - ALL
