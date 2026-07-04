@@ -1,8 +1,8 @@
 suite: helm_lib_module_container_security_context_pss_restricted_flexible
 templates:
-  - helm_lib_module_container_security_context_pss_restricted_flexible.yaml
+  - helm_lib_module_container_security_context_pss_restricted_flexible_seccomp_disabled.yaml
 tests:
-  - it: default options
+  - it: seccompProfile disabled
     asserts:
       - equal:
           path: securityContext
@@ -13,8 +13,5 @@ tests:
               drop:
                 - ALL
             runAsUser: 64535
-            privileged: false
             runAsGroup: 64535
             runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
