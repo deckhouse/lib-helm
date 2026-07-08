@@ -57,6 +57,37 @@ tests:
           path: webhooks[0].timeoutSeconds
           value: 5
 
+      - equal:
+          path: metadata.annotations["werf.io/deploy-dependency-controller"]
+          value: state=ready,kind=Deployment,name=controller,namespace=d8-test-module
+
+  - it: renders validating webhook configuration with custom controller deploy dependency
+    set:
+      testModule:
+        internal:
+          customWebhookCert:
+            ca: ca
+            crt: crt
+            key: key
+      _testvalues:
+        name: sc-validation
+        webhookName: sc-validation
+        valuesKey: testModule
+        webhookCertPath: internal.customWebhookCert
+        path: /sc-validate
+        controllerName: custom-controller
+        rules:
+          - apiGroups: ["storage.k8s.io"]
+            apiVersions: ["v1"]
+            operations: ["*"]
+            resources: ["storageclasses"]
+            scope: Cluster
+
+    asserts:
+      - equal:
+          path: metadata.annotations["werf.io/deploy-dependency-controller"]
+          value: state=ready,kind=Deployment,name=custom-controller,namespace=d8-test-module
+
   - it: renders validating webhook configuration for moduleconfigs with matchConditions
     set:
       testModule:
