@@ -370,8 +370,9 @@ spec:
   - sideEffects: side effects (default: "None")
   - timeoutSeconds: timeout (default: 5)
   - controllerName: name of the webhook-serving controller Deployment this configuration
-    depends on (default: "controller"). A werf.io/deploy-dependency annotation is added so
-    the ValidatingWebhookConfiguration is deployed only after that Deployment is ready.
+    depends on (default: "controller"). werf.io/deploy-dependency annotations are added so
+    the ValidatingWebhookConfiguration is deployed only after that Deployment is ready and
+    the webhook Service (serviceName) is present.
 */ -}}
 {{- define "helm_lib_module_validating_webhook_configuration" }}
   {{- $context := index . 0 }}
@@ -403,6 +404,7 @@ metadata:
   name: "d8-{{ $context.Chart.Name }}-{{ $name }}"
   annotations:
     werf.io/deploy-dependency-controller: state=ready,kind=Deployment,name={{ $controllerName }},namespace=d8-{{ $context.Chart.Name }}
+    werf.io/deploy-dependency-service: state=present,kind=Service,name={{ $serviceName }},namespace=d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context) | nindent 2 }}
 webhooks:
   - name: "d8-{{ $context.Chart.Name }}-{{ $webhookName }}.deckhouse.io"

@@ -61,6 +61,10 @@ tests:
           path: metadata.annotations["werf.io/deploy-dependency-controller"]
           value: state=ready,kind=Deployment,name=controller,namespace=d8-test-module
 
+      - equal:
+          path: metadata.annotations["werf.io/deploy-dependency-service"]
+          value: state=present,kind=Service,name=webhooks,namespace=d8-test-module
+
   - it: renders validating webhook configuration with custom controller deploy dependency
     set:
       testModule:
@@ -152,6 +156,10 @@ tests:
       - equal:
           path: webhooks[0].clientConfig.service.name
           value: custom-webhooks
+
+      - equal:
+          path: metadata.annotations["werf.io/deploy-dependency-service"]
+          value: state=present,kind=Service,name=custom-webhooks,namespace=d8-test-module
 
   - it: renders validating webhook configuration with custom timeout
     set:
