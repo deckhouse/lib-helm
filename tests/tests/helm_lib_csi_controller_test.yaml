@@ -17,7 +17,6 @@ tests:
               csiExternalProvisioner125: csiControllerProvisioner125
               csiExternalResizer125: csiControllerResizer125
               csiExternalSnapshotter125: csiControllerSnapshotter125
-              csiVsphereSyncer125: csiControllerSyncer125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
           kubernetesVersion: "1.25"
@@ -25,6 +24,7 @@ tests:
       _testvalues:
         controllerImage: controllerImage
         syncerEnabled: "true"
+        syncerImage: "deckhouse.io/deckhouse/ce@csiControllerSyncer125"
 
     documentSelector:
       path: kind
