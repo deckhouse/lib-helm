@@ -12,3 +12,43 @@ tests:
       - matchRegex:
           path: result_rbac
           pattern: "module: test-chart"
+
+  - it: should not grant VolumeRestoreRequest permissions when the CRD is absent
+    capabilities:
+      apiVersions:
+        - apps/v1/Deployment
+    asserts:
+      - notMatchRegex:
+          path: result_rbac
+          pattern: "volumerestorerequests"
+
+  - it: should grant VolumeRestoreRequest permissions when the CRD comes from the modules' crds
+    set:
+      _testvalues:
+        apiVersions:
+          - storage-foundation.deckhouse.io/v1alpha1/VolumeRestoreRequest
+    capabilities:
+      apiVersions:
+        - apps/v1/Deployment
+    asserts:
+      - matchRegex:
+          path: result_rbac
+          pattern: 'resources: \["volumerestorerequests"\]'
+      - matchRegex:
+          path: result_rbac
+          pattern: 'verbs: \["get", "list", "watch"\]'
+      - matchRegex:
+          path: result_rbac
+          pattern: 'verbs: \["create", "patch"\]'
+      - notMatchRegex:
+          path: result_rbac
+          pattern: 'resources: \["volumerestorerequests/status"\]'
+
+  - it: should grant VolumeRestoreRequest permissions when the CRD is present in the cluster discovery
+    capabilities:
+      apiVersions:
+        - storage-foundation.deckhouse.io/v1alpha1/VolumeRestoreRequest
+    asserts:
+      - matchRegex:
+          path: result_rbac
+          pattern: 'resources: \["volumerestorerequests"\]'

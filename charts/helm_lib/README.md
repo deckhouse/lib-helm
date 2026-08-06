@@ -8,6 +8,7 @@
 | [helm_lib_admission_webhook_client_ca_certificate](#helm_lib_admission_webhook_client_ca_certificate) |
 | **Api Version And Kind** |
 | [helm_lib_kind_exists](#helm_lib_kind_exists) |
+| [helm_lib_api_version_exists](#helm_lib_api_version_exists) |
 | [helm_lib_get_api_version_by_kind](#helm_lib_get_api_version_by_kind) |
 | **Application Image** |
 | [helm_lib_application_image](#helm_lib_application_image) |
@@ -195,6 +196,21 @@ list:
 list:
 -  Template context with .Values, .Chart, etc 
 -  Kind name portion 
+
+
+### helm_lib_api_version_exists
+
+ returns "true" if the GVK is available: installed from modules' crds (global.discovery.apiVersions) or present in cluster discovery (Capabilities) 
+
+#### Usage
+
+`{{ if (include "helm_lib_api_version_exists" (list . "<group>/<version>/<Kind>")) }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Group/version/kind string, e.g. "snapshot.storage.k8s.io/v1/VolumeSnapshotClass" 
 
 
 ### helm_lib_get_api_version_by_kind

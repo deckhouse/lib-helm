@@ -1,0 +1,59 @@
+suite: helm_lib_api_version_exists
+templates:
+  - helm_lib_api_version_exists.yaml
+tests:
+  - it: returns true when the GVK comes from the modules' crds (global.discovery.apiVersions)
+    set:
+      global.discovery.apiVersions:
+        - snapshot.storage.k8s.io/v1/VolumeSnapshotClass
+    capabilities:
+      apiVersions:
+        - apps/v1/Deployment
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: returns true when the GVK is only present in the cluster discovery (Capabilities)
+    set:
+      global.discovery.apiVersions: []
+    capabilities:
+      apiVersions:
+        - snapshot.storage.k8s.io/v1/VolumeSnapshotClass
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: returns an empty string when the GVK is available in neither source
+    set:
+      global.discovery.apiVersions:
+        - snapshot.storage.k8s.io/v1beta1/VolumeSnapshotClass
+    capabilities:
+      apiVersions:
+        - apps/v1/Deployment
+    asserts:
+      - equal:
+          path: "result"
+          value: ""
+
+  - it: returns true without failing on empty capabilities
+    set:
+      global.discovery.apiVersions:
+        - snapshot.storage.k8s.io/v1/VolumeSnapshotClass
+    capabilities:
+      apiVersions:
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: returns an empty string without failing on empty capabilities
+    set:
+      global.discovery.apiVersions: []
+    capabilities:
+      apiVersions:
+    asserts:
+      - equal:
+          path: "result"
+          value: ""
