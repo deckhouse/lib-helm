@@ -1,3 +1,7 @@
-{{- $context := dict "Chart" (dict "Name" "test-chart") }}
+{{- $apiVersions := list }}
+{{- if .Values._testvalues }}
+  {{- $apiVersions = .Values._testvalues.apiVersions | default list }}
+{{- end }}
+{{- $context := dict "Chart" (dict "Name" "test-chart") "Values" (dict "global" (dict "discovery" (dict "apiVersions" $apiVersions))) "Capabilities" .Capabilities }}
 {{- $result := include "helm_lib_csi_controller_rbac" $context }}
 result_rbac: {{ $result | toString | quote }}
