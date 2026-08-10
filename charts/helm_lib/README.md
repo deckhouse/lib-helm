@@ -1858,13 +1858,14 @@ list:
 
 #### Usage
 
-`{{ include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "test")) }} `
+`{{ include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "test") (dict "revisionScoped" true)) }} `
 
 #### Arguments
 
 list:
 -  Template context with .Values, .Chart, etc 
 -  Match labels for podAntiAffinity label selector 
+-  Whether to scope podAntiAffinity to pods from the same Deployment revision 
 
 
 ### helm_lib_pod_affinity

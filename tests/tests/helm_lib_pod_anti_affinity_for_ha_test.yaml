@@ -17,7 +17,17 @@ tests:
           pattern: "affinity:"
       - matchRegex:
           path: result
-          pattern: "app: \"test\""
+          pattern: 'app: "test"'
+      - notMatchRegex:
+          path: result
+          pattern: "matchLabelKeys:"
+      - matchRegex:
+          path: revisionScopedResult
+          pattern: "matchLabelKeys:"
+      - matchRegex:
+          path: revisionScopedResult
+          pattern: "pod-template-hash"
+
   - it: should return empty when HA is disabled
     set:
       Chart:
@@ -27,4 +37,7 @@ tests:
     asserts:
       - equal:
           path: result
+          value: ""
+      - equal:
+          path: revisionScopedResult
           value: ""
