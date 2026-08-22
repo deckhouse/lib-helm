@@ -168,3 +168,99 @@ tests:
             cpu: 25m
             memory: 128Mi
         documentIndex: 0
+
+  - it: passes LOG_LEVEL to the webhooks container
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+              webhooks: sha256:def456
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: DEBUG
+        internal:
+          customWebhookCert:
+            ca: test-ca-cert
+            crt: test-crt
+            key: test-key
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: true
+        webhookCertPath: internal.customWebhookCert
+        onMasterNode: true
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: webhooks
+        documentIndex: 2
+
+      # The same numeric contract the controller container gets: 0..4, not the
+      # ERROR..TRACE spelling of the module values.
+      - equal:
+          path: spec.template.spec.containers[1].env
+          value:
+            - name: LOG_LEVEL
+              value: "3"
+        documentIndex: 2
+
+  - it: appends additionalWebhooksEnvs after LOG_LEVEL
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+              webhooks: sha256:def456
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+        internal:
+          customWebhookCert:
+            ca: test-ca-cert
+            crt: test-crt
+            key: test-key
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: true
+        webhookCertPath: internal.customWebhookCert
+        onMasterNode: true
+        additionalWebhooksEnvs:
+          - name: METRICS_BIND_ADDRESS
+            value: ":8080"
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].env
+          value:
+            - name: LOG_LEVEL
+              value: "2"
+            - name: METRICS_BIND_ADDRESS
+              value: ":8080"
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+        documentIndex: 2

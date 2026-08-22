@@ -24,6 +24,7 @@ memory: 25Mi
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $livenessProbePort := $config.livenessProbePort }}
+  {{- $nodeMetricsPort := $config.nodeMetricsPort }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $forceCsiNodeAndStaticNodesDepoloy := $config.forceCsiNodeAndStaticNodesDepoloy | default false }}
@@ -207,6 +208,16 @@ spec:
       {{- if $additionalNodeEnvs }}
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if $nodeMetricsPort }}
+        {{- /* Named so that a PodMonitor can select it by name. A DaemonSet has no
+               Service, so without a named containerPort the only way to scrape it
+               is a numeric targetPort, which silently follows the container's port
+               if it ever moves. */}}
+        ports:
+        - name: metrics
+          containerPort: {{ $nodeMetricsPort }}
+          protocol: TCP
       {{- end }}
       {{- if $csiNodeLifecycle }}
         lifecycle:

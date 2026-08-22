@@ -39,6 +39,7 @@ memory: 50Mi
   - webhooksPort: port for webhooks container (default: 8443)
   - webhooksCertMountPath: mount path for webhook certs (default: "/etc/webhook/certs")
   - webhooksCommand: command for webhooks container
+  - additionalWebhooksEnvs: additional environment variables for webhooks
   - controllerPort: port for controller probes (default: 8081)
   - controllerMetricsPort: port for controller metrics (optional, no port exposed if not set)
 */ -}}
@@ -68,6 +69,7 @@ memory: 50Mi
   {{- $webhooksPort := $config.webhooksPort | default 8443 }}
   {{- $webhooksCertMountPath := $config.webhooksCertMountPath | default "/etc/webhook/certs" }}
   {{- $webhooksCommand := $config.webhooksCommand }}
+  {{- $additionalWebhooksEnvs := $config.additionalWebhooksEnvs }}
   {{- $controllerPort := $config.controllerPort | default 8081 }}
   {{- $controllerMetricsPort := $config.controllerMetricsPort }}
 
@@ -237,6 +239,12 @@ spec:
           {{- end }}
           image: {{ include "helm_lib_module_image" (list $context $webhooksImageName) }}
           imagePullPolicy: IfNotPresent
+          env:
+            - name: LOG_LEVEL
+              value: {{ include "helm_lib_module_controller_log_level" (list $context $valuesKey) | quote }}
+            {{- if $additionalWebhooksEnvs }}
+            {{- $additionalWebhooksEnvs | toYaml | nindent 12 }}
+            {{- end }}
           volumeMounts:
             - name: webhook-certs
               mountPath: {{ $webhooksCertMountPath }}
