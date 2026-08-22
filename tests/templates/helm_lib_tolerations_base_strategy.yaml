@@ -1,0 +1,1 @@
+{{ include "helm_lib_tolerations" (concat (list . .Values.baseStrategy) (.Values.additionalStrategies | default list)) }}
