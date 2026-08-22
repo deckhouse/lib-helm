@@ -153,3 +153,18 @@ tests:
           path: spec.resourcePolicy.containerPolicies[1].containerName
           value: webhooks
         documentIndex: 0
+
+      # Every memory ceiling is a multiple of 64Mi, the recommender's rounding quantum.
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed
+          value:
+            cpu: 200m
+            memory: 256Mi
+        documentIndex: 0
+
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].maxAllowed
+          value:
+            cpu: 25m
+            memory: 128Mi
+        documentIndex: 0
