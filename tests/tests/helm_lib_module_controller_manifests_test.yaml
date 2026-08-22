@@ -85,7 +85,7 @@ tests:
 
       - equal:
           path: spec.updatePolicy.updateMode
-          value: Initial
+          value: InPlaceOrRecreate
         documentIndex: 0
 
       - equal:
