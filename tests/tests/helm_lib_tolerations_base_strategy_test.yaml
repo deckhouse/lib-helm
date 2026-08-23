@@ -1,0 +1,109 @@
+suite: helm_lib_tolerations definition with a base strategy
+templates:
+  - helm_lib_tolerations_base_strategy.yaml
+tests:
+  - it: should render base strategy tolerations without the deprecated storage-problems ones
+
+    set:
+      baseStrategy: "any-node"
+      global:
+        modules:
+          placement: {}
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: sha256
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - equal:
+          path: "tolerations"
+          value:
+            - key: node-role.kubernetes.io/master
+            - key: node-role.kubernetes.io/control-plane
+            - key: node.deckhouse.io/etcd-arbiter
+            - key: dedicated.deckhouse.io
+              operator: Exists
+            - key: dedicated
+              operator: Exists
+            - key: DeletionCandidateOfClusterAutoscaler
+            - key: ToBeDeletedByClusterAutoscaler
+
+  - it: should keep rendering when the deprecated storage-problems strategy is requested explicitly
+
+    set:
+      baseStrategy: "any-node"
+      additionalStrategies:
+        - "with-storage-problems"
+      global:
+        modules:
+          placement: {}
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: sha256
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - equal:
+          path: "tolerations"
+          value:
+            - key: node-role.kubernetes.io/master
+            - key: node-role.kubernetes.io/control-plane
+            - key: node.deckhouse.io/etcd-arbiter
+            - key: dedicated.deckhouse.io
+              operator: Exists
+            - key: dedicated
+              operator: Exists
+            - key: DeletionCandidateOfClusterAutoscaler
+            - key: ToBeDeletedByClusterAutoscaler
+
+  - it: should keep accepting the without- prefix for the deprecated storage-problems strategy
+
+    set:
+      baseStrategy: "any-node"
+      additionalStrategies:
+        - "without-storage-problems"
+      global:
+        modules:
+          placement: {}
+        discovery:
+          clusterControlPlaneIsHighlyAvailable: true
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: sha256
+        internal:
+          modules:
+            kubeRBACProxyCA:
+              cert: cert
+
+    asserts:
+      - equal:
+          path: "tolerations"
+          value:
+            - key: node-role.kubernetes.io/master
+            - key: node-role.kubernetes.io/control-plane
+            - key: node.deckhouse.io/etcd-arbiter
+            - key: dedicated.deckhouse.io
+              operator: Exists
+            - key: dedicated
+              operator: Exists
+            - key: DeletionCandidateOfClusterAutoscaler
+            - key: ToBeDeletedByClusterAutoscaler
