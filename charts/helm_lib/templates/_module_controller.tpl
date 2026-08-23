@@ -26,9 +26,9 @@ memory: 50Mi
   - podSecurityContext: "deckhouse" or "nobody" (default: "nobody")
   - additionalLabels: additional labels for VPA
   - controllerMaxCpu: max CPU for controller VPA (default: "200m")
-  - controllerMaxMemory: max memory for controller VPA (default: "100Mi")
-  - webhooksMaxCpu: max CPU for webhooks VPA (default: "20m")
-  - webhooksMaxMemory: max memory for webhooks VPA (default: "100Mi")
+  - controllerMaxMemory: max memory for controller VPA (default: "256Mi")
+  - webhooksMaxCpu: max CPU for webhooks VPA (default: "25m")
+  - webhooksMaxMemory: max memory for webhooks VPA (default: "128Mi")
   - additionalContainers: additional containers to add to the pod
   - additionalVolumes: additional volumes to add to the pod
   - additionalControllerVolumeMounts: additional volume mounts for controller
@@ -55,9 +55,9 @@ memory: 50Mi
   {{- $podSecurityContext := $config.podSecurityContext | default "nobody" }}
   {{- $additionalLabels := $config.additionalLabels | default dict }}
   {{- $controllerMaxCpu := $config.controllerMaxCpu | default "200m" }}
-  {{- $controllerMaxMemory := $config.controllerMaxMemory | default "100Mi" }}
-  {{- $webhooksMaxCpu := $config.webhooksMaxCpu | default "20m" }}
-  {{- $webhooksMaxMemory := $config.webhooksMaxMemory | default "100Mi" }}
+  {{- $controllerMaxMemory := $config.controllerMaxMemory | default "256Mi" }}
+  {{- $webhooksMaxCpu := $config.webhooksMaxCpu | default "25m" }}
+  {{- $webhooksMaxMemory := $config.webhooksMaxMemory | default "128Mi" }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $additionalVolumes := $config.additionalVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
@@ -95,7 +95,7 @@ spec:
     kind: Deployment
     name: {{ $fullname }}
   updatePolicy:
-    updateMode: "Initial"
+    updateMode: "InPlaceOrRecreate"
   resourcePolicy:
     containerPolicies:
     - containerName: "controller"

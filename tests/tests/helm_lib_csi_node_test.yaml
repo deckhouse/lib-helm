@@ -176,3 +176,51 @@ tests:
       - contains:
           path: spec.template.spec.containers[1].securityContext.capabilities.add
           content: SYS_ADMIN
+
+  - it: renders VPA container policy ceilings when vertical-pod-autoscaler-crd is present
+
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+
+    asserts:
+      - isKind:
+          of: VerticalPodAutoscaler
+        documentIndex: 0
+
+      # Every memory ceiling is a multiple of 64Mi, the recommender's rounding quantum.
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: node-driver-registrar
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed
+          value:
+            cpu: 25m
+            memory: 64Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].containerName
+          value: node
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].maxAllowed
+          value:
+            cpu: 100m
+            memory: 128Mi
+        documentIndex: 0
