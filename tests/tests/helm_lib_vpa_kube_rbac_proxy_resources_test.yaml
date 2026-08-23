@@ -16,3 +16,9 @@ tests:
       - matchRegex:
           path: result
           pattern: "memory: 25Mi"
+      - matchRegex:
+          path: result
+          pattern: "cpu: 25m"
+      - matchRegex:
+          path: result
+          pattern: "memory: 64Mi"

@@ -201,3 +201,96 @@ tests:
       - equal:
           path: spec.template.spec.containers[5].livenessProbe.timeoutSeconds
           value: 10
+
+  - it: renders VPA container policy ceilings when vertical-pod-autoscaler-crd is present
+
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+
+    asserts:
+      - hasDocuments:
+          count: 3
+      - isKind:
+          of: VerticalPodAutoscaler
+        documentIndex: 0
+
+      # Every memory ceiling is a multiple of 64Mi, the recommender's rounding quantum.
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].containerName
+          value: provisioner
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[0].maxAllowed
+          value:
+            cpu: 50m
+            memory: 128Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].containerName
+          value: attacher
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1].maxAllowed
+          value:
+            cpu: 50m
+            memory: 128Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[2].containerName
+          value: resizer
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[2].maxAllowed
+          value:
+            cpu: 50m
+            memory: 128Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[3].containerName
+          value: snapshotter
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[3].maxAllowed
+          value:
+            cpu: 50m
+            memory: 128Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[4].containerName
+          value: livenessprobe
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[4].maxAllowed
+          value:
+            cpu: 25m
+            memory: 64Mi
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[5].containerName
+          value: controller
+        documentIndex: 0
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[5].maxAllowed
+          value:
+            cpu: 100m
+            memory: 256Mi
+        documentIndex: 0
