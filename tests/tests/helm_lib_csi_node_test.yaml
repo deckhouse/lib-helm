@@ -224,3 +224,60 @@ tests:
             cpu: 100m
             memory: 128Mi
         documentIndex: 0
+
+  - it: exposes a named metrics port when nodeMetricsPort is set
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        nodeMetricsPort: 8080
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: node
+
+      # Named, so that a PodMonitor can select the port by name instead of
+      # following a number that may move.
+      - equal:
+          path: spec.template.spec.containers[1].ports
+          value:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+
+  - it: exposes no ports when nodeMetricsPort is unset
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[1].ports
