@@ -264,3 +264,174 @@ tests:
                 fieldRef:
                   fieldPath: metadata.namespace
         documentIndex: 2
+
+  - it: puts a kube-rbac-proxy in front of the metrics port
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: kube-rbac-proxy
+        documentIndex: 2
+
+      # The proxy listens on the pod IP, the controller keeps its port on loopback.
+      - equal:
+          path: spec.template.spec.containers[1].ports
+          value:
+            - name: https-metrics
+              containerPort: 4207
+              protocol: TCP
+        documentIndex: 2
+
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: "--secure-listen-address=$(KUBE_RBAC_PROXY_LISTEN_ADDRESS):4207"
+        documentIndex: 2
+
+      # Scraping goes through an authorization check, not through an open port.
+      - matchRegex:
+          path: spec.template.spec.containers[1].env[1].value
+          pattern: "upstream: http://127.0.0.1:8080/metrics"
+        documentIndex: 2
+
+      - matchRegex:
+          path: spec.template.spec.containers[1].env[1].value
+          pattern: "subresource: prometheus-metrics"
+        documentIndex: 2
+
+  - it: keeps the plain metrics port undeclared while the proxy fronts it
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+
+    asserts:
+      # A declared containerPort would advertise an endpoint that answers without
+      # authentication; the controller binds it on 127.0.0.1 for the proxy alone.
+      - isNull:
+          path: spec.template.spec.containers[0].ports
+        documentIndex: 1
+
+  - it: declares the metrics port directly when no proxy is configured
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+        documentIndex: 1
+
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+        documentIndex: 1
+
+  - it: gives the proxy container a VPA policy of its own
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+
+    asserts:
+      # Without a policy the recommender would size the sidecar from scratch on
+      # every module; this is the shared one, ceilings included -- the memory ceiling
+      # is a multiple of the recommender's 64Mi rounding quantum.
+      - equal:
+          path: spec.resourcePolicy.containerPolicies[1]
+          value:
+            containerName: kube-rbac-proxy
+            minAllowed:
+              cpu: 10m
+              memory: 25Mi
+            maxAllowed:
+              cpu: 25m
+              memory: 64Mi
+        documentIndex: 0

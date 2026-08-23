@@ -42,6 +42,12 @@ memory: 50Mi
   - additionalWebhooksEnvs: additional environment variables for webhooks
   - controllerPort: port for controller probes (default: 8081)
   - controllerMetricsPort: port for controller metrics (optional, no port exposed if not set)
+  - controllerMetricsProxyPort: port for a kube-rbac-proxy in front of the metrics
+    (optional). When set, the controller's own metrics port is NOT declared as a
+    containerPort -- the controller is expected to bind it on 127.0.0.1 -- and the
+    only port on the pod is the proxy's, named "https-metrics". Scraping it requires
+    "get" on <resource>/prometheus-metrics, which the module grants to the Prometheus
+    scraper with a Role of its own.
 */ -}}
 {{- define "helm_lib_module_controller_manifests" }}
   {{- $context := index . 0 }}
@@ -72,6 +78,7 @@ memory: 50Mi
   {{- $additionalWebhooksEnvs := $config.additionalWebhooksEnvs }}
   {{- $controllerPort := $config.controllerPort | default 8081 }}
   {{- $controllerMetricsPort := $config.controllerMetricsPort }}
+  {{- $controllerMetricsProxyPort := $config.controllerMetricsProxyPort }}
 
   {{- /* Get module values */ -}}
   {{- $moduleValues := index $context.Values $valuesKey }}
@@ -113,6 +120,9 @@ spec:
       maxAllowed:
         cpu: {{ $webhooksMaxCpu }}
         memory: {{ $webhooksMaxMemory }}
+    {{- end }}
+    {{- if $controllerMetricsProxyPort }}
+    {{- include "helm_lib_vpa_kube_rbac_proxy_resources" $context | nindent 4 }}
     {{- end }}
   {{- end }}
 ---
@@ -199,7 +209,7 @@ spec:
               scheme: HTTP
             periodSeconds: 1
             failureThreshold: 3
-          {{- if $controllerMetricsPort }}
+          {{- if and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
           ports:
             - name: metrics
               containerPort: {{ $controllerMetricsPort }}
@@ -273,6 +283,63 @@ spec:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
 {{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
               {{- include "helm_lib_module_webhooks_resources" $context | nindent 14 }}
+{{- end }}
+        {{- end }}
+        {{- if $controllerMetricsProxyPort }}
+        {{- /* The metrics endpoint of a controller is unauthenticated, and a
+               containerPort is reachable from every pod in the cluster. This proxy
+               is what turns "reachable by anyone on the pod network" into "reachable
+               by whoever holds get on <resource>/prometheus-metrics", which is how
+               the DaemonSets of this fleet have always published theirs. */}}
+        - name: kube-rbac-proxy
+          {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" dict | nindent 10 }}
+          image: {{ include "helm_lib_module_common_image" (list $context "kubeRbacProxy") }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--secure-listen-address=$(KUBE_RBAC_PROXY_LISTEN_ADDRESS):{{ $controllerMetricsProxyPort }}"
+            - "--v=2"
+            - "--logtostderr=true"
+            - "--stale-cache-interval=1h30m"
+            - "--livez-path=/livez"
+          env:
+            - name: KUBE_RBAC_PROXY_LISTEN_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KUBE_RBAC_PROXY_CONFIG
+              value: |
+                excludePaths:
+                - /livez
+                upstreams:
+                - upstream: http://127.0.0.1:{{ $controllerMetricsPort | required "controllerMetricsProxyPort needs controllerMetricsPort: the proxy has to know what to forward to" }}/metrics
+                  path: /metrics
+                  authorization:
+                    resourceAttributes:
+                      namespace: d8-{{ $context.Chart.Name }}
+                      apiGroup: apps
+                      apiVersion: v1
+                      resource: deployments
+                      subresource: prometheus-metrics
+                      name: {{ $fullname }}
+          ports:
+            - name: https-metrics
+              containerPort: {{ $controllerMetricsProxyPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: {{ $controllerMetricsProxyPort }}
+              scheme: HTTPS
+          readinessProbe:
+            httpGet:
+              path: /livez
+              port: {{ $controllerMetricsProxyPort }}
+              scheme: HTTPS
+          resources:
+            requests:
+              {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
+{{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
+              {{- include "helm_lib_container_kube_rbac_proxy_resources" $context | nindent 14 }}
 {{- end }}
         {{- end }}
         {{- if $additionalContainers }}
