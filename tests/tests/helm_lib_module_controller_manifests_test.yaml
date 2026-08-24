@@ -244,8 +244,8 @@ tests:
         webhookCertPath: internal.customWebhookCert
         onMasterNode: true
         additionalWebhooksEnvs:
-          - name: METRICS_BIND_ADDRESS
-            value: ":8080"
+          - name: WEBHOOK_FEATURE_FLAG
+            value: "on"
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
@@ -257,8 +257,8 @@ tests:
           value:
             - name: LOG_LEVEL
               value: "2"
-            - name: METRICS_BIND_ADDRESS
-              value: ":8080"
+            - name: WEBHOOK_FEATURE_FLAG
+              value: "on"
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -435,3 +435,110 @@ tests:
               cpu: 25m
               memory: 64Mi
         documentIndex: 0
+
+  - it: binds the controller metrics on loopback when a proxy fronts them
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+
+    asserts:
+      # Dropping the containerPort is not what keeps the endpoint off the pod IP --
+      # containerPort is metadata. This env is.
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_BIND_ADDRESS
+            value: "127.0.0.1:8080"
+        documentIndex: 1
+
+      # A metrics sidecar must not be able to take the pod out of its Services'
+      # endpoints, so it carries no readinessProbe.
+      - notExists:
+          path: spec.template.spec.containers[1].readinessProbe
+        documentIndex: 1
+
+      - exists:
+          path: spec.template.spec.containers[1].livenessProbe
+        documentIndex: 1
+
+  - it: binds the controller metrics on the pod IP when nothing fronts them
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_BIND_ADDRESS
+            value: ":8080"
+        documentIndex: 1
+
+  - it: emits no METRICS_BIND_ADDRESS when the module declares no metrics port
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_BIND_ADDRESS
+            value: ":8080"
+        documentIndex: 1
