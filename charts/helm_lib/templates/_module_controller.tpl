@@ -355,9 +355,12 @@ spec:
                  to the Deployment, and in some modules an APIService -- and admission
                  configurations default to failurePolicy: Fail. A sidecar that only serves
                  metrics must not be able to take cluster-wide admission, or an aggregated API
-                 group, out of rotation. A wedged proxy is still restarted by the liveness
-                 probe, and one that is not up yet is kept out of the scrape targets by the
-                 readiness filter the ServiceMonitors and PodMonitors carry. */}}
+                 group, out of rotation; a wedged proxy is still restarted by the liveness
+                 probe.
+
+                 The cost is that the pod is Ready before this container listens, so a scrape
+                 or two can fail during a rollout. That is the trade being made on purpose:
+                 a few gaps in a metric against an admission or discovery outage. */}}
           resources:
             requests:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
