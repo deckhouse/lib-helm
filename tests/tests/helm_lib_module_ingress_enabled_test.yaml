@@ -1,0 +1,100 @@
+suite: helm_lib_module_ingress_enabled definition
+templates:
+  - helm_lib_module_ingress_enabled.yaml
+tests:
+  - it: should return true by default
+    set:
+      global:
+        modules: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when ingress objects exist without enabled
+    set:
+      global:
+        modules:
+          ingress: {}
+      testModule:
+        ingress: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when only global ingress is enabled
+    set:
+      global:
+        modules:
+          ingress:
+            enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return false when global ingress is disabled
+    set:
+      global:
+        modules:
+          ingress:
+            enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when module ingress is disabled
+    set:
+      global:
+        modules:
+          ingress:
+            enabled: true
+      testModule:
+        ingress:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when only module ingress is disabled
+    set:
+      global:
+        modules: {}
+      testModule:
+        ingress:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return true when module and global ingress are enabled
+    set:
+      global:
+        modules:
+          ingress:
+            enabled: true
+      testModule:
+        ingress:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should prioritize module enable over global disable
+    set:
+      global:
+        modules:
+          ingress:
+            enabled: false
+      testModule:
+        ingress:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"

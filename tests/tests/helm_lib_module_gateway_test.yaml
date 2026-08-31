@@ -32,10 +32,29 @@ tests:
   - it: should return a gateway from the global modules config
     set:
       global:
-        modules: 
+        modules:
           gatewayAPIGateway:
             name: "shared-gateway"
             namespace: "d8-shared-gateway"
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "shared-gateway"
+            namespace: "d8-shared-gateway"
+
+  - it: should return a nested gateway from the global modules config
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            gateway:
+              name: "shared-gateway"
+              namespace: "d8-shared-gateway"
         discovery:
           gatewayAPIDefaultGateway:
             name: "d8"
@@ -54,7 +73,7 @@ tests:
           name: "local-gateway"
           namespace: "local-gateway"
       global:
-        modules: 
+        modules:
           gatewayAPIGateway:
             name: "shared-gateway"
             namespace: "d8-shared-gateway"
@@ -68,3 +87,64 @@ tests:
           value:
             name: "local-gateway"
             namespace: "local-gateway"
+
+  - it: should return a nested gateway from the module config
+    set:
+      testModule:
+        gatewayAPI:
+          gateway:
+            name: "local-gateway"
+            namespace: "local-gateway"
+      global:
+        modules:
+          gatewayAPI:
+            gateway:
+              name: "shared-gateway"
+              namespace: "d8-shared-gateway"
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "local-gateway"
+            namespace: "local-gateway"
+
+  - it: should prioritize nested module gateway over deprecated module field
+    set:
+      testModule:
+        gatewayAPIGateway:
+          name: "legacy-module"
+          namespace: "legacy-module"
+        gatewayAPI:
+          gateway:
+            name: "nested-module"
+            namespace: "nested-module"
+      global:
+        modules: {}
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "nested-module"
+            namespace: "nested-module"
+
+  - it: should prioritize nested global gateway over deprecated global field
+    set:
+      global:
+        modules:
+          gatewayAPIGateway:
+            name: "legacy-global"
+            namespace: "legacy-global"
+          gatewayAPI:
+            gateway:
+              name: "nested-global"
+              namespace: "nested-global"
+    asserts:
+      - equal:
+          path: "result"
+          value:
+            name: "nested-global"
+            namespace: "nested-global"

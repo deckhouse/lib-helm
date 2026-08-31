@@ -13,11 +13,34 @@ tests:
           path: "result"
           value: "global-nginx"
 
+  - it: should return nested global ingress class when no module ingress class
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          ingress:
+            ingressClass: "global-nginx"
+    asserts:
+      - equal:
+          path: "result"
+          value: "global-nginx"
+
   - it: should return module ingress class when defined
     documentIndex: 0
     set:
       testModule:
         ingressClass: "module-traefik"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module-traefik"
+
+  - it: should return nested module ingress class when defined
+    documentIndex: 0
+    set:
+      testModule:
+        ingress:
+          ingressClass: "module-traefik"
     asserts:
       - equal:
           path: "result"
@@ -35,6 +58,46 @@ tests:
       - equal:
           path: "result"
           value: "module-traefik"
+
+  - it: should prioritize nested module ingress class over nested global
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          ingress:
+            ingressClass: "global-nginx"
+      testModule:
+        ingress:
+          ingressClass: "module-traefik"
+    asserts:
+      - equal:
+          path: "result"
+          value: "module-traefik"
+
+  - it: should prioritize nested module ingress class over deprecated module field
+    documentIndex: 0
+    set:
+      testModule:
+        ingressClass: "legacy-module"
+        ingress:
+          ingressClass: "nested-module"
+    asserts:
+      - equal:
+          path: "result"
+          value: "nested-module"
+
+  - it: should prioritize nested global ingress class over deprecated global field
+    documentIndex: 0
+    set:
+      global:
+        modules:
+          ingressClass: "legacy-global"
+          ingress:
+            ingressClass: "nested-global"
+    asserts:
+      - equal:
+          path: "result"
+          value: "nested-global"
 
   - it: should return empty when no ingress class defined
     documentIndex: 0
