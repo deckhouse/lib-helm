@@ -1,0 +1,100 @@
+suite: helm_lib_module_gateway_enabled definition
+templates:
+  - helm_lib_module_gateway_enabled.yaml
+tests:
+  - it: should return true by default
+    set:
+      global:
+        modules: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when gatewayAPI objects exist without enabled
+    set:
+      global:
+        modules:
+          gatewayAPI: {}
+      testModule:
+        gatewayAPI: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when only global gatewayAPI is enabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return false when global gatewayAPI is disabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when module gatewayAPI is disabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+      testModule:
+        gatewayAPI:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when only module gatewayAPI is disabled
+    set:
+      global:
+        modules: {}
+      testModule:
+        gatewayAPI:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return true when module and global gatewayAPI are enabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+      testModule:
+        gatewayAPI:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should prioritize module enable over global disable
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: false
+      testModule:
+        gatewayAPI:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
