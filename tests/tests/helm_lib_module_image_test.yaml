@@ -11,25 +11,46 @@ set:
         Digests:
           testContainer: "sha111"
           externalContainer: "sha222"
+          # never resolved: common images stay platform images, see packageCommonImage
           commonContainer: "sha333"
         Registry:
           name:         "deckhouse"
           repository:   "registry.deckhouse.io/deckhouse/ce"
         Version:  "1.0.0"
-    Deckhouse:
-      modulesImages:
-        registry:
-          base: "registry.deckhouse.io/ce/modules/"
-        digests:
-          testModule:
-            testContainer: "sha444"
-            externalContainer: "sha555"
-          fooBar:
-            testContainer: "sha666"
-          someModule:
-            externalContainer: "sha777"
-          common:
-            commonContainer: "sha888"
+    Values:
+      global:
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              testContainer: "sha123"
+              externalContainer: "sha321"
+            fooBar:
+              testContainer: "sha345"
+            someModule:
+              externalContainer: "sha543"
+            common:
+              commonContainer: "sha999"
+
+  embedded:
+    Chart:
+      Name: test-module
+    Module:
+      Package:
+        Name:     "test-module"
+        Embedded: true
+        Digests:
+          testContainer: "shaEmbedded111"
+        Registry:
+          name:         "deckhouse"
+          repository:   "registry.deckhouse.io/deckhouse/ce"
+        Version:  "1.0.0"
+    Values:
+      global:
+        modulesImages:
+          registry:
+            base: "registry.deckhouse.io/deckhouse/ce"
 
   global:
     modulesImages:
@@ -156,7 +177,41 @@ tests:
           value: "registry.deckhouse.io/deckhouse/ce/test-module@sha111"
       - equal:
           path: "externalModuleImageWithOptionalName"
-          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha111"
+          value: "registry.deckhouse.io/deckhouse/ce@sha345"
       - equal:
           path: "externalModuleKebabImageWithOptionalName"
-          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha222"
+          value: "registry.deckhouse.io/deckhouse/ce@sha543"
+
+  - it: should render embedded package image from the platform registry
+    documentIndex: 8
+    asserts:
+      - equal:
+          path: "embeddedPackageImage"
+          value: "registry.deckhouse.io/deckhouse/ce@shaEmbedded111"
+
+  - it: should render package images from every helper
+    documentIndex: 9
+    asserts:
+      - equal:
+          path: "packageImageNoFail"
+          value: "registry.deckhouse.io/deckhouse/ce/test-module@sha111"
+      - equal:
+          path: "packageImageNoFailNotExist"
+          value: null
+      - equal:
+          path: "packageImageDigest"
+          value: "sha111"
+      - equal:
+          path: "packageImageDigestNoFail"
+          value: "sha111"
+      - equal:
+          path: "packageImageDigestNoFailNotExist"
+          value: null
+      # an explicit module name asks for another module, which only the platform map holds
+      - equal:
+          path: "packageImageDigestWithOptionalName"
+          value: "sha345"
+      # common images stay platform images even for a packaged module
+      - equal:
+          path: "packageCommonImage"
+          value: "registry.deckhouse.io/deckhouse/ce@sha999"
