@@ -14,7 +14,7 @@
       {{- fail "Package name is not set" }}
     {{- end }}
 
-    {{- $imageDigest := index $context.Module.Package.Digests $containerName }}
+    {{- $imageDigest := index ($context.Module.Package.Digests | default dict) $containerName }}
     {{- if not $imageDigest }}
       {{- fail (printf "Image %s has no digest" $containerName) }}
     {{- end }}
