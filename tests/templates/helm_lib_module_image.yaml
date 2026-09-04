@@ -28,3 +28,15 @@ commonImageNoFailNotExist: {{ include "helm_lib_module_common_image_no_fail" (li
 externalModuleImage: {{ include "helm_lib_module_image" (list .Values.new "testContainer") }}
 externalModuleImageWithOptionalName: {{ include "helm_lib_module_image" (list .Values.new "testContainer" "fooBar") }}
 externalModuleKebabImageWithOptionalName: {{ include "helm_lib_module_image" (list .Values.new "externalContainer" "some-module") }}
+---
+# Embedded package: images are addressed by digest in the platform registry
+embeddedPackageImage: {{ include "helm_lib_module_image" (list .Values.embedded "testContainer") }}
+---
+# New approach: every helper resolves the module's own images from the package
+packageImageNoFail: {{ include "helm_lib_module_image_no_fail" (list .Values.new "testContainer") }}
+packageImageNoFailNotExist: {{ include "helm_lib_module_image_no_fail" (list .Values.new "nonExistentContainer") }}
+packageImageDigest: {{ include "helm_lib_module_image_digest" (list .Values.new "testContainer") }}
+packageImageDigestNoFail: {{ include "helm_lib_module_image_digest_no_fail" (list .Values.new "testContainer") }}
+packageImageDigestNoFailNotExist: {{ include "helm_lib_module_image_digest_no_fail" (list .Values.new "nonExistentContainer") }}
+packageImageDigestWithOptionalName: {{ include "helm_lib_module_image_digest" (list .Values.new "testContainer" "fooBar") }}
+packageCommonImage: {{ include "helm_lib_module_common_image" (list .Values.new "commonContainer") }}
