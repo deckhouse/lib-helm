@@ -1,0 +1,154 @@
+suite: helm_lib_module_gateway_enabled definition
+templates:
+  - helm_lib_module_gateway_enabled.yaml
+tests:
+  - it: should return false by default when no gateway can be resolved
+    set:
+      global:
+        modules: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return true by default when a default gateway is discovered
+    set:
+      global:
+        modules: {}
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when gatewayAPI objects exist without enabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            gateway:
+              name: "shared-gateway"
+              namespace: "d8-shared-gateway"
+      testModule:
+        gatewayAPI: {}
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return true when only global gatewayAPI is enabled and a gateway is resolvable
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return false when global gatewayAPI is disabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: false
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when module gatewayAPI is disabled
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+      testModule:
+        gatewayAPI:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return false when only module gatewayAPI is disabled
+    set:
+      global:
+        modules: {}
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+      testModule:
+        gatewayAPI:
+          enabled: false
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
+
+  - it: should return true when module and global gatewayAPI are enabled and a gateway is resolvable
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+      testModule:
+        gatewayAPI:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should prioritize module enable over global disable
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: false
+        discovery:
+          gatewayAPIDefaultGateway:
+            name: "d8"
+            namespace: "d8-alb-istio"
+      testModule:
+        gatewayAPI:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "true"
+
+  - it: should return false when enabled but no gateway can be resolved
+    set:
+      global:
+        modules:
+          gatewayAPI:
+            enabled: true
+      testModule:
+        gatewayAPI:
+          enabled: true
+    asserts:
+      - equal:
+          path: "result"
+          value: "false"
