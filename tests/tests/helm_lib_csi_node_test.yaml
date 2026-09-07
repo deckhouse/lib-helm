@@ -247,3 +247,82 @@ tests:
     asserts:
       - notExists:
           path: spec.template.spec.containers[1].ports
+
+  - it: gives the port probes to the container that serves the port
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        livenessProbePort: 4242
+        startupProbeFailureThreshold: 30
+
+    asserts:
+      # node-driver-registrar is the container that listens on --http-endpoint,
+      # so the probes on that port belong to it. Probing it from the driver
+      # container made the driver's life depend on a sibling that exits by
+      # design when registration fails, and the two deadlocked: the registrar
+      # exited, its port went with it, the probe killed the driver, the CSI
+      # socket disappeared, and the restarted registrar could no longer reach it.
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: node-driver-registrar
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 4242
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.port
+          value: 4242
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: node
+      - notExists:
+          path: spec.template.spec.containers[1].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[1].startupProbe
+
+  - it: prefers an explicit exec liveness command over the served port
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        livenessProbePort: 4242
+        additionalNodeLivenessProbesCmd:
+          - /probe
+          - --check
+
+    asserts:
+      # A container takes only one livenessProbe, so a module that supplies its
+      # own command keeps it and the httpGet is left out.
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.exec.command
+          value:
+            - /probe
+            - --check
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
