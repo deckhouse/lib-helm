@@ -121,3 +121,93 @@ tests:
           path: rules[0].resources
           content: s3storageclasses
         documentIndex: 2
+
+  - it: renders no rbac-proxy binding when the controller has no metrics proxy
+    set:
+      _testvalues:
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+        clusterRoleRules:
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["list"]
+
+    asserts:
+      - hasDocuments:
+          count: 5
+
+      - notEqual:
+          path: roleRef.name
+          value: d8:rbac-proxy
+        documentIndex: 4
+
+  - it: binds the ServiceAccount to d8:rbac-proxy when a metrics proxy is rendered
+    set:
+      _testvalues:
+        controllerMetricsProxyPort: 4204
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+        clusterRoleRules:
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["list"]
+
+    asserts:
+      - hasDocuments:
+          count: 6
+
+      - isKind:
+          of: ClusterRoleBinding
+        documentIndex: 5
+
+      - equal:
+          path: metadata.name
+          value: d8:test-module:controller:rbac-proxy
+        documentIndex: 5
+
+      - equal:
+          path: roleRef.name
+          value: d8:rbac-proxy
+        documentIndex: 5
+
+      - equal:
+          path: subjects[0].name
+          value: controller
+        documentIndex: 5
+
+      - equal:
+          path: subjects[0].namespace
+          value: d8-test-module
+        documentIndex: 5
+
+  - it: names the rbac-proxy binding after a custom fullname
+    set:
+      _testvalues:
+        fullname: my-controller
+        controllerMetricsProxyPort: 4204
+        roleRules:
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create"]
+        clusterRoleRules:
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["list"]
+
+    asserts:
+      - hasDocuments:
+          count: 6
+
+      - equal:
+          path: metadata.name
+          value: d8:test-module:my-controller:rbac-proxy
+        documentIndex: 5
+
+      - equal:
+          path: subjects[0].name
+          value: my-controller
+        documentIndex: 5
