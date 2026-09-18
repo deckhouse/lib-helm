@@ -2,3 +2,13 @@
 result_100m: {{ $result }}
 {{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "2" }}
 result_2: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "0.5" }}
+result_0_5: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1.5" }}
+result_1_5: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" ".25" }}
+result_dot_25: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" 0.5 }}
+result_number_0_5: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "0.5m" }}
+result_0_5m: {{ $result }}
