@@ -4,3 +4,13 @@ result_100Mi: {{ $result }}
 result_2Gi: {{ $result }}
 {{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "512" }}
 result_512: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "100M" }}
+result_100M: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "0.5Gi" }}
+result_0_5Gi: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "1.5Gi" }}
+result_1_5Gi: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "0.25Mi" }}
+result_0_25Mi: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "0.5" }}
+result_0_5: {{ $result }}

@@ -13,3 +13,24 @@ tests:
       - equal:
           path: result_512
           value: 512
+      - equal:
+          path: result_100M
+          value: 100000000
+
+  - it: should convert fractional memory units to bytes
+    asserts:
+      - equal:
+          path: result_0_5Gi
+          value: 536870912
+      - equal:
+          path: result_1_5Gi
+          value: 1610612736
+      - equal:
+          path: result_0_25Mi
+          value: 262144
+
+  - it: should round a fractional byte value up
+    asserts:
+      - equal:
+          path: result_0_5
+          value: 1

@@ -10,3 +10,24 @@ tests:
       - equal:
           path: result_2
           value: 2000
+
+  - it: should convert fractional CPU units to millicores
+    asserts:
+      - equal:
+          path: result_0_5
+          value: 500
+      - equal:
+          path: result_1_5
+          value: 1500
+      - equal:
+          path: result_dot_25
+          value: 250
+      - equal:
+          path: result_number_0_5
+          value: 500
+
+  - it: should round a fractional millicore value up
+    asserts:
+      - equal:
+          path: result_0_5m
+          value: 1
