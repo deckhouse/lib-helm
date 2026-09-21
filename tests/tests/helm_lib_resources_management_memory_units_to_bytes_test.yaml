@@ -4,33 +4,26 @@ templates:
 tests:
   - it: should convert memory units to bytes
     asserts:
-      - equal:
-          path: result_100Mi
-          value: 104857600
-      - equal:
-          path: result_2Gi
-          value: 2147483648
-      - equal:
-          path: result_512
-          value: 512
-      - equal:
-          path: result_100M
-          value: 100000000
+      - equal: {path: result_100Mi, value: 104857600}
+      - equal: {path: result_2Gi, value: 2147483648}
+      - equal: {path: result_512, value: 512}
+      - equal: {path: result_100M, value: 100000000}
 
   - it: should convert fractional memory units to bytes
     asserts:
-      - equal:
-          path: result_0_5Gi
-          value: 536870912
-      - equal:
-          path: result_1_5Gi
-          value: 1610612736
-      - equal:
-          path: result_0_25Mi
-          value: 262144
+      - equal: {path: result_0_5Gi, value: 536870912}
+      - equal: {path: result_1_5Gi, value: 1610612736}
+      - equal: {path: result_0_25Mi, value: 262144}
 
   - it: should round a fractional byte value up
     asserts:
-      - equal:
-          path: result_0_5
-          value: 1
+      - equal: {path: result_0_5, value: 1}
+
+  - it: should keep the sign and the exponent form
+    asserts:
+      - equal: {path: result_plus_1Gi, value: 1073741824}
+      - equal: {path: result_1e3, value: 1000}
+
+  - it: should yield zero for a known suffix with an unparsable mantissa
+    asserts:
+      - equal: {path: result_garbage_suffixed, value: 0}

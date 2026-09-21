@@ -1879,8 +1879,9 @@ list:
 ### helm_lib_resources_management_cpu_units_to_millicores
 
  helper for converting cpu units to millicores 
- Accepts any Kubernetes CPU quantity, including a fractional one such as "0.5". 
- A fractional result is rounded up, so a limit is never smaller than the value asked for. 
+ Accepts any Kubernetes CPU quantity: an optional sign, a decimal mantissa, and any of the 
+ n, u, m, k, M, G, T, P, E and Ki...Ei suffixes or a decimal exponent. A fractional result is 
+ rounded up. An unparsable value yields 0 and never aborts the rendering. 
 
 #### Usage
 
@@ -1891,8 +1892,9 @@ list:
 ### helm_lib_resources_management_memory_units_to_bytes
 
  helper for converting memory units to bytes 
- Accepts any Kubernetes memory quantity, including a fractional one such as "0.5Gi". 
- A fractional result is rounded up, so a limit is never smaller than the value asked for. 
+ Accepts any Kubernetes memory quantity: an optional sign, a decimal mantissa, and any of the 
+ k, M, G, T, P, E and Ki...Ei suffixes or a decimal exponent. A fractional result is rounded up. 
+ A value carrying a known suffix but an unparsable mantissa yields 0, as it did before. 
 
 #### Usage
 

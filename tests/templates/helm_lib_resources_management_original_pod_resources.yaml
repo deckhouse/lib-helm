@@ -4,3 +4,9 @@ result_static: {{ $result | toString | quote }}
 {{- $config := dict "mode" "VPA" "vpa" (dict "cpu" (dict "min" "100m" "limitRatio" 2) "memory" (dict "min" "128Mi" "limitRatio" 2)) }}
 {{- $result := include "helm_lib_resources_management_original_pod_resources" $config }}
 result_vpa: {{ $result | toString | quote }}
+{{- $config := dict "mode" "VPA" "vpa" (dict "cpu" (dict "min" 0.5 "limitRatio" 1.5) "memory" (dict "min" "0.5Gi" "limitRatio" 1.5)) }}
+{{- $parsed := include "helm_lib_resources_management_original_pod_resources" $config | fromYaml }}
+result_fractional_limits_cpu: {{ $parsed.limits.cpu | quote }}
+result_fractional_limits_memory: {{ $parsed.limits.memory | quote }}
+result_fractional_requests_cpu: {{ $parsed.requests.cpu | quote }}
+result_fractional_requests_memory: {{ $parsed.requests.memory | quote }}
