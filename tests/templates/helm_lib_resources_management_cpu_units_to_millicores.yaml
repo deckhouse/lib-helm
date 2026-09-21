@@ -28,3 +28,11 @@ result_1k: {{ $result }}
 result_1e3: {{ $result }}
 {{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "abc" }}
 result_garbage: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1E" }}
+result_1E: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1Ei" }}
+result_1Ei: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "10P" }}
+result_10P: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1P" }}
+result_1P: {{ $result }}

@@ -20,3 +20,11 @@ result_plus_1Gi: {{ $result }}
 result_1e3: {{ $result }}
 {{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "abcGi" }}
 result_garbage_suffixed: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "100m" }}
+result_100m: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "100n" }}
+result_100n: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "100u" }}
+result_100u: {{ $result }}
+{{- $result := include "helm_lib_resources_management_memory_units_to_bytes" "1Ei" }}
+result_1Ei: {{ $result }}

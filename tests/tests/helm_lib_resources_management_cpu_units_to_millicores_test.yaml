@@ -4,33 +4,83 @@ templates:
 tests:
   - it: should convert CPU units to millicores
     asserts:
-      - equal: {path: result_100m, value: 100}
-      - equal: {path: result_2, value: 2000}
+      - equal:
+          path: result_100m
+          value: 100
+      - equal:
+          path: result_2
+          value: 2000
 
   - it: should convert fractional CPU units to millicores
     asserts:
-      - equal: {path: result_0_5, value: 500}
-      - equal: {path: result_1_5, value: 1500}
-      - equal: {path: result_dot_25, value: 250}
-      - equal: {path: result_number_0_5, value: 500}
-      - equal: {path: result_1_dot, value: 1000}
-
-  - it: should keep the sign
-    asserts:
-      - equal: {path: result_plus_1, value: 1000}
-      - equal: {path: result_minus_1, value: -1000}
-
-  - it: should convert every Kubernetes suffix
-    asserts:
-      - equal: {path: result_100u, value: 1}
-      - equal: {path: result_100n, value: 1}
-      - equal: {path: result_1k, value: 1000000}
-      - equal: {path: result_1e3, value: 1000000}
+      - equal:
+          path: result_0_5
+          value: 500
+      - equal:
+          path: result_1_5
+          value: 1500
+      - equal:
+          path: result_dot_25
+          value: 250
+      - equal:
+          path: result_number_0_5
+          value: 500
+      - equal:
+          path: result_1_dot
+          value: 1000
 
   - it: should round a fractional millicore value up
     asserts:
-      - equal: {path: result_0_5m, value: 1}
+      - equal:
+          path: result_0_5m
+          value: 1
+
+  - it: should convert every Kubernetes suffix
+    asserts:
+      - equal:
+          path: result_100u
+          value: 1
+      - equal:
+          path: result_100n
+          value: 1
+      - equal:
+          path: result_1k
+          value: 1000000
+      - equal:
+          path: result_1e3
+          value: 1000000
+      - equal:
+          path: result_1P
+          value: 1000000000000000000
+
+  # The helper converts, it does not validate. A negative quantity is passed through as a
+  # negative number, exactly as before, and rejecting it belongs to the caller.
+  - it: should propagate a sign rather than validate it
+    asserts:
+      - equal:
+          path: result_plus_1
+          value: 1000
+      - equal:
+          path: result_minus_1
+          value: -1000
 
   - it: should yield zero instead of aborting the rendering
     asserts:
-      - equal: {path: result_garbage, value: 0}
+      - equal:
+          path: result_garbage
+          value: 0
+
+  # 10^18 cores does not fit an int64 once expressed in millicores. Saturating or wrapping
+  # would hand the caller a limit the API server rejects, so the result is zero, as it was
+  # before these suffixes reached the CPU helper.
+  - it: should yield zero for a result that does not fit an int64
+    asserts:
+      - equal:
+          path: result_1E
+          value: 0
+      - equal:
+          path: result_1Ei
+          value: 0
+      - equal:
+          path: result_10P
+          value: 0
