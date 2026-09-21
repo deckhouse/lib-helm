@@ -12,3 +12,20 @@ tests:
       - notEqual:
           path: result_vpa
           value: ""
+  - it: should size the limits from a fractional min instead of collapsing them to zero
+    asserts:
+      # 0.5 cores * 1.5 = 750m, against requests of 0.5 cores. A limit below the requests
+      # is rejected by the API server, which is what the zero used to produce.
+      - equal:
+          path: result_fractional_limits_cpu
+          value: "750m"
+      - equal:
+          path: result_fractional_requests_cpu
+          value: "0.5"
+      # 0.5Gi * 1.5 = 805306368 bytes.
+      - equal:
+          path: result_fractional_limits_memory
+          value: "805306368"
+      - equal:
+          path: result_fractional_requests_memory
+          value: "0.5Gi"

@@ -12,3 +12,27 @@ result_dot_25: {{ $result }}
 result_number_0_5: {{ $result }}
 {{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "0.5m" }}
 result_0_5m: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "+1" }}
+result_plus_1: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "-1" }}
+result_minus_1: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1." }}
+result_1_dot: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "100u" }}
+result_100u: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "100n" }}
+result_100n: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1k" }}
+result_1k: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1e3" }}
+result_1e3: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "abc" }}
+result_garbage: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1E" }}
+result_1E: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1Ei" }}
+result_1Ei: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "10P" }}
+result_10P: {{ $result }}
+{{- $result := include "helm_lib_resources_management_cpu_units_to_millicores" "1P" }}
+result_1P: {{ $result }}

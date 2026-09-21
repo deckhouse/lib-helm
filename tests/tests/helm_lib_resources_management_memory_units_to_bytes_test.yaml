@@ -34,3 +34,39 @@ tests:
       - equal:
           path: result_0_5
           value: 1
+
+  # Sub-byte suffixes are legal in a Kubernetes quantity and used to abort the rendering here,
+  # while the CPU helper accepted them.
+  - it: should convert the sub-byte suffixes
+    asserts:
+      - equal:
+          path: result_100m
+          value: 1
+      - equal:
+          path: result_100n
+          value: 1
+      - equal:
+          path: result_100u
+          value: 1
+
+  # The largest binary suffix stays on the integer path, where it is exact.
+  - it: should keep the largest suffix exact
+    asserts:
+      - equal:
+          path: result_1Ei
+          value: 1152921504606846976
+
+  - it: should keep the sign and the exponent form
+    asserts:
+      - equal:
+          path: result_plus_1Gi
+          value: 1073741824
+      - equal:
+          path: result_1e3
+          value: 1000
+
+  - it: should yield zero for a known suffix with an unparsable mantissa
+    asserts:
+      - equal:
+          path: result_garbage_suffixed
+          value: 0
