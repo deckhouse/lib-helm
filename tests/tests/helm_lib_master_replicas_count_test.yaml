@@ -1,0 +1,62 @@
+suite: helm_lib_master_replicas_count definition
+templates:
+  - helm_lib_master_replicas_count.yaml
+tests:
+  - it: should return the master count when every master is schedulable
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterMasterCount: 3
+          clusterSchedulableMasterCount: 3
+    asserts:
+      - equal:
+          path: result
+          value: "3"
+  - it: should return the schedulable count when some masters are cordoned
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterMasterCount: 5
+          clusterSchedulableMasterCount: 3
+    asserts:
+      - equal:
+          path: result
+          value: "3"
+  - it: should fall back to the master count when the schedulable count is not published
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterMasterCount: 5
+    asserts:
+      - equal:
+          path: result
+          value: "5"
+  - it: should return 1 when every master is cordoned
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterMasterCount: 5
+          clusterSchedulableMasterCount: 0
+    asserts:
+      - equal:
+          path: result
+          value: "1"
+  - it: should never return less than 1
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        discovery:
+          clusterMasterCount: 0
+    asserts:
+      - equal:
+          path: result
+          value: "1"

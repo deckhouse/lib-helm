@@ -68,18 +68,33 @@ affinity:
 {{- end }}
 {{- end }}
 
+{{- /* Usage: {{ include "helm_lib_master_replicas_count" . }} */ -}}
+{{- /* returns the replica count for workloads placed one per master node: the number of master nodes, capped by the number of schedulable ones */ -}}
+{{- define "helm_lib_master_replicas_count" -}}
+{{- /* Template context with .Values, .Chart, etc */ -}}
+  {{- $count := index .Values.global.discovery "clusterMasterCount" | int -}}
+  {{- /* Deckhouse versions that do not publish the schedulable count leave the key out entirely. */ -}}
+  {{- /* Without hasKey an absent key and a cluster with every master cordoned both read as 0 after `| int`. */ -}}
+  {{- if hasKey .Values.global.discovery "clusterSchedulableMasterCount" -}}
+    {{- $count = min $count (index .Values.global.discovery "clusterSchedulableMasterCount" | int) -}}
+  {{- end -}}
+  {{- /* Every master cordoned would otherwise render replicas: 0 and drop the workload from the cluster. */ -}}
+  {{- max $count 1 -}}
+{{- end -}}
+
 {{- /* Usage: {{ include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" }} */ -}}
 {{- /* returns deployment strategy and replicas for ha components running on master nodes */ -}}
 {{- define "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" }}
 {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- if (include "helm_lib_ha_enabled" .) }}
     {{- if gt (index .Values.global.discovery "clusterMasterCount" | int) 0 }}
-replicas: {{ index .Values.global.discovery "clusterMasterCount" }}
+      {{- $replicas := include "helm_lib_master_replicas_count" . | int }}
+replicas: {{ $replicas }}
 strategy:
   type: RollingUpdate
   rollingUpdate:
     maxSurge: 0
-      {{- if gt (index .Values.global.discovery "clusterMasterCount" | int) 2 }}
+      {{- if gt $replicas 2 }}
     maxUnavailable: 2
       {{- else }}
     maxUnavailable: 1
@@ -128,13 +143,14 @@ strategy:
 {{- /* Template context with .Values, .Chart, etc */ -}}
   {{- if (include "helm_lib_ha_enabled" $context) }}
     {{- if gt (index $context.Values.global.discovery "clusterMasterCount" | int) 0 }}
-replicas: {{ index $context.Values.global.discovery "clusterMasterCount" }}
+      {{- $replicas := include "helm_lib_master_replicas_count" $context | int }}
+replicas: {{ $replicas }}
 strategy:
   type: {{ $strategy }}
       {{- if eq $strategy "RollingUpdate" }}
   rollingUpdate:
     maxSurge: 0
-        {{- if gt (index $context.Values.global.discovery "clusterMasterCount" | int) 2 }}
+        {{- if gt $replicas 2 }}
     maxUnavailable: 2
         {{- else }}
     maxUnavailable: 1

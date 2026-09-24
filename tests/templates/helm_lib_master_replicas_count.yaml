@@ -1,0 +1,2 @@
+{{- $result := include "helm_lib_master_replicas_count" . }}
+result: {{ $result | toString | quote }}
