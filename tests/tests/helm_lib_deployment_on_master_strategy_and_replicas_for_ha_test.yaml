@@ -50,3 +50,51 @@ tests:
       - matchRegex:
           path: result
           pattern: "replicas: 1"
+  - it: should size replicas by the schedulable masters when some are cordoned
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 5
+          clusterSchedulableMasterCount: 3
+    asserts:
+      - matchRegex:
+          path: result
+          pattern: "replicas: 3"
+      - matchRegex:
+          path: result
+          pattern: "maxUnavailable: 2"
+  - it: should lower maxUnavailable together with replicas
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 5
+          clusterSchedulableMasterCount: 2
+    asserts:
+      - matchRegex:
+          path: result
+          pattern: "replicas: 2"
+      - matchRegex:
+          path: result
+          pattern: "maxUnavailable: 1"
+  - it: should keep one replica when every master is cordoned
+    set:
+      Chart:
+        Name: "testModule"
+      global:
+        highAvailability: true
+        discovery:
+          clusterMasterCount: 3
+          clusterSchedulableMasterCount: 0
+    asserts:
+      - matchRegex:
+          path: result
+          pattern: "replicas: 1"
+      - matchRegex:
+          path: result
+          pattern: "maxUnavailable: 1"

@@ -166,6 +166,7 @@
 | **Spec For High Availability** |
 | [helm_lib_pod_anti_affinity_for_ha](#helm_lib_pod_anti_affinity_for_ha) |
 | [helm_lib_pod_affinity](#helm_lib_pod_affinity) |
+| [helm_lib_master_replicas_count](#helm_lib_master_replicas_count) |
 | [helm_lib_deployment_on_master_strategy_and_replicas_for_ha](#helm_lib_deployment_on_master_strategy_and_replicas_for_ha) |
 | [helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha](#helm_lib_deployment_on_master_custom_strategy_and_replicas_for_ha) |
 | [helm_lib_deployment_strategy_and_replicas_for_ha](#helm_lib_deployment_strategy_and_replicas_for_ha) |
@@ -1962,6 +1963,19 @@ list:
 list:
 -  Template context with .Values, .Chart, etc 
 -  Match labels for podAntiAffinity label selector 
+
+
+### helm_lib_master_replicas_count
+
+ returns the replica count for workloads placed one per master node: the number of master nodes, capped by the number of schedulable ones 
+
+#### Usage
+
+`{{ include "helm_lib_master_replicas_count" . }} `
+
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
 
 
 ### helm_lib_deployment_on_master_strategy_and_replicas_for_ha
