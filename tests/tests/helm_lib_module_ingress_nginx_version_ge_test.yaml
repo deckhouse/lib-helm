@@ -1,0 +1,141 @@
+suite: helm_lib_module_ingress_nginx_version_ge definition
+templates:
+  - helm_lib_module_ingress_nginx_version_ge.yaml
+tests:
+  - it: renders an empty string when global.discovery is missing
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when the version is not discovered
+    set:
+      global:
+        discovery:
+          clusterDomain: cluster.local
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when the discovered version is empty
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: ""
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when the discovered version is not a semver
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: not-a-version
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when the discovered version is lower
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.2.0
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders "true" when the discovered version is equal
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.2.1
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: renders "true" when the discovered patch version is greater
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.2.2
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: renders "true" when the discovered minor version is greater
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.3.0
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: renders "true" when the discovered major version is greater
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 2.0.0
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: accepts a discovered version with a leading v
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: v1.3.0
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: accepts a minimal version with a leading v
+    set:
+      minimal: v1.2.1
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.2.1
+    asserts:
+      - equal:
+          path: ge
+          value: "true"
+
+  - it: compares against the minimal version passed in
+    set:
+      minimal: 1.4.0
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.3.0
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string for a pre-release of a greater version
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.3.0-rc.1
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: fails when the minimal version is not a semver
+    set:
+      minimal: not-a-version
+      global:
+        discovery:
+          ingressNginxModuleVersion: 1.3.0
+    asserts:
+      - failedTemplate:
+          errorMessage: 'helm_lib_module_ingress_nginx_version_ge: "not-a-version" is not a semver'

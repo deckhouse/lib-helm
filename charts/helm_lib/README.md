@@ -95,6 +95,7 @@
 | [helm_lib_module_ingress_class](#helm_lib_module_ingress_class) |
 | [helm_lib_module_ingress_configuration_snippet](#helm_lib_module_ingress_configuration_snippet) |
 | [helm_lib_module_ingress_enabled](#helm_lib_module_ingress_enabled) |
+| [helm_lib_module_ingress_nginx_version_ge](#helm_lib_module_ingress_nginx_version_ge) |
 | **Module Init Container** |
 | [helm_lib_module_init_container_chown_nobody_volume](#helm_lib_module_init_container_chown_nobody_volume) |
 | [helm_lib_module_init_container_chown_deckhouse_volume](#helm_lib_module_init_container_chown_deckhouse_volume) |
@@ -1190,6 +1191,22 @@ list:
 
 `{{- if eq (include "helm_lib_module_ingress_enabled" .) "true" }} `
 
+
+
+### helm_lib_module_ingress_nginx_version_ge
+
+ returns "true" if the ingress-nginx module version discovered in .Values.global.discovery.ingressNginxModuleVersion is a semver greater than or equal to the given one 
+ returns an empty string if the discovered version is missing, empty or not a semver, so the caller falls back 
+
+#### Usage
+
+`{{- if include "helm_lib_module_ingress_nginx_version_ge" (list . "1.2.1") }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Minimal version the discovered one must reach, e.g. "1.2.1" or "v1.2.1" 
 
 ## Module Init Container
 
