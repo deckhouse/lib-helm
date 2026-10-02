@@ -68,7 +68,11 @@ add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" alway
     {{- fail (printf "helm_lib_module_ingress_nginx_version_ge: %q is not a semver" $minimal) -}}
   {{- end -}}
 
-  {{- $discovered := dig "discovery" "ingressNginxModuleVersion" "" ($context.Values.global | default dict) | toString -}}
+  {{- $discovered := "" -}}
+  {{- $global := $context.Values.global -}}
+  {{- if and (kindIs "map" $global) (kindIs "map" $global.discovery) -}}
+    {{- $discovered = $global.discovery.ingressNginxModuleVersion | default "" | toString -}}
+  {{- end -}}
   {{- if and (regexMatch $semver $discovered) (semverCompare (printf ">=%s" $minimal) $discovered) -}}
     true
   {{- end -}}

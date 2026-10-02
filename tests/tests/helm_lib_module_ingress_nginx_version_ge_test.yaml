@@ -18,6 +18,34 @@ tests:
           path: ge
           value: ""
 
+  - it: renders an empty string when global.discovery is null
+    set:
+      global:
+        discovery: null
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when global.discovery is not a map
+    set:
+      global:
+        discovery: not-a-map
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
+  - it: renders an empty string when the discovered version is null
+    set:
+      global:
+        discovery:
+          ingressNginxModuleVersion: null
+    asserts:
+      - equal:
+          path: ge
+          value: ""
+
   - it: renders an empty string when the discovered version is empty
     set:
       global:
