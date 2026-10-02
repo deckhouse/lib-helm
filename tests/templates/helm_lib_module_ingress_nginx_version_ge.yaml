@@ -1,0 +1,1 @@
+ge: {{ include "helm_lib_module_ingress_nginx_version_ge" (list . (.Values.minimal | default "1.2.1")) | quote }}
