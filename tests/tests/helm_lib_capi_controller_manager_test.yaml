@@ -856,6 +856,44 @@ tests:
           path: spec.securityContext
       - notExists:
           path: spec.volumes
+      - notExists:
+          path: spec.network.hostPorts
+
+  - it: renders SecurityPolicyException hostPorts with descriptions from additionalPorts
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capcd-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-static
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+        additionalPorts:
+          - containerPort: 4201
+            name: webhook-server
+            protocol: TCP
+          - containerPort: 4202
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.network.hostPorts
+          value:
+            - port: 4201
+              protocol: TCP
+              metadata:
+                description: CAPI infrastructure controller manager webhook-server port, bound on the node because the Pod runs in the host network.
+            - port: 4202
+              protocol: TCP
+              metadata:
+                description: CAPI infrastructure controller manager 4202 port, bound on the node because the Pod runs in the host network.
 
   - it: renders SecurityPolicyException in custom namespace
     set:
