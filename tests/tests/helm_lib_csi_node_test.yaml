@@ -326,3 +326,53 @@ tests:
             - --check
       - notExists:
           path: spec.template.spec.containers[0].livenessProbe.httpGet
+
+  - it: passes the module logLevel to node-driver-registrar as klog verbosity
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      testModule:
+        logLevel: TRACE
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--v=5"
+
+  - it: renders node-driver-registrar at klog verbosity 2 when the module sets no logLevel
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--v=2"

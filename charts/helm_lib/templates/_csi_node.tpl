@@ -148,7 +148,7 @@ spec:
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true "uid" "0" "runAsNonRoot" false) | nindent 8 }}
         image: {{ $driverRegistrarImage | quote }}
         args:
-        - "--v=5"
+        - "--v={{ include "helm_lib_module_klog_verbosity" $context }}"
         - "--csi-address=$(CSI_ENDPOINT)"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
         {{- if $livenessProbePort }}

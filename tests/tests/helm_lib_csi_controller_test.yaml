@@ -202,6 +202,86 @@ tests:
           path: spec.template.spec.containers[5].livenessProbe.timeoutSeconds
           value: 10
 
+  - it: passes the module logLevel to the sidecars as klog verbosity
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      testModule:
+        logLevel: DEBUG
+      _testvalues:
+        controllerImage: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--v=4"
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: "--v=4"
+      - contains:
+          path: spec.template.spec.containers[2].args
+          content: "--v=4"
+      - contains:
+          path: spec.template.spec.containers[3].args
+          content: "--v=4"
+
+  - it: renders the sidecars at klog verbosity 2 when the module sets no logLevel
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+    documentSelector:
+      path: kind
+      value: Deployment
+
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: "--v=2"
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: "--v=2"
+      - contains:
+          path: spec.template.spec.containers[2].args
+          content: "--v=2"
+      - contains:
+          path: spec.template.spec.containers[3].args
+          content: "--v=2"
+
   - it: renders VPA container policy ceilings when vertical-pod-autoscaler-crd is present
 
     set:

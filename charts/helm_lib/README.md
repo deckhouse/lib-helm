@@ -61,6 +61,7 @@
 | [helm_lib_module_controller_resources](#helm_lib_module_controller_resources) |
 | [helm_lib_module_webhooks_resources](#helm_lib_module_webhooks_resources) |
 | [helm_lib_module_controller_log_level](#helm_lib_module_controller_log_level) |
+| [helm_lib_module_klog_verbosity](#helm_lib_module_klog_verbosity) |
 | **Module Documentation Uri** |
 | [helm_lib_module_documentation_uri](#helm_lib_module_documentation_uri) |
 | **Module Ephemeral Storage** |
@@ -822,6 +823,16 @@ list:
 #### Usage
 
 `{{ include "helm_lib_module_controller_log_level" (list . "csiHpe") }} `
+
+
+
+### helm_lib_module_klog_verbosity
+
+ Returns klog --v value for the module logLevel (INFO by default) 
+
+#### Usage
+
+`{{ include "helm_lib_module_klog_verbosity" . }} `
 
 
 ## Module Documentation Uri
