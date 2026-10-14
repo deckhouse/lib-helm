@@ -1,6 +1,6 @@
-suite: helm_lib_module_ingress_nginx_version_ge definition
+suite: helm_lib_module_ingress_nginx_annotations_version_ge definition
 templates:
-  - helm_lib_module_ingress_nginx_version_ge.yaml
+  - helm_lib_module_ingress_nginx_annotations_version_ge.yaml
 tests:
   - it: renders an empty string when global.discovery is missing
     asserts:
@@ -40,7 +40,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: null
+          ingressNginxAnnotationsVersion: null
     asserts:
       - equal:
           path: ge
@@ -50,7 +50,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: ""
+          ingressNginxAnnotationsVersion: ""
     asserts:
       - equal:
           path: ge
@@ -60,7 +60,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: not-a-version
+          ingressNginxAnnotationsVersion: not-a-version
     asserts:
       - equal:
           path: ge
@@ -70,7 +70,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 1.2.0
+          ingressNginxAnnotationsVersion: 1.2.0
     asserts:
       - equal:
           path: ge
@@ -80,7 +80,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 1.2.1
+          ingressNginxAnnotationsVersion: 1.2.1
     asserts:
       - equal:
           path: ge
@@ -90,7 +90,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 1.2.2
+          ingressNginxAnnotationsVersion: 1.2.2
     asserts:
       - equal:
           path: ge
@@ -100,7 +100,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 1.3.0
+          ingressNginxAnnotationsVersion: 1.3.0
     asserts:
       - equal:
           path: ge
@@ -110,7 +110,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 2.0.0
+          ingressNginxAnnotationsVersion: 2.0.0
     asserts:
       - equal:
           path: ge
@@ -120,7 +120,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: v1.3.0
+          ingressNginxAnnotationsVersion: v1.3.0
     asserts:
       - equal:
           path: ge
@@ -131,7 +131,7 @@ tests:
       minimal: v1.2.1
       global:
         discovery:
-          ingressNginxModuleVersion: 1.2.1
+          ingressNginxAnnotationsVersion: 1.2.1
     asserts:
       - equal:
           path: ge
@@ -142,7 +142,7 @@ tests:
       minimal: 1.4.0
       global:
         discovery:
-          ingressNginxModuleVersion: 1.3.0
+          ingressNginxAnnotationsVersion: 1.3.0
     asserts:
       - equal:
           path: ge
@@ -152,7 +152,7 @@ tests:
     set:
       global:
         discovery:
-          ingressNginxModuleVersion: 1.3.0-rc.1
+          ingressNginxAnnotationsVersion: 1.3.0-rc.1
     asserts:
       - equal:
           path: ge
@@ -163,7 +163,7 @@ tests:
       minimal: not-a-version
       global:
         discovery:
-          ingressNginxModuleVersion: 1.3.0
+          ingressNginxAnnotationsVersion: 1.3.0
     asserts:
       - failedTemplate:
-          errorMessage: 'helm_lib_module_ingress_nginx_version_ge: "not-a-version" is not a semver'
+          errorMessage: 'helm_lib_module_ingress_nginx_annotations_version_ge: "not-a-version" is not a semver'
