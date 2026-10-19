@@ -39,13 +39,40 @@ tests:
           path: "test"
           value: "not empty string"
 
-  - it: should return empty string in case of Static cluster with unrelated infra-provider
+  - it: should return not empty string in case of Static cluster with any infra-provider-* enabled
     set:
       global:
         clusterConfiguration:
           clusterType: "Static"
         enabledModules:
         - infra-provider-other
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "not empty string"
+
+  - it: should return empty string in case of Static cluster with infra-provider substring not at prefix
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Static"
+        enabledModules:
+        - foo-infra-provider-x
+        - node-manager
+
+    asserts:
+      - notEqual:
+          path: "test"
+          value: "not empty string"
+
+  - it: should return empty string in case of Static cluster with only unrelated modules
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Static"
+        enabledModules:
+        - node-manager
 
     asserts:
       - notEqual:
