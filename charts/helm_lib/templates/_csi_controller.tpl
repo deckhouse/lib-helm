@@ -585,6 +585,7 @@ kind: SecurityPolicyException
 metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
+  {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
 spec:
 {{- if or $forceCsiControllerPrivilegedContainer $runAsRootUser (eq $csiControllerHostNetwork "true") (ne $csiControllerHostPID "false") }}
   {{- if or $forceCsiControllerPrivilegedContainer $runAsRootUser }}

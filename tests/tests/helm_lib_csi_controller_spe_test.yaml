@@ -213,6 +213,12 @@ tests:
           name: csi-controller
           namespace: d8-test-module
       - equal:
+          path: metadata.labels
+          value:
+            heritage: deckhouse
+            module: test-module
+            app: csi-controller
+      - equal:
           path: spec.network.hostNetwork.allowedValue
           value: true
       - notExists:

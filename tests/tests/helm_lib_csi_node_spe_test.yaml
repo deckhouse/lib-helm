@@ -196,6 +196,12 @@ tests:
           name: csi-node
           namespace: d8-test-module
       - equal:
+          path: metadata.labels
+          value:
+            heritage: deckhouse
+            module: test-module
+            app: csi-node
+      - equal:
           path: spec.securityContext.privileged.allowedValue
           value: true
       - equal:
