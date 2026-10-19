@@ -844,6 +844,12 @@ tests:
           name: capcd-controller-manager
           namespace: d8-test-module
       - equal:
+          path: metadata.labels
+          value:
+            heritage: deckhouse
+            module: test-module
+            app: capcd-controller-manager
+      - equal:
           path: metadata.name
           value: capcd-controller-manager
       - equal:

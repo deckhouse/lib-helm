@@ -25,3 +25,42 @@ tests:
       - equal:
           path: "test"
           value: "not empty string"
+
+  - it: should return not empty string in case of Static cluster with infra-provider-baremetal enabled
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Static"
+        enabledModules:
+        - infra-provider-baremetal
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "not empty string"
+
+  - it: should return empty string in case of Static cluster with unrelated infra-provider
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Static"
+        enabledModules:
+        - infra-provider-other
+
+    asserts:
+      - notEqual:
+          path: "test"
+          value: "not empty string"
+
+  - it: should return not empty string in case of Cloud cluster with infra-provider-baremetal enabled
+    set:
+      global:
+        clusterConfiguration:
+          clusterType: "Cloud"
+        enabledModules:
+        - infra-provider-baremetal
+
+    asserts:
+      - equal:
+          path: "test"
+          value: "not empty string"

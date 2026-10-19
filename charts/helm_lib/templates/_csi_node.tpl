@@ -312,6 +312,7 @@ kind: SecurityPolicyException
 metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
+  {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-node")) | nindent 2 }}
 spec:
   securityContext:
     privileged:
