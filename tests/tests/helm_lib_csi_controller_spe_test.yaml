@@ -632,7 +632,7 @@ tests:
       - notExists:
           path: spec.securityContext
 
-  - it: does not render hostPorts when the controller does not run in the host network
+  - it: renders no SecurityPolicyException when the controller needs no relaxation
     set:
       global:
         modules:
@@ -659,12 +659,11 @@ tests:
         additionalControllerPorts:
           - name: metrics
             containerPort: 4258
-    documentSelector:
-      path: kind
-      value: SecurityPolicyException
     asserts:
-      - notExists:
-          path: spec.network
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
 
   - it: allows privilege escalation for the privileged controller
     set:
@@ -847,8 +846,7 @@ tests:
         documentSelector:
           path: kind
           value: Deployment
-      - notExists:
-          path: spec.network
-        documentSelector:
-          path: kind
-          value: SecurityPolicyException
+      - not: true
+        containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1

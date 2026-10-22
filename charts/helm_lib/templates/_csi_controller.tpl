@@ -600,6 +600,7 @@ spec:
     {{- $hostPathVolumes = append $hostPathVolumes $volume }}
   {{- end }}
 {{- end }}
+{{- if or $privileged $escalation $root $capabilityValues $relaxations.seLinux (eq $csiControllerHostNetwork "true") (ne $csiControllerHostPID "false") $hostPathVolumes }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: SecurityPolicyException
@@ -728,6 +729,7 @@ spec:
               This hostPath volume is required by the CSI Controller for storage management operations specific to the cloud provider implementation.
     {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
