@@ -697,3 +697,39 @@ tests:
     asserts:
       - notExists:
           path: spec.network
+
+  - it: accepts a boolean csiNodeHostPID
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        csiNodeHostPID: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostPID
+          value: true
+        documentSelector:
+          path: kind
+          value: DaemonSet
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+        documentSelector:
+          path: kind
+          value: SecurityPolicyException

@@ -114,7 +114,13 @@ memory: 50Mi
   {{- $additionalControllerPorts := $config.additionalControllerPorts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
+  {{- if kindIs "bool" $config.csiControllerHostNetwork }}
+    {{- $csiControllerHostNetwork = toString $config.csiControllerHostNetwork }}
+  {{- end }}
   {{- $csiControllerHostPID := $config.csiControllerHostPID | default "false" }}
+  {{- if kindIs "bool" $config.csiControllerHostPID }}
+    {{- $csiControllerHostPID = toString $config.csiControllerHostPID }}
+  {{- end }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $livenessProbeTimeoutSeconds := $config.livenessProbeTimeoutSeconds | default 5 }}
   {{- $livenessProbeInitialDelaySeconds := $config.livenessProbeInitialDelaySeconds | default 5 }}

@@ -35,7 +35,13 @@ memory: 25Mi
   {{- $csiNodeDriverRegistrarLifecycle := $config.csiNodeDriverRegistrarLifecycle | default false }}
   {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
   {{- $csiNodeHostNetwork := $config.csiNodeHostNetwork | default "true" }}
+  {{- if kindIs "bool" $config.csiNodeHostNetwork }}
+    {{- $csiNodeHostNetwork = toString $config.csiNodeHostNetwork }}
+  {{- end }}
   {{- $csiNodeHostPID := $config.csiNodeHostPID | default "false" }}
+  {{- if kindIs "bool" $config.csiNodeHostPID }}
+    {{- $csiNodeHostPID = toString $config.csiNodeHostPID }}
+  {{- end }}
   {{- $startupProbeFailureThreshold := $config.startupProbeFailureThreshold | default 0 }}
   {{- $dnsPolicy := $config.dnsPolicy | default "ClusterFirstWithHostNet" }}
   {{- $securityPolicyExceptionEnabled := $config.securityPolicyExceptionEnabled | default false }}

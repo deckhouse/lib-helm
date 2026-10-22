@@ -815,3 +815,40 @@ tests:
           path: spec.securityContext
       - notExists:
           path: spec.network
+
+  - it: accepts a boolean false csiControllerHostNetwork
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: false
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+        documentSelector:
+          path: kind
+          value: Deployment
+      - notExists:
+          path: spec.network
+        documentSelector:
+          path: kind
+          value: SecurityPolicyException
