@@ -599,3 +599,137 @@ tests:
       - equal:
           path: spec.volumes.hostPath.allowedValues[4].path
           value: /opt/extra
+  - it: covers what the init and additional containers of the node need
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        setSysAdminCapability: true
+        additionalContainers:
+          - name: kube-rbac-proxy
+            image: proxy
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+            ports:
+              - name: https-metrics
+                containerPort: 4202
+        initContainers:
+          - name: modules-loader
+            image: loader
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["SYS_MODULE"]
+                drop: ["ALL"]
+              seLinuxOptions:
+                level: s0
+                type: spc_t
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.capabilities.allowedValues.add
+          value:
+            - SYS_ADMIN
+            - SYS_MODULE
+      - equal:
+          path: spec.securityContext.seLinuxOptions.allowedValues
+          value:
+            - level: s0
+              type: spc_t
+      - equal:
+          path: spec.network.hostPorts
+          value:
+            - port: 4202
+              protocol: TCP
+              metadata:
+                description: "Port 4202 (https-metrics) of the kube-rbac-proxy container, bound on the node because the CSI Node Pod runs in the host network."
+
+  - it: does not render hostPorts when the node does not run in the host network
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        csiNodeHostNetwork: "false"
+        additionalContainers:
+          - name: kube-rbac-proxy
+            image: proxy
+            ports:
+              - containerPort: 4202
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.network
+
+  - it: accepts a boolean csiNodeHostPID
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        csiNodeHostPID: true
+    asserts:
+      - equal:
+          path: spec.template.spec.hostPID
+          value: true
+        documentSelector:
+          path: kind
+          value: DaemonSet
+      - equal:
+          path: spec.network.hostPID.allowedValue
+          value: true
+        documentSelector:
+          path: kind
+          value: SecurityPolicyException

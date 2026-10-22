@@ -167,6 +167,9 @@ securityContext:
 {{- define "helm_lib_module_container_security_context_privileged" -}}
 securityContext:
   privileged: true
+  capabilities:
+    drop:
+    - ALL
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_escalated_sys_admin_privileged" . }} */ -}}
@@ -178,6 +181,8 @@ securityContext:
   capabilities:
     add:
     - SYS_ADMIN
+    drop:
+    - ALL
   privileged: true
 {{- end }}
 
@@ -188,6 +193,9 @@ securityContext:
 securityContext:
   privileged: true
   readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all" . }} */ -}}

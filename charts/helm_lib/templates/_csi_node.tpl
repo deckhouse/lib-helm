@@ -35,7 +35,13 @@ memory: 25Mi
   {{- $csiNodeDriverRegistrarLifecycle := $config.csiNodeDriverRegistrarLifecycle | default false }}
   {{- $additionalCsiNodePodAnnotations := $config.additionalCsiNodePodAnnotations | default false }}
   {{- $csiNodeHostNetwork := $config.csiNodeHostNetwork | default "true" }}
+  {{- if kindIs "bool" $config.csiNodeHostNetwork }}
+    {{- $csiNodeHostNetwork = toString $config.csiNodeHostNetwork }}
+  {{- end }}
   {{- $csiNodeHostPID := $config.csiNodeHostPID | default "false" }}
+  {{- if kindIs "bool" $config.csiNodeHostPID }}
+    {{- $csiNodeHostPID = toString $config.csiNodeHostPID }}
+  {{- end }}
   {{- $startupProbeFailureThreshold := $config.startupProbeFailureThreshold | default 0 }}
   {{- $dnsPolicy := $config.dnsPolicy | default "ClusterFirstWithHostNet" }}
   {{- $securityPolicyExceptionEnabled := $config.securityPolicyExceptionEnabled | default false }}
@@ -306,6 +312,11 @@ spec:
       {{- end }}
 
 {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat ($additionalContainers | default list) ($initContainers | default list)) (eq $csiNodeHostNetwork "true")) | fromYaml }}
+{{- $capabilityValues := $relaxations.capabilityValues }}
+{{- if $setSysAdminCapability }}
+  {{- $capabilityValues = prepend $capabilityValues "SYS_ADMIN" | uniq }}
+{{- end }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: SecurityPolicyException
@@ -340,15 +351,23 @@ spec:
         description: |
           Allow running as root user (UID 0) for CSI Node Driver.
           The CSI Node Driver and node-driver-registrar require root privileges to perform storage operations, interact with host devices, and manage volume mounts.
-  {{- if $setSysAdminCapability }}
+  {{- if $capabilityValues }}
     capabilities:
       allowedValues:
         add:
-          - SYS_ADMIN
+          {{- $capabilityValues | toYaml | nindent 10 }}
       metadata:
         description: |
+        {{- if $setSysAdminCapability }}
           Allow SYS_ADMIN capability for CSI Node Driver.
           The CSI Node Driver requires SYS_ADMIN capability to perform privileged filesystem operations such as mounting, unmounting, and managing block devices on the host.
+        {{- end }}
+        {{- if $relaxations.capabilities }}
+          Allow the capabilities added by the {{ $relaxations.capabilities | join ", " }} container(s) of the CSI Node: {{ $relaxations.capabilityValues | join ", " }}.
+        {{- end }}
+  {{- end }}
+  {{- if $relaxations.seLinux }}
+    {{- include "helm_lib_csi_spe_selinux_options" (list $relaxations "CSI Node") | trim | nindent 4 }}
   {{- end }}
 
   {{- if or (eq $csiNodeHostNetwork "true") (ne $csiNodeHostPID "false") }}
@@ -360,6 +379,9 @@ spec:
         description: |
           Allow host network access for CSI Node Driver.
           The CSI Node Driver requires host network access to communicate with the CSI Controller, coordinate volume attachment operations, and synchronize storage metadata across the cluster.
+    {{- if $relaxations.hostPorts }}
+    {{- include "helm_lib_csi_spe_host_ports" (list $relaxations.hostPorts "CSI Node") | trim | nindent 4 }}
+    {{- end }}
   {{- end }}
   {{- if ne $csiNodeHostPID "false" }}
     hostPID:

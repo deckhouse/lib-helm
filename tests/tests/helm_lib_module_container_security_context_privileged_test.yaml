@@ -8,3 +8,6 @@ tests:
           path: securityContext
           value:
             privileged: true
+            capabilities:
+              drop:
+                - ALL

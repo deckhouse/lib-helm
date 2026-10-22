@@ -114,7 +114,13 @@ memory: 50Mi
   {{- $additionalControllerPorts := $config.additionalControllerPorts }}
   {{- $additionalContainers := $config.additionalContainers }}
   {{- $csiControllerHostNetwork := $config.csiControllerHostNetwork | default "true" }}
+  {{- if kindIs "bool" $config.csiControllerHostNetwork }}
+    {{- $csiControllerHostNetwork = toString $config.csiControllerHostNetwork }}
+  {{- end }}
   {{- $csiControllerHostPID := $config.csiControllerHostPID | default "false" }}
+  {{- if kindIs "bool" $config.csiControllerHostPID }}
+    {{- $csiControllerHostPID = toString $config.csiControllerHostPID }}
+  {{- end }}
   {{- $livenessProbePort := $config.livenessProbePort | default 9808 }}
   {{- $livenessProbeTimeoutSeconds := $config.livenessProbeTimeoutSeconds | default 5 }}
   {{- $livenessProbeInitialDelaySeconds := $config.livenessProbeInitialDelaySeconds | default 5 }}
@@ -579,6 +585,22 @@ spec:
       {{- end }}
 
 {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- $controllerContainer := dict "name" "controller" "securityContext" (dict "allowPrivilegeEscalation" false) "ports" ($additionalControllerPorts | default list) }}
+{{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat (list $controllerContainer) ($additionalContainers | default list) ($initContainers | default list)) (eq $csiControllerHostNetwork "true")) | fromYaml }}
+{{- $privileged := or $forceCsiControllerPrivilegedContainer (gt (len $relaxations.privileged) 0) }}
+{{- $escalation := or $forceCsiControllerPrivilegedContainer (gt (len $relaxations.escalation) 0) }}
+{{- $root := or $runAsRootUser (gt (len $relaxations.root) 0) }}
+{{- $capabilityValues := $relaxations.capabilityValues }}
+{{- if $forceCsiControllerPrivilegedContainer }}
+  {{- $capabilityValues = prepend $capabilityValues "SYS_ADMIN" | uniq }}
+{{- end }}
+{{- $hostPathVolumes := list }}
+{{- range $volume := $additionalControllerVolumes | default list }}
+  {{- if $volume.hostPath }}
+    {{- $hostPathVolumes = append $hostPathVolumes $volume }}
+  {{- end }}
+{{- end }}
+{{- if or $privileged $escalation $root $capabilityValues $relaxations.seLinux (eq $csiControllerHostNetwork "true") (ne $csiControllerHostPID "false") $hostPathVolumes }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: SecurityPolicyException
@@ -587,39 +609,76 @@ metadata:
   namespace: d8-{{ $context.Chart.Name }}
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
 spec:
-{{- if or $forceCsiControllerPrivilegedContainer $runAsRootUser (eq $csiControllerHostNetwork "true") (ne $csiControllerHostPID "false") }}
-  {{- if or $forceCsiControllerPrivilegedContainer $runAsRootUser }}
+  {{- if or $privileged $escalation $root $capabilityValues $relaxations.seLinux }}
   securityContext:
-    {{- if $forceCsiControllerPrivilegedContainer }}
+    {{- if $privileged }}
     privileged:
       allowedValue: true
       metadata:
         description: |
+        {{- if $forceCsiControllerPrivilegedContainer }}
           Allow privileged mode for CSI Controller.
           The CSI Controller requires privileged access to perform storage management operations that need direct access to host resources, including device management and volume lifecycle control.
+        {{- end }}
+        {{- if $relaxations.privileged }}
+          Allow privileged mode for the {{ $relaxations.privileged | join ", " }} container(s) of the CSI Controller.
+        {{- end }}
+    {{- end }}
+    {{- if $escalation }}
+    allowPrivilegeEscalation:
+      allowedValue: true
+      metadata:
+        description: |
+        {{- if $forceCsiControllerPrivilegedContainer }}
+          Allow privilege escalation for CSI Controller.
+          A privileged container always runs with privilege escalation allowed.
+        {{- end }}
+        {{- if $relaxations.escalation }}
+          Allow privilege escalation for the {{ $relaxations.escalation | join ", " }} container(s) of the CSI Controller.
+        {{- end }}
+    {{- end }}
+    {{- if $capabilityValues }}
     capabilities:
       allowedValues:
         add:
-          - SYS_ADMIN
+          {{- $capabilityValues | toYaml | nindent 10 }}
       metadata:
         description: |
+        {{- if $forceCsiControllerPrivilegedContainer }}
           Allow SYS_ADMIN capability for CSI Controller.
           The CSI Controller requires SYS_ADMIN capability to perform privileged storage management operations such as volume provisioning, snapshotting, and direct interaction with the storage backend.
+        {{- end }}
+        {{- if $relaxations.capabilities }}
+          Allow the capabilities added by the {{ $relaxations.capabilities | join ", " }} container(s) of the CSI Controller: {{ $relaxations.capabilityValues | join ", " }}.
+        {{- end }}
     {{- end }}
-    {{- if $runAsRootUser }}
+    {{- if $root }}
     runAsUser:
       allowedValues:
         - 0
       metadata:
         description: |
+        {{- if $runAsRootUser }}
           Allow running as root user (UID 0) for CSI Controller.
           The CSI Controller requires root privileges to interact with storage backends, manage volume lifecycle operations, and access cloud provider APIs.
+        {{- end }}
+        {{- if $relaxations.root }}
+          Allow running as root user (UID 0) for the {{ $relaxations.root | join ", " }} container(s) of the CSI Controller.
+        {{- end }}
     runAsNonRoot:
       allowedValue: false
       metadata:
         description: |
+        {{- if $runAsRootUser }}
           Allow running as root for CSI Controller.
           The CSI Controller requires root access for storage management operations that need elevated privileges to interact with the underlying infrastructure.
+        {{- end }}
+        {{- if $relaxations.root }}
+          Allow running as root for the {{ $relaxations.root | join ", " }} container(s) of the CSI Controller.
+        {{- end }}
+    {{- end }}
+    {{- if $relaxations.seLinux }}
+    {{- include "helm_lib_csi_spe_selinux_options" (list $relaxations "CSI Controller") | trim | nindent 4 }}
     {{- end }}
   {{- end }}
   {{- if or (eq $csiControllerHostNetwork "true") (ne $csiControllerHostPID "false") }}
@@ -631,6 +690,9 @@ spec:
         description: |
           Allow host network access for CSI Controller.
           The CSI Controller requires host network access to communicate with cloud provider API endpoints for volume provisioning, attachment, snapshot, and lifecycle management operations.
+    {{- if $relaxations.hostPorts }}
+    {{- include "helm_lib_csi_spe_host_ports" (list $relaxations.hostPorts "CSI Controller") | trim | nindent 4 }}
+    {{- end }}
     {{- end }}
     {{- if ne $csiControllerHostPID "false" }}
     hostPID:
@@ -641,15 +703,7 @@ spec:
           The CSI Controller requires host PID namespace access to interact with host processes for storage operations and coordinate with system-level services.
     {{- end }}
   {{- end }}
-  {{- $hasHostPathVolumes := false }}
-  {{- if $additionalControllerVolumes }}
-    {{- range $vol := $additionalControllerVolumes }}
-      {{- if $vol.hostPath }}
-        {{- $hasHostPathVolumes = true }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-  {{- if $hasHostPathVolumes }}
+  {{- if $hostPathVolumes }}
   volumes:
     types:
       allowedValues:
@@ -660,8 +714,7 @@ spec:
           The CSI Controller requires hostPath volumes for accessing host-level resources needed for storage management operations specific to the cloud provider implementation.
     hostPath:
       allowedValues:
-    {{- range $volume := $additionalControllerVolumes }}
-      {{- if $volume.hostPath }}
+    {{- range $volume := $hostPathVolumes }}
       {{- $readOnly := false }}
         {{- range $volumeMount := $additionalControllerVolumeMounts }}
           {{- if eq $volumeMount.name $volume.name }}
@@ -674,7 +727,6 @@ spec:
             description: |
               Allow access to additional hostPath volume at {{ $volume.hostPath.path }}.
               This hostPath volume is required by the CSI Controller for storage management operations specific to the cloud provider implementation.
-      {{- end }}
     {{- end }}
   {{- end }}
 {{- end }}
