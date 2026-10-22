@@ -573,3 +573,245 @@ tests:
     asserts:
       - notExists:
           path: spec.volumes
+
+  - it: renders hostPorts for the ports of the controller and additional containers in the host network
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+        additionalControllerPorts:
+          - name: metrics
+            containerPort: 4258
+        additionalContainers:
+          - name: backend
+            image: backend
+            securityContext:
+              allowPrivilegeEscalation: false
+            ports:
+              - containerPort: 4257
+                hostPort: 4257
+                protocol: UDP
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.network.hostPorts[0].port
+          value: 4258
+      - equal:
+          path: spec.network.hostPorts[0].protocol
+          value: TCP
+      - equal:
+          path: spec.network.hostPorts[0].metadata.description
+          value: "Port 4258 (metrics) of the controller container, bound on the node because the CSI Controller Pod runs in the host network."
+      - equal:
+          path: spec.network.hostPorts[1].port
+          value: 4257
+      - equal:
+          path: spec.network.hostPorts[1].protocol
+          value: UDP
+      - notExists:
+          path: spec.securityContext
+
+  - it: does not render hostPorts when the controller does not run in the host network
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "false"
+        additionalControllerPorts:
+          - name: metrics
+            containerPort: 4258
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - notExists:
+          path: spec.network
+
+  - it: allows privilege escalation for the privileged controller
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "false"
+        forceCsiControllerPrivilegedContainer: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
+      - equal:
+          path: spec.securityContext.capabilities.allowedValues.add
+          value:
+            - SYS_ADMIN
+
+  - it: covers what the init and additional containers of the controller need
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "false"
+        additionalContainers:
+          - name: plugin
+            image: plugin
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                add: ["NET_ADMIN"]
+                drop: ["ALL"]
+        initContainers:
+          - name: modules-loader
+            image: loader
+            securityContext:
+              privileged: true
+              runAsUser: 0
+              seLinuxOptions:
+                level: s0
+                type: spc_t
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.securityContext.privileged.allowedValue
+          value: true
+      - equal:
+          path: spec.securityContext.allowPrivilegeEscalation.allowedValue
+          value: true
+      - equal:
+          path: spec.securityContext.capabilities.allowedValues.add
+          value:
+            - NET_ADMIN
+      - equal:
+          path: spec.securityContext.runAsUser.allowedValues
+          value:
+            - 0
+      - equal:
+          path: spec.securityContext.runAsNonRoot.allowedValue
+          value: false
+      - equal:
+          path: spec.securityContext.seLinuxOptions.allowedValues
+          value:
+            - level: s0
+              type: spc_t
+      - notExists:
+          path: spec.network
+
+  - it: renders hostPath volumes when the controller runs neither privileged nor in the host network
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "false"
+        additionalControllerVolumes:
+          - name: host-dev
+            hostPath:
+              path: /dev
+        additionalControllerVolumeMounts:
+          - name: host-dev
+            mountPath: /dev
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.volumes.hostPath.allowedValues[0].path
+          value: /dev
+      - notExists:
+          path: spec.securityContext
+      - notExists:
+          path: spec.network

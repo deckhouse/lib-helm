@@ -46,6 +46,10 @@
 | [helm_lib_cluster_prefix](#helm_lib_cluster_prefix) |
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
+| **Csi Security Policy Exception** |
+| [helm_lib_csi_spe_container_relaxations](#helm_lib_csi_spe_container_relaxations) |
+| [helm_lib_csi_spe_host_ports](#helm_lib_csi_spe_host_ports) |
+| [helm_lib_csi_spe_selinux_options](#helm_lib_csi_spe_selinux_options) |
 | **Dns Policy** |
 | [helm_lib_dns_policy_bootstraping_state](#helm_lib_dns_policy_bootstraping_state) |
 | **Enable Ds Eviction** |
@@ -707,6 +711,37 @@ list:
 -  Template context with .Values, .Chart, etc 
 -  Container raw name 
 -  Kubernetes semantic version 
+
+## Csi Security Policy Exception
+
+### helm_lib_csi_spe_container_relaxations
+
+ returns the Pod Security Standards relaxations the given containers need, with the names of the containers needing each one 
+
+#### Usage
+
+`{{ $relaxations := include "helm_lib_csi_spe_container_relaxations" (list $containers $hostNetwork) | fromYaml }} `
+
+
+
+### helm_lib_csi_spe_host_ports
+
+ returns spec.network.hostPorts of a CSI SecurityPolicyException with a description for each port 
+
+#### Usage
+
+`{{ include "helm_lib_csi_spe_host_ports" (list $hostPorts $component) | trim | nindent 4 }} `
+
+
+
+### helm_lib_csi_spe_selinux_options
+
+ returns spec.securityContext.seLinuxOptions of a CSI SecurityPolicyException 
+
+#### Usage
+
+`{{ include "helm_lib_csi_spe_selinux_options" (list $relaxations $component) | trim | nindent 4 }} `
+
 
 ## Dns Policy
 
