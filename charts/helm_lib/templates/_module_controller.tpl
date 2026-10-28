@@ -224,9 +224,7 @@ spec:
           resources:
             requests:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
-{{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
               {{- include "helm_lib_module_controller_resources" $context | nindent 14 }}
-{{- end }}
           env:
             - name: LOG_LEVEL
               value: {{ include "helm_lib_module_controller_log_level" (list $context $valuesKey) | quote }}
@@ -301,9 +299,7 @@ spec:
           resources:
             requests:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
-{{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
               {{- include "helm_lib_module_webhooks_resources" $context | nindent 14 }}
-{{- end }}
         {{- end }}
         {{- if $controllerMetricsProxyPort }}
         {{- /* The metrics endpoint of a controller is unauthenticated, and a
@@ -364,9 +360,7 @@ spec:
           resources:
             requests:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
-{{- if not ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
               {{- include "helm_lib_container_kube_rbac_proxy_resources" $context | nindent 14 }}
-{{- end }}
         {{- end }}
         {{- if $additionalContainers }}
         {{- $additionalContainers | toYaml | nindent 8 }}

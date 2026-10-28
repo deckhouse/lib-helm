@@ -353,9 +353,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "provisioner_resources" $context | nindent 12 }}
-  {{- end }}
       - name: attacher
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 8 }}
         image: {{ $attacherImage | quote }}
@@ -383,9 +381,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "attacher_resources" $context | nindent 12 }}
-  {{- end }}
             {{- if $resizerEnabled }}
       - name: resizer
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 8 }}
@@ -414,9 +410,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "resizer_resources" $context | nindent 12 }}
-  {{- end }}
             {{- end }}
             {{- if and $syncerEnabled $syncerImage }}
       - name: syncer
@@ -441,9 +435,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "syncer_resources" $context | nindent 12 }}
-  {{- end }}
             {{- end }}
     {{- if $snapshotterEnabled }}
       - name: snapshotter
@@ -476,9 +468,7 @@ spec:
         resources:
           requests:
               {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "snapshotter_resources" $context | nindent 12 }}
-  {{- end }}
             {{- end }}
       - name: livenessprobe
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 8 }}
@@ -511,9 +501,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "livenessprobe_resources" $context | nindent 12 }}
-  {{- end }}
       - name: controller
 {{- if $forceCsiControllerPrivilegedContainer }}
         {{- include "helm_lib_module_container_security_context_escalated_sys_admin_privileged" . | nindent 8 }}
@@ -554,9 +542,7 @@ spec:
         resources:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
-  {{- if not ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
             {{- include "controller_resources" $context | nindent 12 }}
-  {{- end }}
     {{- if $additionalContainers }}
       {{- $additionalContainers | toYaml | nindent 6 }}
     {{- end }}
