@@ -128,6 +128,7 @@
 | [helm_lib_module_container_security_context_privileged_read_only_root_filesystem](#helm_lib_module_container_security_context_privileged_read_only_root_filesystem) |
 | [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all) |
 | [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add) |
+| [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default) |
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_add](#helm_lib_module_container_security_context_capabilities_drop_all_and_add) |
 | [helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom](#helm_lib_module_container_security_context_capabilities_drop_all_and_run_as_user_custom) |
 | [helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted](#helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_pss_restricted) |
@@ -1550,6 +1551,21 @@ list:
 #### Usage
 
 `{{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add"  (list . (list "KILL" "SYS_PTRACE")) }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  List of capabilities 
+
+
+### helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default
+
+ returns SecurityContext parameters for Container with read only root filesystem, all dropped and some added capabilities, and the RuntimeDefault seccomp profile 
+
+#### Usage
+
+`{{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default"  (list . (list "KILL" "SYS_PTRACE")) }} `
 
 #### Arguments
 
