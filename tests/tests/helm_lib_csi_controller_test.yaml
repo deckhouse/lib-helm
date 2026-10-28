@@ -374,3 +374,86 @@ tests:
             cpu: 100m
             memory: 256Mi
         documentIndex: 0
+
+  - it: keeps the cpu and memory requests of every container when vertical-pod-autoscaler-crd is present
+
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+
+    # A pod without them is BestEffort, which the VPA updater cannot resize in
+    # place, so it evicts the pod instead, again and again while the admission
+    # controller does not set them.
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[1].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[2].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[3].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[4].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[5].resources.requests
+          value:
+            ephemeral-storage: 60Mi
+            cpu: 10m
+            memory: 50Mi
+        documentSelector:
+          path: kind
+          value: Deployment

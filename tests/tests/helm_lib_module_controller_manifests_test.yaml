@@ -542,3 +542,62 @@ tests:
             name: METRICS_BIND_ADDRESS
             value: ":8080"
         documentIndex: 1
+
+  - it: keeps the cpu and memory requests of every container when vertical-pod-autoscaler-crd is enabled
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+              webhooks: sha256:def456
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+        internal:
+          customWebhookCert:
+            ca: test-ca-cert
+            crt: test-crt
+            key: test-key
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: true
+        webhookCertPath: internal.customWebhookCert
+        onMasterNode: true
+
+    # A pod without them is BestEffort, which the VPA updater cannot resize in
+    # place, so it evicts the pod instead, again and again while the admission
+    # controller does not set them.
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 10m
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 25Mi
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[1].resources.requests.cpu
+          value: 10m
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[1].resources.requests.memory
+          value: 50Mi
+        documentSelector:
+          path: kind
+          value: Deployment

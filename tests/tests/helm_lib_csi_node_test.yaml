@@ -376,3 +376,51 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].args
           content: "--v=2"
+
+  - it: keeps the cpu and memory requests of every container when vertical-pod-autoscaler-crd is present
+
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+
+    # A pod without them is BestEffort, which the VPA updater cannot resize in
+    # place, so it evicts the pod instead, again and again while the admission
+    # controller does not set them.
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 12m
+        documentSelector:
+          path: kind
+          value: DaemonSet
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 25Mi
+        documentSelector:
+          path: kind
+          value: DaemonSet
+      - exists:
+          path: spec.template.spec.containers[1].resources.requests.cpu
+        documentSelector:
+          path: kind
+          value: DaemonSet
+      - exists:
+          path: spec.template.spec.containers[1].resources.requests.memory
+        documentSelector:
+          path: kind
+          value: DaemonSet
