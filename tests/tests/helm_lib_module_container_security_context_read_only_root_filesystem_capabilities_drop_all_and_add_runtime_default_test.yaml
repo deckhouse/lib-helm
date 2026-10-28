@@ -1,0 +1,19 @@
+suite: helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default
+templates:
+  - helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default.yaml
+tests:
+  - it: drops all, adds the given capabilities and sets the RuntimeDefault seccomp profile
+    asserts:
+      - equal:
+          path: securityContext
+          value:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - DAC_OVERRIDE
+                - NET_ADMIN
+            seccompProfile:
+              type: RuntimeDefault

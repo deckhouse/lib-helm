@@ -224,6 +224,22 @@ securityContext:
     add: {{ index . 1 | toJson }}
 {{- end }}
 
+{{- /* Usage: {{ include "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default"  (list . (list "KILL" "SYS_PTRACE")) }} */ -}}
+{{- /* returns SecurityContext parameters for Container with read only root filesystem, all dropped and some added capabilities, and the RuntimeDefault seccomp profile */ -}}
+{{- define "helm_lib_module_container_security_context_read_only_root_filesystem_capabilities_drop_all_and_add_runtime_default" -}}
+{{- /* Template context with .Values, .Chart, etc */ -}}
+{{- /* List of capabilities */ -}}
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+    add: {{ index . 1 | toJson }}
+  seccompProfile:
+    type: RuntimeDefault
+{{- end }}
+
 {{- /* Usage: {{ include "helm_lib_module_container_security_context_capabilities_drop_all_and_add"  (list . (list "KILL" "SYS_PTRACE")) }} */ -}}
 {{- /* returns SecurityContext parameters for Container with all dropped and some added capabilities */ -}}
 {{- define "helm_lib_module_container_security_context_capabilities_drop_all_and_add" -}}
