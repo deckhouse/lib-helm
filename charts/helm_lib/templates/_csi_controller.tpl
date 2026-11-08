@@ -259,7 +259,7 @@ spec:
     metadata:
       labels:
         app: {{ $fullname }}
-        {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+        {{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
         security.deckhouse.io/security-policy-exception: {{ $fullname }}
         {{- end }}
       {{- if or (hasPrefix "cloud-provider-" $context.Chart.Name) ($additionalCsiControllerPodAnnotations) }}
@@ -570,7 +570,7 @@ spec:
         {{- $additionalControllerVolumes | toYaml | nindent 6 }}
       {{- end }}
 
-{{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
 {{- $controllerContainer := dict "name" "controller" "securityContext" (dict "allowPrivilegeEscalation" false) "ports" ($additionalControllerPorts | default list) }}
 {{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat (list $controllerContainer) ($additionalContainers | default list) ($initContainers | default list)) (eq $csiControllerHostNetwork "true")) | fromYaml }}
 {{- $privileged := or $forceCsiControllerPrivilegedContainer (gt (len $relaxations.privileged) 0) }}

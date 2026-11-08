@@ -147,7 +147,7 @@ spec:
     metadata:
       labels:
         app: {{ $fullname }}
-      {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+      {{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
         security.deckhouse.io/security-policy-exception: {{ $fullname }}
       {{- end }}
       {{- with $additionalPodLabels }}
@@ -221,7 +221,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-{{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
 ---
 apiVersion: deckhouse.io/v1alpha1
 kind: SecurityPolicyException

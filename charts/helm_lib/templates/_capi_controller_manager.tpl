@@ -220,7 +220,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-{{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
 {{- if $hostNetwork }}
 ---
 apiVersion: deckhouse.io/v1alpha1
