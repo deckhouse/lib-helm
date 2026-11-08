@@ -761,6 +761,8 @@ tests:
         enabledModules:
           - admission-policy-engine-crd
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         fullname: capz-controller-manager
@@ -774,12 +776,37 @@ tests:
           kind: SecurityPolicyException
           apiVersion: deckhouse.io/v1alpha1
 
-  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+  - it: renders SecurityPolicyException when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        fullname: capz-controller-manager
+        image: controllerImage
+        capiProviderName: infrastructure-zvirt
+        securityPolicyExceptionEnabled: true
+        hostNetwork: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         discovery:
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -802,6 +829,8 @@ tests:
         enabledModules:
           - admission-policy-engine-crd
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         fullname: capz-controller-manager
@@ -825,6 +854,8 @@ tests:
         enabledModules:
           - admission-policy-engine-crd
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         fullname: capcd-controller-manager
@@ -873,6 +904,8 @@ tests:
         enabledModules:
           - admission-policy-engine-crd
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         fullname: capcd-controller-manager
@@ -909,6 +942,8 @@ tests:
         enabledModules:
           - admission-policy-engine-crd
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         fullname: capcd-controller-manager

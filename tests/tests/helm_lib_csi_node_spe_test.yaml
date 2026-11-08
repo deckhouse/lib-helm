@@ -16,6 +16,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -29,12 +31,43 @@ tests:
           kind: SecurityPolicyException
           apiVersion: deckhouse.io/v1alpha1
 
-  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+  - it: renders SecurityPolicyException when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -95,6 +128,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -109,12 +144,42 @@ tests:
       - notExists:
           path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
 
-  - it: does not add security-policy-exception label when admission-policy-engine-crd is not enabled
+  - it: adds security-policy-exception label when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - exists:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+
+  - it: does not add security-policy-exception label when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -150,6 +215,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -179,6 +246,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -264,6 +333,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -300,6 +371,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -332,6 +405,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -366,6 +441,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -399,6 +476,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -429,6 +508,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -476,6 +557,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -521,6 +604,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -556,6 +641,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -613,6 +700,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -678,6 +767,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -712,6 +803,8 @@ tests:
             common:
               csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:

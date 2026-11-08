@@ -20,6 +20,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -31,12 +33,46 @@ tests:
           kind: SecurityPolicyException
           apiVersion: deckhouse.io/v1alpha1
 
-  - it: does not render SecurityPolicyException when admission-policy-engine-crd module is not enabled
+  - it: renders SecurityPolicyException when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+        csiControllerHostNetwork: "true"
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - containsDocument:
+          kind: SecurityPolicyException
+          apiVersion: deckhouse.io/v1alpha1
+
+  - it: does not render SecurityPolicyException when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -106,6 +142,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -116,14 +154,46 @@ tests:
       value: Deployment
     asserts:
       - notExists:
-          path: spec.selector.matchLabels["security.deckhouse.io/security-policy-exception"]
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
 
-  - it: does not add security-policy-exception label when admission-policy-engine-crd is not enabled
+  - it: adds security-policy-exception label when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        securityPolicyExceptionEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - exists:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
+
+  - it: does not add security-policy-exception label when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         modulesImages:
           registry:
             base: "deckhouse.io/deckhouse/ce"
@@ -145,7 +215,7 @@ tests:
       value: Deployment
     asserts:
       - notExists:
-          path: spec.selector.matchLabels["security.deckhouse.io/security-policy-exception"]
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]
 
   - it: adds security-policy-exception label to Deployment pod template
     set:
@@ -165,6 +235,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -197,6 +269,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -246,6 +320,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -286,6 +362,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -326,6 +404,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -378,6 +458,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -417,6 +499,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -453,6 +537,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -506,6 +592,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -557,6 +645,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -592,6 +682,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -650,6 +742,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -683,6 +777,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -720,6 +816,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -790,6 +888,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:
@@ -833,6 +933,8 @@ tests:
               csiExternalSnapshotter125: csiControllerSnapshotter125
               csiLivenessprobe125: csiLivenessProbe125
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           kubernetesVersion: "1.25"
           d8SpecificNodeCountByRole: {}
       _testvalues:

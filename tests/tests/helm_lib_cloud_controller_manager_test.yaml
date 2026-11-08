@@ -577,6 +577,8 @@ tests:
           - admission-policy-engine-crd
         clusterIsBootstrapped: true
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         image: controllerImage
@@ -609,6 +611,8 @@ tests:
           - admission-policy-engine-crd
         clusterIsBootstrapped: true
         discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
           d8SpecificNodeCountByRole: {}
       _testvalues:
         image: controllerImage
@@ -651,12 +655,36 @@ tests:
           path: spec.volumes.hostPath.allowedValues[0].readOnly
           value: true
 
-  - it: does not render SecurityPolicyException when admission policy module is disabled
+  - it: renders SecurityPolicyException when the SecurityPolicyException API exists although admission-policy-engine-crd is not enabled
     set:
       global:
         modules:
           placement: {}
         enabledModules: []
+        clusterIsBootstrapped: true
+        discovery:
+          apiVersions:
+            - deckhouse.io/v1alpha1/SecurityPolicyException
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        securityPolicyExceptionEnabled: true
+        additionalVolumes:
+          - name: k8s-certs
+            hostPath:
+              path: /etc/kubernetes/pki
+              type: DirectoryOrCreate
+    asserts:
+      - hasDocuments:
+          count: 3
+
+  - it: does not render SecurityPolicyException when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
         clusterIsBootstrapped: true
         discovery:
           d8SpecificNodeCountByRole: {}
@@ -671,3 +699,23 @@ tests:
     asserts:
       - hasDocuments:
           count: 2
+
+  - it: does not add pod metadata marker when the SecurityPolicyException API is missing although admission-policy-engine-crd is enabled
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        clusterIsBootstrapped: true
+        discovery:
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        image: controllerImage
+        securityPolicyExceptionEnabled: true
+    documentSelector:
+      path: kind
+      value: Deployment
+    asserts:
+      - notExists:
+          path: spec.template.metadata.labels["security.deckhouse.io/security-policy-exception"]

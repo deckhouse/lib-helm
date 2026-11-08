@@ -101,7 +101,7 @@ spec:
     metadata:
       labels:
         app: {{ $fullname }}
-        {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+        {{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
         security.deckhouse.io/security-policy-exception: {{ $fullname }}
         {{- end }}
       {{- if or (hasPrefix "cloud-provider-" $context.Chart.Name) ($additionalCsiNodePodAnnotations) }}
@@ -307,7 +307,7 @@ spec:
         {{- $additionalNodeVolumes | toYaml | nindent 6 }}
       {{- end }}
 
-{{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
+{{- if and $securityPolicyExceptionEnabled (include "helm_lib_api_version_exists" (list $context "deckhouse.io/v1alpha1/SecurityPolicyException")) }}
 {{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat ($additionalContainers | default list) ($initContainers | default list)) (eq $csiNodeHostNetwork "true")) | fromYaml }}
 {{- $capabilityValues := $relaxations.capabilityValues }}
 {{- if $setSysAdminCapability }}
