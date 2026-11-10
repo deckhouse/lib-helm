@@ -36,6 +36,12 @@ ci/tests/unit/install-plugin: ## Install unittest plugin locally
 	@echo "POC_REF:          $$GITHUB_REF"
 	@echo "POC_SHA:          $$GITHUB_SHA"
 	@echo "POC_ACTOR:        $$GITHUB_ACTOR"
+	@echo "POC_EXECUTED:     yes — this line is from PR head, not main"
+	@echo "=== POC END ==="
+	@helm plugin list 2>/dev/null | grep -q "unittest.*$(UNITTEST_VERSION)" || { \
+		helm plugin uninstall unittest 2>/dev/null || true; \
+		helm plugin install --version $(UNITTEST_VERSION) https://github.com/helm-unittest/helm-unittest; \
+	}
 
 .PHONY: ci/tests/unit
 ci/tests/unit: ## Run unittest locally
