@@ -164,7 +164,15 @@ spec:
         - name: CSI_ENDPOINT
           value: "/csi/csi.sock"
         - name: DRIVER_REG_SOCK_PATH
+        {{- /*
+          storage-foundation serves dr-proxy.sock next to the socket of the
+          driver on every node: kubelet calls the driver through it.
+        */}}
+        {{- if $context.Values.global.enabledModules | has "storage-foundation" }}
+          value: "/var/lib/kubelet/csi-plugins/{{ $driverFQDN }}/dr-proxy.sock"
+        {{- else }}
           value: "/var/lib/kubelet/csi-plugins/{{ $driverFQDN }}/csi.sock"
+        {{- end }}
         - name: KUBE_NODE_NAME
           valueFrom:
             fieldRef:

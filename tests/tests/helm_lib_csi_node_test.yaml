@@ -424,3 +424,64 @@ tests:
         documentSelector:
           path: kind
           value: DaemonSet
+
+  - it: registers the socket of the driver
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRIVER_REG_SOCK_PATH
+            value: /var/lib/kubelet/csi-plugins/driverFQDN/csi.sock
+
+  - it: registers the socket of the storage-foundation proxy when the module is enabled
+    set:
+      global:
+        enabledModules:
+          - storage-foundation
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiNodeDriverRegistrar: csiNodeDriverRegistrar
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRIVER_REG_SOCK_PATH
+            value: /var/lib/kubelet/csi-plugins/driverFQDN/dr-proxy.sock
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CSI_ENDPOINT
+            value: /csi/csi.sock
