@@ -47,6 +47,17 @@ memory: 25Mi
   {{- $securityPolicyExceptionEnabled := $config.securityPolicyExceptionEnabled | default false }}
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
   {{- $driverRegistrarImage := include "helm_lib_csi_image_with_common_fallback" (list $context "csiNodeDriverRegistrar" $kubernetesSemVer) }}
+  {{- /*
+    storage-foundation replicates block volumes to another cluster: kubelet calls the driver through
+    the DR proxy, a sidecar that gives the pods asking for the replication of their volumes the DRBD
+    devices of the volumes. A storage-foundation without the proxy image leaves the node plugin as is.
+  */}}
+  {{- $drProxyImage := "" }}
+  {{- if $context.Values.global.enabledModules | has "storage-foundation" }}
+    {{- if hasKey (index $context.Values.global.modulesImages.digests "storageFoundation" | default dict) "dr" }}
+      {{- $drProxyImage = include "helm_lib_csi_image_with_common_fallback" (list $context "dr" $kubernetesSemVer) }}
+    {{- end }}
+  {{- end }}
   {{- if $driverRegistrarImage }}
     {{- if or $forceCsiNodeAndStaticNodesDepoloy (include "_helm_lib_cloud_or_hybrid_cluster" $context) }}
       {{- if ($context.Values.global.enabledModules | has "vertical-pod-autoscaler-crd") }}
@@ -164,11 +175,8 @@ spec:
         - name: CSI_ENDPOINT
           value: "/csi/csi.sock"
         - name: DRIVER_REG_SOCK_PATH
-        {{- /*
-          storage-foundation serves dr-proxy.sock next to the socket of the
-          driver on every node: kubelet calls the driver through it.
-        */}}
-        {{- if $context.Values.global.enabledModules | has "storage-foundation" }}
+        {{- /* The DR proxy serves dr-proxy.sock next to the socket of the driver. */}}
+        {{- if $drProxyImage }}
           value: "/var/lib/kubelet/csi-plugins/{{ $driverFQDN }}/dr-proxy.sock"
         {{- else }}
           value: "/var/lib/kubelet/csi-plugins/{{ $driverFQDN }}/csi.sock"
@@ -275,6 +283,38 @@ spec:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
             {{- include "node_resources" $context | nindent 12 }}
+      {{- if $drProxyImage }}
+      - name: dr-proxy
+        securityContext:
+          privileged: true
+          allowPrivilegeEscalation: true
+          readOnlyRootFilesystem: true
+          runAsUser: 0
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+        image: {{ $drProxyImage | quote }}
+        command: ["/dr-agent"]
+        args:
+        - "proxy"
+        - "--listen=/csi/dr-proxy.sock"
+        - "--driver=/csi/csi.sock"
+        volumeMounts:
+        - name: plugin-dir
+          mountPath: /csi
+        - name: kubelet-dir
+          mountPath: /var/lib/kubelet
+          mountPropagation: "Bidirectional"
+        - name: device-dir
+          mountPath: /dev
+        - name: dr-run
+          mountPath: /run/storage-foundation/dr
+        resources:
+          requests:
+            {{- include "helm_lib_module_ephemeral_storage_only_logs" 10 | nindent 12 }}
+            cpu: 10m
+            memory: 20Mi
+      {{- end }}
 
       {{- if $additionalContainers }}
         {{- $additionalContainers | toYaml | nindent 6 }}
@@ -310,6 +350,12 @@ spec:
         hostPath:
           path: /dev
           type: Directory
+      {{- if $drProxyImage }}
+      - name: dr-run
+        hostPath:
+          path: /run/storage-foundation/dr
+          type: DirectoryOrCreate
+      {{- end }}
 
       {{- if $additionalNodeVolumes }}
         {{- $additionalNodeVolumes | toYaml | nindent 6 }}
@@ -431,6 +477,14 @@ spec:
             description: |
               Allow access to host device directory.
               CSI Node Driver requires access to /dev to manage block devices and perform disk operations for persistent volumes.
+    {{- if $drProxyImage }}
+        - path: /run/storage-foundation/dr
+          readOnly: false
+          metadata:
+            description: |
+              Allow access to the directory of the storage-foundation DR agent.
+              The DR proxy calls the agent through its socket and reads the markers of the replicated volumes there.
+    {{- end }}
     {{- if $additionalNodeVolumes }}
       {{- range $volume := $additionalNodeVolumes }}
         {{- if $volume.hostPath }}
