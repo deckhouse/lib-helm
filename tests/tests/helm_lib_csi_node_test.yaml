@@ -424,3 +424,113 @@ tests:
         documentSelector:
           path: kind
           value: DaemonSet
+
+  - it: registers the socket of the driver
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRIVER_REG_SOCK_PATH
+            value: /var/lib/kubelet/csi-plugins/driverFQDN/csi.sock
+
+  - it: puts the storage-foundation DR proxy in front of the node plugin when the module ships it
+    set:
+      global:
+        enabledModules:
+          - storage-foundation
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiNodeDriverRegistrar: csiNodeDriverRegistrar
+              dr: drDigest
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRIVER_REG_SOCK_PATH
+            value: /var/lib/kubelet/csi-plugins/driverFQDN/dr-proxy.sock
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CSI_ENDPOINT
+            value: /csi/csi.sock
+      - equal:
+          path: spec.template.spec.containers[2].name
+          value: dr-proxy
+      - equal:
+          path: spec.template.spec.containers[2].image
+          value: deckhouse.io/deckhouse/ce/modules/storage-foundation@drDigest
+      - equal:
+          path: spec.template.spec.containers[2].args
+          value: ["proxy", "--listen=/csi/dr-proxy.sock", "--driver=/csi/csi.sock"]
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: dr-run
+            hostPath:
+              path: /run/storage-foundation/dr
+              type: DirectoryOrCreate
+
+  - it: leaves the node plugin as is with a storage-foundation that ships no DR proxy
+    set:
+      global:
+        enabledModules:
+          - storage-foundation
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            storageFoundation:
+              csiNodeDriverRegistrar: csiNodeDriverRegistrar
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+    documentSelector:
+      path: kind
+      value: DaemonSet
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: DRIVER_REG_SOCK_PATH
+            value: /var/lib/kubelet/csi-plugins/driverFQDN/csi.sock
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 2
