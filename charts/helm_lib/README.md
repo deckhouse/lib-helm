@@ -64,6 +64,7 @@
 | **Module Controller** |
 | [helm_lib_module_controller_resources](#helm_lib_module_controller_resources) |
 | [helm_lib_module_webhooks_resources](#helm_lib_module_webhooks_resources) |
+| [helm_lib_module_controller_on_master_strategy_and_replicas_for_ha](#helm_lib_module_controller_on_master_strategy_and_replicas_for_ha) |
 | [helm_lib_module_controller_log_level](#helm_lib_module_controller_log_level) |
 | [helm_lib_module_klog_verbosity](#helm_lib_module_klog_verbosity) |
 | **Module Documentation Uri** |
@@ -850,6 +851,19 @@ list:
 
 `{{ include "helm_lib_module_webhooks_resources" . }} `
 
+
+
+### helm_lib_module_controller_on_master_strategy_and_replicas_for_ha
+
+ returns deployment strategy and replicas for a controller on master nodes: two replicas in HA mode, one when the cluster has a single master 
+
+#### Usage
+
+`{{ include "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" . }} `
+
+#### Arguments
+
+-  Template context with .Values, .Chart, etc 
 
 
 ### helm_lib_module_controller_log_level

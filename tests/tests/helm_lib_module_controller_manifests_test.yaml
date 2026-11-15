@@ -601,3 +601,207 @@ tests:
         documentSelector:
           path: kind
           value: Deployment
+
+  - it: runs two replicas on masters in HA mode on a cluster with three masters
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          clusterMasterCount: 3
+          d8SpecificNodeCountByRole:
+            master: 3
+        highAvailability: true
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs two replicas on masters in HA mode when only the master role count is known
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 5
+        highAvailability: true
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs one replica on masters in HA mode on a cluster with one master
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          clusterMasterCount: 1
+          d8SpecificNodeCountByRole:
+            master: 1
+        highAvailability: true
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs one replica on masters when high availability is off
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          clusterMasterCount: 3
+          d8SpecificNodeCountByRole:
+            master: 3
+        highAvailability: false
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: keeps two replicas off masters in HA mode
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          clusterMasterCount: 3
+          d8SpecificNodeCountByRole:
+            master: 3
+        highAvailability: true
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: false
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment

@@ -87,6 +87,8 @@ memory: 50Mi
   {{- $snapshotterEnabled := dig "snapshotterEnabled" true $config }}
   {{- $snapshotterSnapshotNamePrefix := dig "snapshotterSnapshotNamePrefix" false $config }}
   {{- $resizerEnabled := dig "resizerEnabled" true $config }}
+  {{- $resizerHandleVolumeInUseError := dig "resizerHandleVolumeInUseError" true $config }}
+  {{- $attacherEnabled := dig "attacherEnabled" true $config }}
   {{- $syncerEnabled := dig "syncerEnabled" false $config }}
   {{- $topologyEnabled := dig "topologyEnabled" true $config }}
   {{- $capacityEnabled := dig "capacityEnabled" true $config }}
@@ -177,12 +179,14 @@ spec:
       maxAllowed:
         cpu: 50m
         memory: 128Mi
+    {{- if $attacherEnabled }}
     - containerName: "attacher"
       minAllowed:
         {{- include "attacher_resources" $context | nindent 8 }}
       maxAllowed:
         cpu: 50m
         memory: 128Mi
+    {{- end }}
     {{- if $resizerEnabled }}
     - containerName: "resizer"
       minAllowed:
@@ -245,7 +249,7 @@ metadata:
 
 spec:
   {{- if $csiControllerHaMode }}
-  {{- include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
+  {{- include "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   replicas: 1
   strategy:
@@ -354,6 +358,7 @@ spec:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
             {{- include "provisioner_resources" $context | nindent 12 }}
+            {{- if $attacherEnabled }}
       - name: attacher
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 8 }}
         image: {{ $attacherImage | quote }}
@@ -382,6 +387,7 @@ spec:
           requests:
             {{- include "helm_lib_module_ephemeral_storage_logs_with_extra" 10 | nindent 12 }}
             {{- include "attacher_resources" $context | nindent 12 }}
+            {{- end }}
             {{- if $resizerEnabled }}
       - name: resizer
         {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 8 }}
@@ -396,6 +402,9 @@ spec:
         - "--leader-election-renew-deadline=20s"
         - "--leader-election-retry-period=5s"
         - "--workers={{ $resizerWorkers }}"
+        {{- if not $resizerHandleVolumeInUseError }}
+        - "--handle-volume-inuse-error=false"
+        {{- end }}
         env:
         - name: ADDRESS
           value: /csi/csi.sock
