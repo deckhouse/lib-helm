@@ -457,3 +457,315 @@ tests:
         documentSelector:
           path: kind
           value: Deployment
+
+  - it: runs two replicas in HA mode on a cluster with three masters
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        highAvailability: true
+        discovery:
+          kubernetesVersion: "1.25"
+          clusterMasterCount: 3
+          d8SpecificNodeCountByRole: {}
+      testModule: {}
+      _testvalues:
+        controllerImage: controllerImage
+        csiControllerHaMode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs two replicas in HA mode when only the master role count is known
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        highAvailability: true
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole:
+            master: 5
+      testModule: {}
+      _testvalues:
+        controllerImage: controllerImage
+        csiControllerHaMode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs one replica in HA mode on a cluster with one master
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        highAvailability: true
+        discovery:
+          kubernetesVersion: "1.25"
+          clusterMasterCount: 1
+          d8SpecificNodeCountByRole: {}
+      testModule: {}
+      _testvalues:
+        controllerImage: controllerImage
+        csiControllerHaMode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.strategy
+          value:
+            type: RollingUpdate
+            rollingUpdate:
+              maxSurge: 0
+              maxUnavailable: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: runs one replica in HA mode when high availability is off
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        highAvailability: false
+        discovery:
+          kubernetesVersion: "1.25"
+          clusterMasterCount: 3
+          d8SpecificNodeCountByRole: {}
+      testModule: {}
+      _testvalues:
+        controllerImage: controllerImage
+        csiControllerHaMode: true
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: renders the attacher and its VPA policy by default
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: attacher
+          any: true
+        documentSelector:
+          path: kind
+          value: Deployment
+      - contains:
+          path: spec.resourcePolicy.containerPolicies
+          content:
+            containerName: attacher
+          any: true
+        documentIndex: 0
+
+  - it: drops the attacher and its VPA policy when attacherEnabled is false
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        attacherEnabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers
+          content:
+            name: attacher
+          any: true
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: resizer
+        documentSelector:
+          path: kind
+          value: Deployment
+      - notContains:
+          path: spec.resourcePolicy.containerPolicies
+          content:
+            containerName: attacher
+          any: true
+        documentIndex: 0
+
+  - it: keeps the resizer default for in-use errors
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[2].args
+          content: "--handle-volume-inuse-error=false"
+        documentSelector:
+          path: kind
+          value: Deployment
+
+  - it: turns off in-use error handling in the resizer when resizerHandleVolumeInUseError is false
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiExternalAttacher125: csiControllerAttacher125
+              csiExternalProvisioner125: csiControllerProvisioner125
+              csiExternalResizer125: csiControllerResizer125
+              csiExternalSnapshotter125: csiControllerSnapshotter125
+              csiLivenessprobe125: csiLivenessProbe125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        controllerImage: controllerImage
+        resizerHandleVolumeInUseError: false
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[2].name
+          value: resizer
+        documentSelector:
+          path: kind
+          value: Deployment
+      - contains:
+          path: spec.template.spec.containers[2].args
+          content: "--handle-volume-inuse-error=false"
+        documentSelector:
+          path: kind
+          value: Deployment
