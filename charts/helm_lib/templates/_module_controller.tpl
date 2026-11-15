@@ -69,6 +69,15 @@ strategy:
     "get" on <resource>/prometheus-metrics, which the module grants to the Prometheus
     scraper with a Role of its own.
 
+  - controllerMetricsInProcessAuthorization: with controllerMetricsProxyPort, serve the
+    metrics from the controller process itself instead of a kube-rbac-proxy sidecar
+    (default: false). The controller container carries the "https-metrics" port, and the
+    template emits METRICS_BIND_ADDRESS=:<controllerMetricsProxyPort>,
+    METRICS_AUTHORIZATION_NAMESPACE and METRICS_AUTHORIZATION_DEPLOYMENT. The controller
+    must serve HTTPS there and authorize each request the way the proxy did: TokenReview,
+    then SubjectAccessReview for get on deployments/prometheus-metrics of that Deployment.
+    controllerMetricsPort is not used in this mode.
+
     Do NOT pass METRICS_BIND_ADDRESS through additionalControllerEnvs: it is emitted
     here, and a second entry of the same name is what the env-variables-duplicates
     lint rule reports. Omitting a containerPort does not keep a process off the pod IP
@@ -105,6 +114,8 @@ strategy:
   {{- $controllerPort := $config.controllerPort | default 8081 }}
   {{- $controllerMetricsPort := $config.controllerMetricsPort }}
   {{- $controllerMetricsProxyPort := $config.controllerMetricsProxyPort }}
+  {{- $controllerMetricsInProcessAuthorization := and $controllerMetricsProxyPort (dig "controllerMetricsInProcessAuthorization" false $config) }}
+  {{- $kubeRbacProxyEnabled := and $controllerMetricsProxyPort (not $controllerMetricsInProcessAuthorization) }}
 
   {{- /* Get module values */ -}}
   {{- $moduleValues := index $context.Values $valuesKey }}
@@ -147,7 +158,7 @@ spec:
         cpu: {{ $webhooksMaxCpu }}
         memory: {{ $webhooksMaxMemory }}
     {{- end }}
-    {{- if $controllerMetricsProxyPort }}
+    {{- if $kubeRbacProxyEnabled }}
     {{- include "helm_lib_vpa_kube_rbac_proxy_resources" $context | nindent 4 }}
     {{- end }}
   {{- end }}
@@ -235,7 +246,12 @@ spec:
               scheme: HTTP
             periodSeconds: 1
             failureThreshold: 3
-          {{- if and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
+          {{- if $controllerMetricsInProcessAuthorization }}
+          ports:
+            - name: https-metrics
+              containerPort: {{ $controllerMetricsProxyPort }}
+              protocol: TCP
+          {{- else if and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
           ports:
             - name: metrics
               containerPort: {{ $controllerMetricsPort }}
@@ -252,7 +268,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            {{- if $controllerMetricsPort }}
+            {{- if $controllerMetricsInProcessAuthorization }}
+            - name: METRICS_BIND_ADDRESS
+              value: ":{{ $controllerMetricsProxyPort }}"
+            - name: METRICS_AUTHORIZATION_NAMESPACE
+              value: d8-{{ $context.Chart.Name }}
+            - name: METRICS_AUTHORIZATION_DEPLOYMENT
+              value: {{ $fullname }}
+            {{- else if $controllerMetricsPort }}
             {{- /* Loopback when a proxy fronts the endpoint, the pod IP otherwise. This is
                    what the contract rests on: dropping the containerPort below does not stop
                    a process from binding the wildcard, and every module repeating this env
@@ -321,7 +344,7 @@ spec:
               {{- include "helm_lib_module_ephemeral_storage_only_logs" $context | nindent 14 }}
               {{- include "helm_lib_module_webhooks_resources" $context | nindent 14 }}
         {{- end }}
-        {{- if $controllerMetricsProxyPort }}
+        {{- if $kubeRbacProxyEnabled }}
         {{- /* The metrics endpoint of a controller is unauthenticated, and a
                containerPort is reachable from every pod in the cluster. This proxy
                is what turns "reachable by anyone on the pod network" into "reachable
