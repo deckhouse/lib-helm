@@ -53,6 +53,11 @@ strategy:
   - additionalVolumes: additional volumes to add to the pod
   - additionalControllerVolumeMounts: additional volume mounts for controller
   - additionalControllerEnvs: additional environment variables for controller
+  - controllerArgs: arguments for the controller container (default: none)
+  - additionalControllerPorts: additional container ports for the controller, rendered after
+    the metrics port (default: none)
+  - additionalPodAnnotations: additional annotations for the pod template, e.g. checksums of
+    mounted certificates (default: none)
   - controllerImage: custom controller image (default: uses helm_lib_module_image)
   - controllerImageName: image name for helm_lib_module_image (default: "controller")
   - webhooksImageName: image name for webhooks (default: "webhooks")
@@ -104,6 +109,9 @@ strategy:
   {{- $additionalVolumes := $config.additionalVolumes }}
   {{- $additionalControllerVolumeMounts := $config.additionalControllerVolumeMounts }}
   {{- $additionalControllerEnvs := $config.additionalControllerEnvs }}
+  {{- $controllerArgs := $config.controllerArgs }}
+  {{- $additionalControllerPorts := $config.additionalControllerPorts }}
+  {{- $additionalPodAnnotations := $config.additionalPodAnnotations }}
   {{- $controllerImage := $config.controllerImage }}
   {{- $controllerImageName := $config.controllerImageName | default "controller" }}
   {{- $webhooksImageName := $config.webhooksImageName | default "webhooks" }}
@@ -193,14 +201,19 @@ spec:
       app: {{ $fullname }}
   template:
     metadata:
-      {{- if $webhookEnabled }}
-      {{- $certPath := printf "%s.ca" $webhookCertPath }}
-      {{- $certValue := $moduleValues }}
-      {{- range $part := (split "." $certPath) }}
-        {{- $certValue = index $certValue $part }}
-      {{- end }}
+      {{- if or $webhookEnabled $additionalPodAnnotations }}
       annotations:
+        {{- if $webhookEnabled }}
+        {{- $certPath := printf "%s.ca" $webhookCertPath }}
+        {{- $certValue := $moduleValues }}
+        {{- range $part := (split "." $certPath) }}
+          {{- $certValue = index $certValue $part }}
+        {{- end }}
         checksum/ca: {{ $certValue | sha256sum | quote }}
+        {{- end }}
+        {{- if $additionalPodAnnotations }}
+        {{- $additionalPodAnnotations | toYaml | nindent 8 }}
+        {{- end }}
       {{- end }}
       labels:
         app: {{ $fullname }}
@@ -231,6 +244,10 @@ spec:
           image: {{ include "helm_lib_module_image" (list $context $controllerImageName) }}
           {{- end }}
           imagePullPolicy: IfNotPresent
+          {{- if $controllerArgs }}
+          args:
+            {{- $controllerArgs | toYaml | nindent 12 }}
+          {{- end }}
           readinessProbe:
             httpGet:
               path: /readyz
@@ -246,16 +263,21 @@ spec:
               scheme: HTTP
             periodSeconds: 1
             failureThreshold: 3
-          {{- if $controllerMetricsInProcessAuthorization }}
+          {{- $plainMetricsPort := and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
+          {{- if or $controllerMetricsInProcessAuthorization $plainMetricsPort $additionalControllerPorts }}
           ports:
+            {{- if $controllerMetricsInProcessAuthorization }}
             - name: https-metrics
               containerPort: {{ $controllerMetricsProxyPort }}
               protocol: TCP
-          {{- else if and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
-          ports:
+            {{- else if $plainMetricsPort }}
             - name: metrics
               containerPort: {{ $controllerMetricsPort }}
               protocol: TCP
+            {{- end }}
+            {{- if $additionalControllerPorts }}
+            {{- $additionalControllerPorts | toYaml | nindent 12 }}
+            {{- end }}
           {{- end }}
           resources:
             requests:
