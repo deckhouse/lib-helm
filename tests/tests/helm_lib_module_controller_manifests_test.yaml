@@ -805,3 +805,107 @@ tests:
         documentSelector:
           path: kind
           value: Deployment
+
+  - it: serves the metrics from the controller without a kube-rbac-proxy when authorization is in process
+    set:
+      global:
+        enabledModules:
+          - vertical-pod-autoscaler-crd
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+        controllerMetricsInProcessAuthorization: true
+
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 1
+        documentIndex: 2
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: https-metrics
+              containerPort: 4207
+              protocol: TCP
+        documentIndex: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_BIND_ADDRESS
+            value: ":4207"
+        documentIndex: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_AUTHORIZATION_NAMESPACE
+            value: d8-test-module
+        documentIndex: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_AUTHORIZATION_DEPLOYMENT
+            value: controller
+        documentIndex: 2
+      - notContains:
+          path: spec.resourcePolicy.containerPolicies
+          content:
+            containerName: kube-rbac-proxy
+          any: true
+        documentIndex: 0
+
+  - it: keeps the kube-rbac-proxy when in-process authorization is off
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+            common:
+              kubeRbacProxy: sha256:krp789
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        webhookEnabled: false
+        onMasterNode: true
+        controllerMetricsPort: 8080
+        controllerMetricsProxyPort: 4207
+        controllerMetricsInProcessAuthorization: false
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: kube-rbac-proxy
+        documentIndex: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: METRICS_BIND_ADDRESS
+            value: "127.0.0.1:8080"
+        documentIndex: 1
