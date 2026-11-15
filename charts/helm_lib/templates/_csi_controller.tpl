@@ -248,19 +248,8 @@ metadata:
   {{- include "helm_lib_module_labels" (list $context (dict "app" "csi-controller")) | nindent 2 }}
 
 spec:
-  {{- if and $csiControllerHaMode (include "helm_lib_ha_enabled" $context) }}
-  {{- $masterCount := dig "clusterMasterCount" 0 $context.Values.global.discovery | int }}
-  {{- if le $masterCount 0 }}
-  {{- $masterCount = dig "d8SpecificNodeCountByRole" "master" 0 $context.Values.global.discovery | int }}
-  {{- end }}
-  replicas: {{ if eq $masterCount 1 }}1{{ else }}2{{ end }}
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-  {{- else if $csiControllerHaMode }}
-  {{- include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
+  {{- if $csiControllerHaMode }}
+  {{- include "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   replicas: 1
   strategy:

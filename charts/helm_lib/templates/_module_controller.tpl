@@ -12,6 +12,26 @@ cpu: 10m
 memory: 50Mi
 {{- end }}
 
+{{- /* Usage: {{ include "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" . }} */ -}}
+{{- /* returns deployment strategy and replicas for a controller on master nodes: two replicas in HA mode, one when the cluster has a single master */ -}}
+{{- define "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" }}
+{{- /* Template context with .Values, .Chart, etc */ -}}
+  {{- if (include "helm_lib_ha_enabled" .) }}
+    {{- $masterCount := dig "clusterMasterCount" 0 .Values.global.discovery | int }}
+    {{- if le $masterCount 0 }}
+      {{- $masterCount = dig "d8SpecificNodeCountByRole" "master" 0 .Values.global.discovery | int }}
+    {{- end }}
+replicas: {{ if eq $masterCount 1 }}1{{ else }}2{{ end }}
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+  {{- else }}
+{{- include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" . }}
+  {{- end }}
+{{- end }}
+
 {{- /* Usage: {{ include "helm_lib_module_controller_manifests" (list . $config) }} */ -}}
 {{- /*
   Generates controller Deployment, VPA and PDB manifests.
@@ -153,7 +173,7 @@ metadata:
 spec:
   revisionHistoryLimit: 2
   {{- if $onMasterNode }}
-  {{- include "helm_lib_deployment_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
+  {{- include "helm_lib_module_controller_on_master_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- else }}
   {{- include "helm_lib_deployment_strategy_and_replicas_for_ha" $context | nindent 2 }}
   {{- end }}
