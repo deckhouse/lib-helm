@@ -58,6 +58,15 @@ strategy:
     the metrics port (default: none)
   - additionalPodAnnotations: additional annotations for the pod template, e.g. checksums of
     mounted certificates (default: none)
+  - webhooksInController: with webhookEnabled, serve the admission webhooks from the controller
+    process instead of a separate "webhooks" container (default: false). The webhooks container
+    and its VPA policy are not rendered; the controller container gets the "https" port
+    (webhooksPort), the webhook certificate Secret mounted at webhooksCertMountPath, and
+    WEBHOOKS_BIND_ADDRESS=:<webhooksPort> and WEBHOOKS_CERT_DIR=<webhooksCertMountPath>. The
+    controller must serve the webhook handlers there over TLS with tls.crt and tls.key from that
+    directory, and must not report ready before the listener is up: the readiness of the pod is
+    what puts it behind the webhook Service. webhooksImageName and webhooksCommand are not used
+    in this mode.
   - controllerImage: custom controller image (default: uses helm_lib_module_image)
   - controllerImageName: image name for helm_lib_module_image (default: "controller")
   - webhooksImageName: image name for webhooks (default: "webhooks")
@@ -96,6 +105,8 @@ strategy:
   {{- $fullname := $config.fullname | default "controller" }}
   {{- $valuesKey := $config.valuesKey | required "$config.valuesKey is required" }}
   {{- $webhookEnabled := dig "webhookEnabled" false $config }}
+  {{- $webhooksInController := and $webhookEnabled (dig "webhooksInController" false $config) }}
+  {{- $webhooksContainer := and $webhookEnabled (not $webhooksInController) }}
   {{- $webhookCertPath := $config.webhookCertPath | default "internal.customWebhookCert" }}
   {{- $onMasterNode := dig "onMasterNode" true $config }}
   {{- $priorityClass := $config.priorityClass | default "system-cluster-critical" }}
@@ -158,7 +169,7 @@ spec:
       maxAllowed:
         cpu: {{ $controllerMaxCpu }}
         memory: {{ $controllerMaxMemory }}
-    {{- if $webhookEnabled }}
+    {{- if $webhooksContainer }}
     - containerName: "webhooks"
       minAllowed:
         {{- include "helm_lib_module_webhooks_resources" $context | nindent 8 }}
@@ -264,7 +275,7 @@ spec:
             periodSeconds: 1
             failureThreshold: 3
           {{- $plainMetricsPort := and $controllerMetricsPort (not $controllerMetricsProxyPort) }}
-          {{- if or $controllerMetricsInProcessAuthorization $plainMetricsPort $additionalControllerPorts }}
+          {{- if or $controllerMetricsInProcessAuthorization $plainMetricsPort $webhooksInController $additionalControllerPorts }}
           ports:
             {{- if $controllerMetricsInProcessAuthorization }}
             - name: https-metrics
@@ -273,6 +284,11 @@ spec:
             {{- else if $plainMetricsPort }}
             - name: metrics
               containerPort: {{ $controllerMetricsPort }}
+              protocol: TCP
+            {{- end }}
+            {{- if $webhooksInController }}
+            - name: https
+              containerPort: {{ $webhooksPort }}
               protocol: TCP
             {{- end }}
             {{- if $additionalControllerPorts }}
@@ -311,14 +327,27 @@ spec:
               value: ":{{ $controllerMetricsPort }}"
               {{- end }}
             {{- end }}
+            {{- if $webhooksInController }}
+            - name: WEBHOOKS_BIND_ADDRESS
+              value: ":{{ $webhooksPort }}"
+            - name: WEBHOOKS_CERT_DIR
+              value: {{ $webhooksCertMountPath | quote }}
+            {{- end }}
             {{- if $additionalControllerEnvs }}
             {{- $additionalControllerEnvs | toYaml | nindent 12 }}
             {{- end }}
-          {{- if $additionalControllerVolumeMounts }}
+          {{- if or $webhooksInController $additionalControllerVolumeMounts }}
           volumeMounts:
+            {{- if $webhooksInController }}
+            - name: webhook-certs
+              mountPath: {{ $webhooksCertMountPath }}
+              readOnly: true
+            {{- end }}
+            {{- if $additionalControllerVolumeMounts }}
             {{- $additionalControllerVolumeMounts | toYaml | nindent 12 }}
+            {{- end }}
           {{- end }}
-        {{- if $webhookEnabled }}
+        {{- if $webhooksContainer }}
         - name: webhooks
           {{- include "helm_lib_module_container_security_context_pss_restricted_flexible" (dict "ro" true "seccompProfile" true) | nindent 10 }}
           {{- if $webhooksCommand }}
