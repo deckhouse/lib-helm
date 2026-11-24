@@ -143,6 +143,8 @@
 | [helm_lib_prometheus_rules_recursion](#helm_lib_prometheus_rules_recursion) |
 | [helm_lib_prometheus_rules](#helm_lib_prometheus_rules) |
 | [helm_lib_prometheus_target_scrape_timeout_seconds](#helm_lib_prometheus_target_scrape_timeout_seconds) |
+| **Monitoring Resource Not Ready** |
+| [helm_lib_prometheus_rules_resource_not_ready](#helm_lib_prometheus_rules_resource_not_ready) |
 | **Node Affinity** |
 | [helm_lib_internal_check_node_selector_strategy](#helm_lib_internal_check_node_selector_strategy) |
 | [helm_lib_node_selector](#helm_lib_node_selector) |
@@ -1746,6 +1748,24 @@ list:
 list:
 -  Template context with .Values, .Chart, etc 
 -  Target timeout in seconds 
+
+## Monitoring Resource Not Ready
+
+### helm_lib_prometheus_rules_resource_not_ready
+
+ returns the rule group of the D8<Module><Kind>NotReady alerts on <metricPrefix>_resource_ready, for a monitoring/prometheus-rules/*.tpl file 
+ config keys: module (default: Chart.Name in PascalCase), metricPrefix (default: Chart.Name with "_"), for (default "15m"), severity (default "5"), excludeReasons (default Deleting, InUse), faqAnchor, kinds 
+ kinds[] keys: kind (required), role ("connection", "class" or empty), alert (default: StorageConnection, StorageClass or kind), resource (default: kind in lower case), for, severity, faqAnchor 
+
+#### Usage
+
+`{{ include "helm_lib_prometheus_rules_resource_not_ready" (list . (dict "kinds" (list (dict "kind" "HPEStorageConnection" "role" "connection") (dict "kind" "HPEStorageClass" "role" "class")))) }} `
+
+#### Arguments
+
+list:
+-  Template context with .Values, .Chart, etc 
+-  Config dict 
 
 ## Node Affinity
 

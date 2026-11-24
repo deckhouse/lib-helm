@@ -1,0 +1,215 @@
+suite: helm_lib_prometheus_rules_resource_not_ready definition
+templates:
+  - helm_lib_prometheus_rules_resource_not_ready.yaml
+set:
+  global:
+    modules:
+      publicDomainTemplate: ""
+tests:
+  - it: renders the connection and class alerts of a module with a connection
+    set:
+      notReady:
+        kinds:
+          - kind: HPEStorageConnection
+            role: connection
+          - kind: HPEStorageClass
+            role: class
+    asserts:
+      - equal:
+          path: groups[0].name
+          value: kubernetes.test_module.resource_ready
+      - lengthEqual:
+          path: groups[0].rules
+          count: 2
+      - equal:
+          path: groups[0].rules[0].alert
+          value: D8TestModuleStorageConnectionNotReady
+      - equal:
+          path: groups[0].rules[0].expr
+          value: max by (kind, namespace, name, condition, reason) (test_module_resource_ready{kind="HPEStorageConnection",reason!~"Deleting|InUse"}) == 0
+      - equal:
+          path: groups[0].rules[0].for
+          value: 15m
+      - equal:
+          path: groups[0].rules[0].labels
+          value:
+            severity_level: "5"
+            tier: cluster
+      - equal:
+          path: groups[0].rules[0].annotations.summary
+          value: HPEStorageConnection {{ $labels.name }} is not Ready ({{ $labels.condition }} {{ $labels.reason }})
+      - equal:
+          path: groups[0].rules[0].annotations.plk_create_group_if_not_exists__d8_test_module_resources_health
+          value: D8TestModuleResourcesHealth,tier=~tier,prometheus=deckhouse,kubernetes=~kubernetes
+      - equal:
+          path: groups[0].rules[0].annotations.plk_grouped_by__d8_test_module_resources_health
+          value: D8TestModuleResourcesHealth,tier=~tier,prometheus=deckhouse,kubernetes=~kubernetes
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "has not been `True` for 15m"
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "`d8 k get hpestorageconnection\\{\\{ if \\$labels.namespace \\}\\} -n \\{\\{ \\$labels.namespace \\}\\}\\{\\{ end \\}\\} \\{\\{ \\$labels.name \\}\\} -o jsonpath="
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "d8 k -n d8-test-module logs deploy/controller -c controller"
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "- `AuthenticationFailed`: "
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "\\[FAQ of the test-module module\\]\\(https://deckhouse.io/modules/test-module/faq.html\\)"
+      - equal:
+          path: groups[0].rules[1].alert
+          value: D8TestModuleStorageClassNotReady
+      - equal:
+          path: groups[0].rules[1].expr
+          value: max by (kind, namespace, name, condition, reason) (test_module_resource_ready{kind="HPEStorageClass",reason!~"Deleting|InUse"}) == 0
+      - matchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "- `WaitingForDependency`: "
+      - notMatchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "AuthenticationFailed"
+
+  - it: renders the class alert of a module without a connection
+    set:
+      notReady:
+        kinds:
+          - kind: NFSStorageClass
+            role: class
+    asserts:
+      - lengthEqual:
+          path: groups[0].rules
+          count: 1
+      - equal:
+          path: groups[0].rules[0].alert
+          value: D8TestModuleStorageClassNotReady
+      - equal:
+          path: groups[0].rules[0].expr
+          value: max by (kind, namespace, name, condition, reason) (test_module_resource_ready{kind="NFSStorageClass",reason!~"Deleting|InUse"}) == 0
+
+  - it: names the alert after the kind when no role is given
+    set:
+      notReady:
+        kinds:
+          - kind: LVMVolumeGroup
+    asserts:
+      - equal:
+          path: groups[0].rules[0].alert
+          value: D8TestModuleLVMVolumeGroupNotReady
+      - notMatchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "What to check"
+
+  - it: takes the module settings
+    set:
+      notReady:
+        module: CsiHpe
+        metricPrefix: csi_hpe
+        for: 30m
+        severity: 4
+        excludeReasons: ["Deleting"]
+        faqAnchor: conditions-and-reasons
+        kinds:
+          - kind: HPEStorageConnection
+            role: connection
+    asserts:
+      - equal:
+          path: groups[0].name
+          value: kubernetes.csi_hpe.resource_ready
+      - equal:
+          path: groups[0].rules[0].alert
+          value: D8CsiHpeStorageConnectionNotReady
+      - equal:
+          path: groups[0].rules[0].expr
+          value: max by (kind, namespace, name, condition, reason) (csi_hpe_resource_ready{kind="HPEStorageConnection",reason!~"Deleting"}) == 0
+      - equal:
+          path: groups[0].rules[0].for
+          value: 30m
+      - equal:
+          path: groups[0].rules[0].labels.severity_level
+          value: "4"
+      - equal:
+          path: groups[0].rules[0].annotations.plk_grouped_by__d8_csi_hpe_resources_health
+          value: D8CsiHpeResourcesHealth,tier=~tier,prometheus=deckhouse,kubernetes=~kubernetes
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "\\(https://deckhouse.io/modules/test-module/faq.html#conditions-and-reasons\\)"
+
+  - it: takes the settings of a kind over those of the module
+    set:
+      notReady:
+        for: 30m
+        severity: "4"
+        faqAnchor: module-anchor
+        kinds:
+          - kind: SCSITarget
+            role: connection
+            alert: Target
+            resource: scsitargets.storage.deckhouse.io
+            for: 1h
+            severity: "6"
+            faqAnchor: kind-anchor
+    asserts:
+      - equal:
+          path: groups[0].rules[0].alert
+          value: D8TestModuleTargetNotReady
+      - equal:
+          path: groups[0].rules[0].for
+          value: 1h
+      - equal:
+          path: groups[0].rules[0].labels.severity_level
+          value: "6"
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "`d8 k get scsitargets.storage.deckhouse.io"
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "faq.html#kind-anchor\\)"
+
+  - it: excludes no reason when excludeReasons is empty
+    set:
+      notReady:
+        excludeReasons: []
+        kinds:
+          - kind: HPEStorageClass
+            role: class
+    asserts:
+      - equal:
+          path: groups[0].rules[0].expr
+          value: max by (kind, namespace, name, condition, reason) (test_module_resource_ready{kind="HPEStorageClass"}) == 0
+
+  - it: links the documentation of the cluster when it has a public domain
+    set:
+      global:
+        modules:
+          https:
+            mode: CertManager
+          publicDomainTemplate: "%s.example.com"
+      notReady:
+        kinds:
+          - kind: HPEStorageClass
+            role: class
+    asserts:
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "\\(https://documentation.example.com/modules/test-module/faq.html\\)"
+
+  - it: fails without kinds
+    set:
+      notReady:
+        kinds: []
+    asserts:
+      - failedTemplate:
+          errorPattern: "kinds is empty"
+
+  - it: fails on an unknown role
+    set:
+      notReady:
+        kinds:
+          - kind: HPEStorageClass
+            role: pool
+    asserts:
+      - failedTemplate:
+          errorPattern: "role \"pool\" of HPEStorageClass is not connection or class"
