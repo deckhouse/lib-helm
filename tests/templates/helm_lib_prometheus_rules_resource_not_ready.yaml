@@ -1,0 +1,2 @@
+groups:
+{{- include "helm_lib_prometheus_rules_resource_not_ready" (list . .Values.notReady) | nindent 2 }}

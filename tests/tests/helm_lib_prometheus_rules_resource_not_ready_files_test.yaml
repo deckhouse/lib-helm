@@ -1,0 +1,50 @@
+suite: helm_lib_prometheus_rules_resource_not_ready in a rules file
+templates:
+  - helm_lib_prometheus_rules_resource_not_ready_files.yaml
+set:
+  global:
+    enabledModules: []
+    modules:
+      publicDomainTemplate: ""
+    discovery:
+      prometheusScrapeInterval: 30
+      apiVersions: []
+tests:
+  - it: becomes a PrometheusRule through helm_lib_prometheus_rules_recursion
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: kind
+          value: PrometheusRule
+      - equal:
+          path: metadata.name
+          value: test-module-resources
+      - equal:
+          path: spec.groups[0].name
+          value: kubernetes.test_module.resource_ready
+      - equal:
+          path: spec.groups[0].rules[0].alert
+          value: D8TestModuleStorageConnectionNotReady
+      - equal:
+          path: spec.groups[0].rules[1].alert
+          value: D8TestModuleStorageClassNotReady
+      - equal:
+          path: spec.groups[0].rules[0].annotations.summary
+          value: HPEStorageConnection {{ $labels.name }} is not Ready ({{ $labels.condition }} {{ $labels.reason }})
+
+  - it: becomes a ClusterObservabilityMetricsRulesGroup with the observability module
+    set:
+      global:
+        enabledModules: ["observability"]
+        discovery:
+          apiVersions: ["observability.deckhouse.io/v1alpha1/ClusterObservabilityMetricsRulesGroup"]
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: kind
+          value: ClusterObservabilityMetricsRulesGroup
+      - equal:
+          path: spec.rules[0].alert
+          value: D8TestModuleStorageConnectionNotReady
