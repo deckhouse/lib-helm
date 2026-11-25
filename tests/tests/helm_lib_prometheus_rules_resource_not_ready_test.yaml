@@ -9,6 +9,8 @@ tests:
   - it: renders the connection and class alerts of a module with a connection
     set:
       notReady:
+        hasBackendProbe: true
+        hasConnection: true
         kinds:
           - kind: HPEStorageConnection
             role: connection
@@ -88,6 +90,94 @@ tests:
       - equal:
           path: groups[0].rules[0].expr
           value: max by (kind, namespace, name, condition, reason) (test_module_resource_ready{kind="NFSStorageClass",reason!~"Deleting|InUse"}) == 0
+
+  - it: lists only the reasons of the role by default
+    set:
+      notReady:
+        kinds:
+          - kind: HuaweiStorageConnection
+            role: connection
+          - kind: S3StorageClass
+            role: class
+    asserts:
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "- `ReconcileFailed`: the controller could not write the driver configuration\\. "
+      - notMatchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "Unreachable|AuthenticationFailed|CertificateInvalid|InvalidCredentials|probe"
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "- `Pending`: "
+      - notMatchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "WaitingForDependency|connection|Unreachable|AuthenticationFailed"
+      - matchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "- `ReconcileFailed`: the controller could not create or update the StorageClass"
+
+  - it: takes hasBackendProbe and hasConnection of a kind over those of the module
+    set:
+      notReady:
+        hasBackendProbe: true
+        hasConnection: true
+        kinds:
+          - kind: YadroTatlinUnifiedStorageConnection
+            role: connection
+            hasBackendProbe: false
+          - kind: NetappStorageConnection
+            role: connection
+          - kind: NFSStorageClass
+            role: class
+            hasConnection: false
+          - kind: HPEStorageClass
+            role: class
+    asserts:
+      - notMatchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "AuthenticationFailed"
+      - matchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "- `AuthenticationFailed`: "
+      - notMatchRegex:
+          path: groups[0].rules[2].annotations.description
+          pattern: "WaitingForDependency"
+      - matchRegex:
+          path: groups[0].rules[3].annotations.description
+          pattern: "- `WaitingForDependency`: "
+
+  - it: lists the reasons of the module after the common ones
+    set:
+      notReady:
+        kinds:
+          - kind: MindUstorStorageConnection
+            role: connection
+            reasons:
+              - reason: UserLocked
+                text: a uStor administrator has to unlock the user.
+          - kind: LVMVolumeGroup
+            reasons:
+              - reason: NodeNotReady
+                text: the node of the group is not Ready.
+    asserts:
+      - matchRegex:
+          path: groups[0].rules[0].annotations.description
+          pattern: "the driver configuration\\. The message and the controller log have the error\\.\\n- `UserLocked`: a uStor administrator has to unlock the user\\.\\n- `Pending`: "
+      - matchRegex:
+          path: groups[0].rules[1].annotations.description
+          pattern: "What to check, by reason:\\n\\n- `NodeNotReady`: the node of the group is not Ready\\.\\n\\nThe meaning"
+
+  - it: fails on a reason without a text
+    set:
+      notReady:
+        kinds:
+          - kind: HPEStorageConnection
+            role: connection
+            reasons:
+              - reason: UserLocked
+    asserts:
+      - failedTemplate:
+          errorPattern: "a reason of HPEStorageConnection needs reason and text"
 
   - it: names the alert after the kind when no role is given
     set:
