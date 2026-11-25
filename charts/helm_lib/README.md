@@ -1754,8 +1754,10 @@ list:
 ### helm_lib_prometheus_rules_resource_not_ready
 
  returns the rule group of the D8<Module><Kind>NotReady alerts on <metricPrefix>_resource_ready, for a monitoring/prometheus-rules/*.tpl file 
- config keys: module (default: Chart.Name in PascalCase), metricPrefix (default: Chart.Name with "_"), for (default "15m"), severity (default "5"), excludeReasons (default Deleting, InUse), faqAnchor, kinds 
- kinds[] keys: kind (required), role ("connection", "class" or empty), alert (default: StorageConnection, StorageClass or kind), resource (default: kind in lower case), for, severity, faqAnchor 
+ config keys: module (default: Chart.Name in PascalCase), metricPrefix (default: Chart.Name with "_"), for (default "15m"), severity (default "5"), excludeReasons (default Deleting, InUse), faqAnchor, hasBackendProbe (default false), hasConnection (default false), kinds 
+ kinds[] keys: kind (required), role ("connection", "class" or empty), alert (default: StorageConnection, StorageClass or kind), resource (default: kind in lower case), for, severity, faqAnchor, hasBackendProbe, hasConnection, reasons (list of dicts with reason and text) 
+ hasBackendProbe: a connection probes its storage system (BackendReady), so the runbook lists Unreachable, AuthenticationFailed, CertificateInvalid and InvalidCredentials 
+ hasConnection: a class refers to a connection, so the runbook lists WaitingForDependency 
 
 #### Usage
 
