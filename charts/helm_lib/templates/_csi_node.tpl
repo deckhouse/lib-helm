@@ -9,6 +9,9 @@ memory: 25Mi
 {{- end }}
 
 {{- /* Usage: {{ include "helm_lib_csi_node_manifests" (list . $config) }} */ -}}
+{{- /* renders the CSI node DaemonSet with its VerticalPodAutoscaler and SecurityPolicyException */ -}}
+{{- /* node-driver-registrar listens on no TCP port and has no liveness probe unless `$config.additionalNodeLivenessProbesCmd` gives it an exec one: the registrar exits by itself when kubelet reports a failed registration, and its `--mode=kubelet-registration-probe` has been a no-op since v2.9.0 */ -}}
+{{- /* `$config.livenessProbePort` and `$config.startupProbeFailureThreshold` are no longer used: a caller that still sets them renders without error, and no port, `--http-endpoint` or `httpGet` probe is added */ -}}
 {{- define "helm_lib_csi_node_manifests" }}
   {{- $context := index . 0 }}
 
@@ -24,7 +27,6 @@ memory: 25Mi
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
   {{- $additionalNodePorts := $config.additionalNodePorts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
-  {{- $livenessProbePort := $config.livenessProbePort }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
   {{- $customNodeSelector := $config.customNodeSelector }}
   {{- $forceCsiNodeAndStaticNodesDepoloy := $config.forceCsiNodeAndStaticNodesDepoloy | default false }}
@@ -43,7 +45,6 @@ memory: 25Mi
   {{- if kindIs "bool" $config.csiNodeHostPID }}
     {{- $csiNodeHostPID = toString $config.csiNodeHostPID }}
   {{- end }}
-  {{- $startupProbeFailureThreshold := $config.startupProbeFailureThreshold | default 0 }}
   {{- $dnsPolicy := $config.dnsPolicy | default "ClusterFirstWithHostNet" }}
   {{- $securityPolicyExceptionEnabled := $config.securityPolicyExceptionEnabled | default false }}
   {{- $kubernetesSemVer := semver $context.Values.global.discovery.kubernetesVersion }}
@@ -158,9 +159,6 @@ spec:
         - "--v={{ include "helm_lib_module_klog_verbosity" $context }}"
         - "--csi-address=$(CSI_ENDPOINT)"
         - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
-        {{- if $livenessProbePort }}
-        - "--http-endpoint=:{{ $livenessProbePort }}"
-        {{- end }}
         env:
         - name: CSI_ENDPOINT
           value: "/csi/csi.sock"
@@ -180,28 +178,6 @@ spec:
           exec:
             command:
         {{- $additionalNodeLivenessProbesCmd | toYaml | nindent 12 }}
-      {{- else if $livenessProbePort }}
-        {{- /*
-          The probe belongs to the container that serves the port: it is
-          node-driver-registrar that listens on --http-endpoint above, and
-          /healthz there reports whether registration succeeded. Restarting the
-          registrar is exactly the remedy for a failed registration.
-        */}}
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: {{ $livenessProbePort }}
-          initialDelaySeconds: 5
-          timeoutSeconds: 5
-      {{- end }}
-      {{- if and $livenessProbePort $startupProbeFailureThreshold }}
-        startupProbe:
-          httpGet:
-            path: /healthz
-            port: {{ $livenessProbePort }}
-          periodSeconds: 10
-          failureThreshold: {{ $startupProbeFailureThreshold }}
-          timeoutSeconds: 5
       {{- end }}
         volumeMounts:
         - name: plugin-dir
@@ -243,20 +219,6 @@ spec:
         lifecycle:
           {{- $csiNodeLifecycle | toYaml | nindent 10 }}
       {{- end }}
-        {{- /*
-          No httpGet probe here on purpose. livenessProbePort is served by
-          node-driver-registrar, not by the driver, so a probe on it made this
-          container's life depend on a sibling's - and the registrar exits by
-          design when registration fails ("restarting registration container").
-          The two then deadlocked: the registrar exited, its port went with it,
-          the probe killed the driver, the CSI socket went away, and the
-          restarted registrar could no longer connect to it ("Still
-          connecting" -> "context deadline exceeded"). Observed on a csi-hpe
-          node with 17 restarts and no csi.hpe.com in its CSINode while five
-          sibling nodes were fine. The probe never reported on this container
-          anyway: once registration succeeded it stayed green regardless of the
-          driver's own state.
-        */}}
         volumeMounts:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet
