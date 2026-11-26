@@ -284,7 +284,7 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].ports
 
-  - it: gives the port probes to the container that serves the port
+  - it: ignores livenessProbePort and startupProbeFailureThreshold of the node plugin
 
     set:
       global:
@@ -304,23 +304,25 @@ tests:
         driverFQDN: driverFQDN
         livenessProbePort: 4242
         startupProbeFailureThreshold: 30
-
+    documentSelector:
+      path: kind
+      value: DaemonSet
     asserts:
-      # node-driver-registrar is the container that listens on --http-endpoint,
-      # so the probes on that port belong to it. Probing it from the driver
-      # container made the driver's life depend on a sibling that exits by
-      # design when registration fails, and the two deadlocked: the registrar
-      # exited, its port went with it, the probe killed the driver, the CSI
-      # socket disappeared, and the restarted registrar could no longer reach it.
       - equal:
           path: spec.template.spec.containers[0].name
           value: node-driver-registrar
       - equal:
-          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
-          value: 4242
-      - equal:
-          path: spec.template.spec.containers[0].startupProbe.httpGet.port
-          value: 4242
+          path: spec.template.spec.containers[0].args
+          value:
+            - "--v=2"
+            - "--csi-address=$(CSI_ENDPOINT)"
+            - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+      - notExists:
+          path: spec.template.spec.containers[0].ports
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe
       - equal:
           path: spec.template.spec.containers[1].name
           value: node
@@ -328,8 +330,10 @@ tests:
           path: spec.template.spec.containers[1].livenessProbe
       - notExists:
           path: spec.template.spec.containers[1].startupProbe
+      - matchSnapshot:
+          path: spec.template.spec.containers[0]
 
-  - it: prefers an explicit exec liveness command over the served port
+  - it: gives node-driver-registrar the exec liveness command the module supplies
 
     set:
       global:
@@ -351,10 +355,10 @@ tests:
         additionalNodeLivenessProbesCmd:
           - /probe
           - --check
-
+    documentSelector:
+      path: kind
+      value: DaemonSet
     asserts:
-      # A container takes only one livenessProbe, so a module that supplies its
-      # own command keeps it and the httpGet is left out.
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.exec.command
           value:
@@ -362,6 +366,9 @@ tests:
             - --check
       - notExists:
           path: spec.template.spec.containers[0].livenessProbe.httpGet
+      - notContains:
+          path: spec.template.spec.containers[0].args
+          content: "--http-endpoint=:4242"
 
   - it: passes the module logLevel to node-driver-registrar as klog verbosity
 

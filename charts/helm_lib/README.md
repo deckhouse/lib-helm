@@ -46,6 +46,8 @@
 | [helm_lib_cluster_prefix](#helm_lib_cluster_prefix) |
 | **Csi Controller** |
 | [helm_lib_csi_image_with_common_fallback](#helm_lib_csi_image_with_common_fallback) |
+| **Csi Node** |
+| [helm_lib_csi_node_manifests](#helm_lib_csi_node_manifests) |
 | **Csi Security Policy Exception** |
 | [helm_lib_csi_spe_container_relaxations](#helm_lib_csi_spe_container_relaxations) |
 | [helm_lib_csi_spe_host_ports](#helm_lib_csi_spe_host_ports) |
@@ -715,6 +717,19 @@ list:
 -  Template context with .Values, .Chart, etc 
 -  Container raw name 
 -  Kubernetes semantic version 
+
+## Csi Node
+
+### helm_lib_csi_node_manifests
+
+ renders the CSI node DaemonSet with its VerticalPodAutoscaler and SecurityPolicyException 
+ node-driver-registrar listens on no TCP port and has no liveness probe unless `$config.additionalNodeLivenessProbesCmd` gives it an exec one: the registrar exits by itself when kubelet reports a failed registration, and its `--mode=kubelet-registration-probe` has been a no-op since v2.9.0 
+ `$config.livenessProbePort` and `$config.startupProbeFailureThreshold` are no longer used: a caller that still sets them renders without error, and no port, `--http-endpoint` or `httpGet` probe is added 
+
+#### Usage
+
+`{{ include "helm_lib_csi_node_manifests" (list . $config) }} `
+
 
 ## Csi Security Policy Exception
 

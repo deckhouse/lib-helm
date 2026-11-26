@@ -1,0 +1,38 @@
+ignores livenessProbePort and startupProbeFailureThreshold of the node plugin:
+  1: |
+    args:
+      - --v=2
+      - --csi-address=$(CSI_ENDPOINT)
+      - --kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)
+    env:
+      - name: CSI_ENDPOINT
+        value: /csi/csi.sock
+      - name: DRIVER_REG_SOCK_PATH
+        value: /var/lib/kubelet/csi-plugins/driverFQDN/csi.sock
+      - name: KUBE_NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+    image: deckhouse.io/deckhouse/ce@csiNodeDriverRegistrar125
+    name: node-driver-registrar
+    resources:
+      requests:
+        cpu: 12m
+        ephemeral-storage: 50Mi
+        memory: 25Mi
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - mountPath: /csi
+        name: plugin-dir
+      - mountPath: /registration
+        name: registration-dir
