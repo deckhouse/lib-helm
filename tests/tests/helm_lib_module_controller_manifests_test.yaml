@@ -1473,3 +1473,93 @@ tests:
         documentSelector:
           path: kind
           value: VerticalPodAutoscaler
+
+  - it: renders additionalDeploymentLabels on the Deployment only
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        onMasterNode: false
+        webhookEnabled: false
+        additionalDeploymentLabels:
+          storage-status.storage.deckhouse.io/availabilityCheck: controller
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app: controller
+            heritage: deckhouse
+            module: test-module
+            storage-status.storage.deckhouse.io/availabilityCheck: controller
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app: controller
+        documentSelector:
+          path: kind
+          value: Deployment
+      - equal:
+          path: spec.template.metadata.labels
+          value:
+            app: controller
+        documentSelector:
+          path: kind
+          value: Deployment
+      - notExists:
+          path: metadata.labels["storage-status.storage.deckhouse.io/availabilityCheck"]
+        documentSelector:
+          path: kind
+          value: PodDisruptionBudget
+
+  - it: keeps app, heritage and module of the Deployment over additionalDeploymentLabels
+    set:
+      global:
+        enabledModules: []
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            testModule:
+              controller: sha256:abc123
+        discovery:
+          d8SpecificNodeCountByRole:
+            master: 3
+      testModule:
+        logLevel: INFO
+      _testvalues:
+        valuesKey: testModule
+        onMasterNode: false
+        webhookEnabled: false
+        additionalDeploymentLabels:
+          app: other
+          heritage: other
+          module: other
+    asserts:
+      - equal:
+          path: metadata.labels
+          value:
+            app: controller
+            heritage: deckhouse
+            module: test-module
+        documentSelector:
+          path: kind
+          value: Deployment

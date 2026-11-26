@@ -45,6 +45,9 @@ strategy:
   - priorityClass: priority class name (default: "system-cluster-critical")
   - podSecurityContext: "deckhouse" or "nobody" (default: "nobody")
   - additionalLabels: additional labels for VPA
+  - additionalDeploymentLabels: additional labels for the metadata of the controller Deployment,
+    e.g. storage-status.storage.deckhouse.io/availabilityCheck (default: none). They do not reach
+    the pod template or the selector; app, heritage and module cannot be overridden.
   - controllerMaxCpu: max CPU for controller VPA (default: "200m")
   - controllerMaxMemory: max memory for controller VPA (default: "256Mi")
   - webhooksMaxCpu: max CPU for webhooks VPA (default: "25m")
@@ -112,6 +115,7 @@ strategy:
   {{- $priorityClass := $config.priorityClass | default "system-cluster-critical" }}
   {{- $podSecurityContext := $config.podSecurityContext | default "nobody" }}
   {{- $additionalLabels := $config.additionalLabels | default dict }}
+  {{- $deploymentLabels := merge (dict "app" $fullname) (omit ($config.additionalDeploymentLabels | default dict) "heritage" "module") }}
   {{- $controllerMaxCpu := $config.controllerMaxCpu | default "200m" }}
   {{- $controllerMaxMemory := $config.controllerMaxMemory | default "256Mi" }}
   {{- $webhooksMaxCpu := $config.webhooksMaxCpu | default "25m" }}
@@ -199,7 +203,7 @@ kind: Deployment
 metadata:
   name: {{ $fullname }}
   namespace: d8-{{ $context.Chart.Name }}
-  {{- include "helm_lib_module_labels" (list $context (dict "app" $fullname)) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list $context $deploymentLabels) | nindent 2 }}
 spec:
   revisionHistoryLimit: 2
   {{- if $onMasterNode }}
