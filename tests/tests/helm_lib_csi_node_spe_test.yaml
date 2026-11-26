@@ -664,6 +664,45 @@ tests:
               metadata:
                 description: "Port 4202 (https-metrics) of the kube-rbac-proxy container, bound on the node because the CSI Node Pod runs in the host network."
 
+  - it: covers the additionalNodePorts of the node container in the host network
+    set:
+      global:
+        modules:
+          placement: {}
+        enabledModules:
+          - admission-policy-engine-crd
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+          d8SpecificNodeCountByRole: {}
+      _testvalues:
+        nodeImage: nodeImage
+        driverFQDN: test.csi.example.com
+        securityPolicyExceptionEnabled: true
+        forceCsiNodeAndStaticNodesDepoloy: true
+        additionalNodePorts:
+          - name: https-metrics
+            containerPort: 4271
+            protocol: TCP
+    documentSelector:
+      path: kind
+      value: SecurityPolicyException
+    asserts:
+      - equal:
+          path: spec.network.hostPorts
+          value:
+            - port: 4271
+              protocol: TCP
+              metadata:
+                description: "Port 4271 (https-metrics) of the node container, bound on the node because the CSI Node Pod runs in the host network."
+      - notExists:
+          path: spec.securityContext.capabilities
+
   - it: does not render hostPorts when the node does not run in the host network
     set:
       global:
