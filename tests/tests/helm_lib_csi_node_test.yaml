@@ -248,6 +248,42 @@ tests:
       - notExists:
           path: spec.template.spec.containers[1].ports
 
+  - it: declares additionalNodePorts on the node container
+
+    set:
+      global:
+        modules:
+          placement: {}
+        modulesImages:
+          registry:
+            base: "deckhouse.io/deckhouse/ce"
+          digests:
+            common:
+              csiNodeDriverRegistrar125: csiNodeDriverRegistrar125
+        discovery:
+          kubernetesVersion: "1.25"
+      _testvalues:
+        forceCsiNodeAndStaticNodesDepoloy: true
+        nodeImage: nodeImage
+        driverFQDN: driverFQDN
+        additionalNodePorts:
+          - name: https-metrics
+            containerPort: 4271
+            protocol: TCP
+
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].name
+          value: node
+      - equal:
+          path: spec.template.spec.containers[1].ports
+          value:
+            - name: https-metrics
+              containerPort: 4271
+              protocol: TCP
+      - notExists:
+          path: spec.template.spec.containers[0].ports
+
   - it: gives the port probes to the container that serves the port
 
     set:

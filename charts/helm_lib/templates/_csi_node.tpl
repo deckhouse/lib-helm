@@ -22,6 +22,7 @@ memory: 25Mi
   {{- $additionalNodeArgs := $config.additionalNodeArgs }}
   {{- $additionalNodeVolumes := $config.additionalNodeVolumes }}
   {{- $additionalNodeVolumeMounts := $config.additionalNodeVolumeMounts }}
+  {{- $additionalNodePorts := $config.additionalNodePorts }}
   {{- $additionalNodeLivenessProbesCmd := $config.additionalNodeLivenessProbesCmd }}
   {{- $livenessProbePort := $config.livenessProbePort }}
   {{- $additionalNodeSelectorTerms := $config.additionalNodeSelectorTerms }}
@@ -234,6 +235,10 @@ spec:
         env:
         {{- $additionalNodeEnvs | toYaml | nindent 8 }}
       {{- end }}
+      {{- if $additionalNodePorts }}
+        ports:
+        {{- $additionalNodePorts | toYaml | nindent 8 }}
+      {{- end }}
       {{- if $csiNodeLifecycle }}
         lifecycle:
           {{- $csiNodeLifecycle | toYaml | nindent 10 }}
@@ -308,7 +313,8 @@ spec:
       {{- end }}
 
 {{- if and $securityPolicyExceptionEnabled ($context.Values.global.enabledModules | has "admission-policy-engine-crd") }}
-{{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat ($additionalContainers | default list) ($initContainers | default list)) (eq $csiNodeHostNetwork "true")) | fromYaml }}
+{{- $nodeContainer := dict "name" "node" "securityContext" (dict "allowPrivilegeEscalation" true) "ports" ($additionalNodePorts | default list) }}
+{{- $relaxations := include "helm_lib_csi_spe_container_relaxations" (list (concat (list $nodeContainer) ($additionalContainers | default list) ($initContainers | default list)) (eq $csiNodeHostNetwork "true")) | fromYaml }}
 {{- $capabilityValues := $relaxations.capabilityValues }}
 {{- if $setSysAdminCapability }}
   {{- $capabilityValues = prepend $capabilityValues "SYS_ADMIN" | uniq }}
